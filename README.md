@@ -15,4 +15,5 @@ Hot to setup ink! 3.0 and Canvas Node for the ink! 3.0 workshop at Sub0 2020.
         - Example for `erc20`: `cargo contract new erc20`
 1. Git clone and install the Canvas node: https://github.com/paritytech/canvas-node
     - Install with: `cargo build --release`
-    - Run with: `cargo run --release -- --dev`
+    - Run local development chain with: `cargo run --release -- --dev`
+    - Reset local development chain with: `cargo run --release -- purge-chain --dev`
