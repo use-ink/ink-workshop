@@ -1,5 +1,6 @@
-# ink-3.0-workshop-setup
-Hot to setup ink! 3.0 and Canvas Node for the ink! 3.0 workshop at Sub0 2020.
+# ink! 3.0 workshop setup
+
+How to setup ink! 3.0 and Canvas Node for the ink! 3.0 workshop at Sub0 2020.
 
 1. Get the `rustup` Rust installer: https://rustup.rs/
 1. Default to the nightly compiler from 2020-10-14:
