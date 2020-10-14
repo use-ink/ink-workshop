@@ -20,6 +20,8 @@ How to setup ink! 3.0 and Canvas Node for the ink! 3.0 workshop at Sub0 2020.
         - Example for `flipper`: `cargo contract new flipper`
 1. Install the Canvas node: https://github.com/paritytech/canvas-node
     - Install with:
-        - `cargo +nightly-2020-10-06 install canvas-node --git https://github.com/paritytech/canvas-node.git --tag v0.1.0 --force`
+      ```
+      cargo +nightly-2020-10-06 install canvas-node --git https://github.com/paritytech/canvas-node.git --tag v0.1.0 --force
+      ```
     - Run local development chain with: `canvas --dev`
     - Reset local development chain with: `canvas purge-chain --dev`
