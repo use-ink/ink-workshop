@@ -7,7 +7,7 @@ How to setup ink! 3.0 and Canvas Node for the ink! 3.0 workshop at Sub0 2020.
     - `rustup install nightly-2020-10-06`
     - `rustup target add wasm32-unknown-unknown --toolchain nightly-2020-10-06`
 1. Install Binaryen's WebAssembly optimizer:
-    - Download at: https://github.com/WebAssembly/binaryen#tools
+    - Download at: https://github.com/WebAssembly/binaryen#building
 1. Default to the nightly compiler from 2020-10-14:
     - `rustup default nightly-2020-10-14`
 1. Install `rust-src` component from `rustup`:
