@@ -1,7 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 #[ink::contract]
-mod game {
+mod sqink_splash {
     use ink::{
         env::{
             call::{
@@ -16,17 +16,8 @@ mod game {
         storage::Mapping,
     };
 
-    type Gas = u64;
-    type Width = u32;
-    type Height = u32;
-    type X = u32;
-    type Y = u32;
-
-    type PlayerId = AccountId;
-    type Score = u32;
-
     // What each player returns for each round.
-    type PlayerTurn = (X, Y);
+    type PlayerTurn = (u32, u32);
 
     // We keep a gas allowance:
     //   * During each round this is how much gas a player has available.
@@ -41,7 +32,7 @@ mod game {
     const GAS_ALLOWANCE_PER_ROUND: i32 = 750_000_000;
 
     #[ink(storage)]
-    pub struct Game {
+    pub struct SqinkSplash {
         /// Privileged account to control the game.
         admin: AccountId,
         /// Mapping of all players.
@@ -49,13 +40,13 @@ mod game {
         /// Vector with all players, since we can't iterate over the `players` `Mapping`.
         all_players: Vec<AccountId>,
         /// Individual pixels with information about who painted them.
-        pixels: Mapping<(X, Y), Pixel>,
+        pixels: Mapping<(u32, u32), Pixel>,
         /// Playground width.
-        width: Width,
+        width: u32,
         /// Playground height.
-        height: Height,
+        height: u32,
         /// Keeps track of each players score.
-        _scoreboard: Mapping<PlayerId, Score>,
+        _scoreboard: Mapping<AccountId, u32>,
     }
 
     #[derive(scale::Decode, scale::Encode)]
@@ -70,7 +61,7 @@ mod game {
         )
     )]
     struct Player {
-        id: PlayerId,
+        id: AccountId,
         gas_balance: GasAllowance,
     }
 
@@ -80,25 +71,25 @@ mod game {
         derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
     )]
     struct Pixel {
-        owner: Option<PlayerId>,
+        owner: Option<AccountId>,
     }
 
     #[ink(event)]
     pub struct Scoreboard {
-        scoreboard: Vec<(PlayerId, Score)>,
+        scoreboard: Vec<(AccountId, u32)>,
     }
 
     #[ink(event)]
     #[derive(Debug)]
     pub struct PaintedPixel {
         player: AccountId,
-        pixel: (X, Y),
+        pixel: (u32, u32),
     }
 
-    impl Game {
+    impl SqinkSplash {
         /// Set up a new game.
         #[ink(constructor)]
-        pub fn new(admin: Option<AccountId>, width: Width, height: Height) -> Self {
+        pub fn new(admin: Option<AccountId>, width: u32, height: u32) -> Self {
             // enable re-entrancy
             let admin = admin.unwrap_or_else(|| Self::env().account_id());
             Self {
@@ -114,7 +105,7 @@ mod game {
 
         /// Registers a new player.
         #[ink(message)]
-        pub fn register_player(&mut self, id: PlayerId) {
+        pub fn register_player(&mut self, id: AccountId) {
             // TODO we should penalize the player if it's already registered.
             self.players.insert(id, &Player { id, gas_balance: 0 });
 
@@ -155,7 +146,7 @@ mod game {
             let max_gas = player.gas_balance;
 
             let gas_left_before = self.env().gas_left();
-            let (x, y) = self.fetch_player_turn(&player, max_gas as Gas);
+            let (x, y) = self.fetch_player_turn(&player, max_gas as u64);
             let gas_left_after = self.env().gas_left();
 
             let gas_used = gas_left_before - gas_left_after;
@@ -211,7 +202,7 @@ mod game {
 
         /// Executes a cross-contract call to a player in order to
         /// fetch the pixel that the player wants to paint.
-        fn fetch_player_turn(&self, player: &Player, max_gas: Gas) -> PlayerTurn {
+        fn fetch_player_turn(&self, player: &Player, max_gas: u64) -> PlayerTurn {
             ink::env::debug_println!("calling player {:?}", player.id);
             ink::env::debug_println!("max gas {:?}", max_gas);
             let ret: PlayerTurn = build_call::<DefaultEnvironment>()
@@ -231,7 +222,7 @@ mod game {
 
         /// Returns the dimension of the playground.
         #[ink(message)]
-        pub fn get_dimensions(&self) -> (Width, Height) {
+        pub fn get_dimensions(&self) -> (u32, u32) {
             (self.width, self.height)
         }
     }
