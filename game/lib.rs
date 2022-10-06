@@ -10,220 +10,282 @@ mod sqink_splash {
                 ExecutionInput,
                 Selector,
             },
+            CallFlags,
             DefaultEnvironment,
         },
-        prelude::vec::Vec,
-        storage::Mapping,
+        prelude::{
+            collections::BTreeMap,
+            vec::Vec,
+        },
+        storage::{
+            Lazy,
+            Mapping,
+        },
     };
 
-    // What each player returns for each round.
-    type PlayerTurn = (u32, u32);
+    /// The amount of players that are allowed to register for a single game.
+    const PLAYER_LIMIT: usize = 25;
 
-    // We keep a gas allowance:
-    //   * During each round this is how much gas a player has available.
-    //   * During each round each player gets additional `GAS_CREDITS` added
-    //     to their allowance. This is on top of what they haven't spent last
-    //     time.
-    //   * The value can also be negative, there are penalties for e.g.
-    //     over-painting pixels.
-    type GasAllowance = i32;
-
-    // The amount of gas allowance each player gets credited with each round.
-    const GAS_ALLOWANCE_PER_ROUND: i32 = 750_000_000;
+    /// How much score should be addded per field that is occupied by a user.
+    const SCORE_PER_FIELD: u64 = 1_000_000_000;
 
     #[ink(storage)]
-    pub struct SqinkSplash {
-        /// Privileged account to control the game.
+    pub struct SquinkSplash {
+        /// Owner of the contract. Can initiate a new game.
         admin: AccountId,
-        /// Mapping of all players.
-        players: Mapping<AccountId, Player>,
-        /// Vector with all players, since we can't iterate over the `players` `Mapping`.
-        all_players: Vec<AccountId>,
-        /// Individual pixels with information about who painted them.
-        pixels: Mapping<(u32, u32), Pixel>,
-        /// Playground width.
-        width: u32,
-        /// Playground height.
-        height: u32,
-        /// Keeps track of each players score.
-        _scoreboard: Mapping<AccountId, u32>,
+        /// In which game phase is this contract.
+        state: State,
+        /// List of fields with their owner (if any).
+        board: Mapping<u32, AccountId>,
+        /// Width and height of the board.
+        dimensions: (u32, u32),
+        /// List of all players.
+        players: Lazy<Vec<Player>>,
+        /// The amount of balance that needs to be payed to join the game.
+        buy_in: Balance,
+    }
+
+    #[derive(scale::Decode, scale::Encode, Clone)]
+    #[cfg_attr(
+        feature = "std",
+        derive(Debug, scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+    )]
+    pub enum State {
+        Forming,
+        Running { end_block: u32 },
+        Finished { winner: AccountId },
     }
 
     #[derive(scale::Decode, scale::Encode)]
     #[cfg_attr(
         feature = "std",
-        derive(
-            Debug,
-            PartialEq,
-            Eq,
-            scale_info::TypeInfo,
-            ink::storage::traits::StorageLayout
-        )
+        derive(Debug, scale_info::TypeInfo, ink::storage::traits::StorageLayout)
     )]
-    struct Player {
+    pub struct Player {
         id: AccountId,
-        gas_balance: GasAllowance,
+        gas_used: u64,
+        /// TODO: This is not used yet.
+        storage_used: u32,
+        last_turn: u32,
     }
 
-    #[derive(Default, scale::Encode, scale::Decode, Eq, PartialEq)]
-    #[cfg_attr(
-        feature = "std",
-        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
-    )]
-    struct Pixel {
-        owner: Option<AccountId>,
-    }
-
-    #[ink(event)]
-    pub struct Scoreboard {
-        scoreboard: Vec<(AccountId, u32)>,
-    }
-
-    #[ink(event)]
-    #[derive(Debug)]
-    pub struct PaintedPixel {
-        player: AccountId,
-        pixel: (u32, u32),
-    }
-
-    impl SqinkSplash {
-        /// Set up a new game.
+    impl SquinkSplash {
+        /// Create a new game.
         #[ink(constructor)]
-        pub fn new(admin: Option<AccountId>, width: u32, height: u32) -> Self {
-            // enable re-entrancy
-            let admin = admin.unwrap_or_else(|| Self::env().account_id());
+        pub fn new(dimensions: (u32, u32), buy_in: Balance) -> Self {
             Self {
-                admin,
-                players: Mapping::new(),
-                all_players: Vec::new(),
-                pixels: Mapping::new(),
-                width,
-                height,
-                _scoreboard: Mapping::new(),
+                admin: Self::env().caller(),
+                state: State::Forming,
+                board: Default::default(),
+                dimensions,
+                players: Default::default(),
+                buy_in,
             }
         }
 
-        /// Registers a new player.
+        /// When the game is in finished the contract can be deleted by the admin.
+        #[ink(message)]
+        pub fn destroy(&mut self) {
+            assert_eq!(self.admin, self.env().caller());
+            if let State::Finished { .. } = self.state {
+                self.env().terminate_contract(self.admin)
+            } else {
+                panic!("Only finished games can be destroyed.")
+            }
+        }
+
+        /// The admin can start the game.
+        #[ink(message)]
+        pub fn start_game(&mut self, rounds: u32) {
+            assert_eq!(self.admin, self.env().caller());
+            let players = self.players();
+            assert!(!players.is_empty());
+            let start_block = self.env().block_number();
+            let end_block = start_block + rounds;
+            self.state = State::Running { end_block };
+        }
+
+        /// When enough time has passed no new turns can be submitted.
+        /// Then everybody can call this to end the game and trigger the payout to
+        /// the winner.
+        #[ink(message)]
+        pub fn end_game(&mut self) {
+            match self.state {
+                State::Running { end_block }
+                    if self.env().block_number() >= end_block =>
+                {
+                    let mut num_players = 0u64;
+                    let winner = self
+                        .player_score_iter()
+                        .max_by_key(|(_player, score)| {
+                            num_players += 1;
+                            *score
+                        })
+                        .expect("We only allow starting the game with at least 1 player.")
+                        .0
+                        .id;
+
+                    // Give the pot to the winner
+                    self.env()
+                        .transfer(winner, Balance::from(num_players) * self.buy_in)
+                        .unwrap();
+
+                    self.state = State::Finished { winner }
+                }
+                _ => panic!("Game can't be ended or has already ended."),
+            }
+        }
+
+        /// Add a new player to the game. Only allowed while the game has not started.
         #[ink(message)]
         pub fn register_player(&mut self, id: AccountId) {
-            // TODO we should penalize the player if it's already registered.
-            self.players.insert(id, &Player { id, gas_balance: 0 });
-
-            let mut all_players = self.all_players.clone();
-            all_players.push(id);
-            self.all_players = all_players;
+            assert!(matches!(self.state, State::Forming));
+            assert_eq!(self.buy_in, self.env().transferred_value());
+            let mut players = self.players();
+            assert!(players.len() < PLAYER_LIMIT, "Maximum player count reached");
+            match Self::find_player(&id, &players) {
+                Err(idx) => {
+                    players.insert(
+                        idx,
+                        Player {
+                            id,
+                            gas_used: 0,
+                            storage_used: 0,
+                            last_turn: 0,
+                        },
+                    );
+                    self.players.set(&players);
+                }
+                Ok(_) => panic!("Player already registered."),
+            }
         }
 
-        /// Executes a new round in the game.
+        /// Each block every player can submit their turn.
         ///
-        /// Emits an event for every painted pixel.
+        /// Each player can only make one turn per block. If the contract panics or fails
+        /// to return the proper result the turn of forfeited and the gas usage is still recorded.
         #[ink(message)]
-        pub fn execute_turns(&mut self) {
-            self.env().emit_event(PaintedPixel {
-                player: self.env().caller(),
-                pixel: (1337, 4221),
-            });
-
-            let all_players = self.all_players.clone();
-            // TODO the block time on Rococo is 12 seconds, we should increase
-            // the loop value below to play 24 rounds, so that the frontend
-            // can display a new round every 0.5 seconds, resulting in a nice
-            // animation. I've set it to 1 for now, as the gas fees get to high
-            // otherwise.
-            for _round in 0..1 {
-                for player_id in &all_players {
-                    let mut player = self.players.get(player_id).expect("must exist");
-                    self.process_round_for_player(&mut player);
-                    self.players.insert(player.id, &player);
-                }
-            }
-        }
-
-        /// Plays one round for the given `player`.
-        fn process_round_for_player(&mut self, player: &mut Player) {
-            // for each round each player gets a certain gas balance credited
-            player.gas_balance = player.gas_balance + GAS_ALLOWANCE_PER_ROUND;
-            let max_gas = player.gas_balance;
-
-            let gas_left_before = self.env().gas_left();
-            let (x, y) = self.fetch_player_turn(&player, max_gas as u64);
-            let gas_left_after = self.env().gas_left();
-
-            let gas_used = gas_left_before - gas_left_after;
-            player.gas_balance = player.gas_balance - gas_used as GasAllowance;
-
-            // penalize the player if they try to paint a pixel out of bounds
-            if x >= self.width || y >= self.height {
-                player.gas_balance = player.gas_balance
-                    - (GAS_ALLOWANCE_PER_ROUND as f32 * 0.1) as GasAllowance;
-                return
-            }
-
-            if let Some(mut pixel) = self.pixels.get((x, y)) {
-                match pixel.owner {
-                    Some(owner) if owner == player.id => {
-                        // penalize the player if trying to overpaint a pixel that is
-                        // already owned by itself
-                        player.gas_balance = player.gas_balance
-                            - (GAS_ALLOWANCE_PER_ROUND as f32 * 0.5) as GasAllowance;
-                    }
-                    _ => {
-                        // penalize the player if trying to overpaint a pixel
-                        // that is already owned by someone else
-                        player.gas_balance = player.gas_balance
-                            - (GAS_ALLOWANCE_PER_ROUND as f32 * 0.3) as GasAllowance;
-                    }
-                }
-
-                // if there is some positive gas balance left we mark
-                // the player as the new owner of the pixel
-                if player.gas_balance > 0 {
-                    pixel.owner = Some(player.id);
-                    self.pixels.insert((x, y), &pixel);
-                    self.env().emit_event(PaintedPixel {
-                        player: player.id,
-                        pixel: (x, y),
-                    });
-                }
+        pub fn submit_turn(&mut self, id: AccountId) {
+            assert!(self.is_running());
+            let mut players = self.players();
+            let player = if let Some(player) = Self::player_mut(&id, &mut players) {
+                // We need to immediately write back the the players since we need to record
+                // that a player did attempted a turn. Otherwise a player could make multiple
+                // turns per round by reentrancy.
+                let current_block = self.env().block_number();
+                assert!(player.last_turn < current_block);
+                player.last_turn = current_block;
+                self.players.set(&players);
+                // need to reborrow
+                Self::player_mut(&id, &mut players).unwrap()
             } else {
-                let owner = if player.gas_balance > 0 {
-                    Some(player.id)
-                } else {
-                    None
-                };
+                panic!("Player not registered.")
+            };
 
-                self.pixels.insert((x, y), &Pixel { owner });
-                self.env().emit_event(PaintedPixel {
-                    player: player.id,
-                    pixel: (x, y),
-                });
+            // We need to call with reentrancy enabled to allow those contracts to query us.
+            let call = build_call::<DefaultEnvironment>()
+                .call_type(Call::new().callee(player.id))
+                .exec_input(ExecutionInput::new(Selector::from([0x00; 4])))
+                .call_flags(CallFlags::default().set_allow_reentry(true))
+                .returns::<(u32, u32)>();
+
+            let gas_before = self.env().gas_left();
+            let turn = call.fire();
+            player.gas_used += gas_before - self.env().gas_left();
+
+            // We don't bubble up the error cause we still want to record the gas usage
+            // and disallow another try. This should be enough punishment for a defunct contract.
+            if let Ok((x, y)) = turn {
+                // Just overpaint. Overpainting is the best case cause it steals points.
+                self.board.insert(self.idx(x, y), &player.id);
+            }
+
+            self.players.set(&players);
+        }
+
+        /// The current game state.
+        #[ink(message)]
+        pub fn state(&self) -> State {
+            self.state.clone()
+        }
+
+        /// List of all players sorted by id.
+        #[ink(message)]
+        pub fn players(&self) -> Vec<Player> {
+            self.players.get().expect("Why does Lazy return Option?")
+        }
+
+        /// List of of all players (sorted by id) and their current scores.
+        #[ink(message)]
+        pub fn player_scores(&self) -> Vec<(Player, u64)> {
+            self.player_score_iter().collect()
+        }
+
+        /// Returns the dimensions of the board.
+        #[ink(message)]
+        pub fn dimensions(&self) -> (u32, u32) {
+            self.dimensions
+        }
+
+        /// Returns the value (owner) of the supplied field.
+        #[ink(message)]
+        pub fn field(&self, x: u32, y: u32) -> Option<AccountId> {
+            self.board.get(self.idx(x, y))
+        }
+
+        /// Returns the complete board.
+        ///
+        /// The index into the vector is calculated as `x + y * width`.
+        #[ink(message)]
+        pub fn board(&self) -> Vec<Option<AccountId>> {
+            let (width, height) = self.dimensions;
+            (0..height)
+                .flat_map(|y| (0..width).map(move |x| self.field(x, y)))
+                .collect()
+        }
+
+        fn player_score_iter(&self) -> impl Iterator<Item = (Player, u64)> {
+            let players = self.players();
+            let board = self.board();
+            let mut scores = BTreeMap::<AccountId, u64>::new();
+
+            for owner in board.into_iter().flatten() {
+                let entry = scores.entry(owner).or_default();
+                *entry = entry.saturating_add(SCORE_PER_FIELD);
+            }
+
+            players.into_iter().map(move |p| {
+                let score = scores[&p.id]
+                    .saturating_sub(p.gas_used)
+                    .saturating_sub(p.storage_used.into());
+                (p, score)
+            })
+        }
+
+        fn find_player(id: &AccountId, players: &[Player]) -> Result<usize, usize> {
+            players.binary_search_by_key(id, |player| player.id)
+        }
+
+        fn player_mut<'a>(
+            id: &AccountId,
+            players: &'a mut [Player],
+        ) -> Option<&'a mut Player> {
+            Self::find_player(id, players)
+                .map(|idx| &mut players[idx])
+                .ok()
+        }
+
+        fn is_running(&self) -> bool {
+            if let State::Running { end_block } = self.state {
+                self.env().block_number() < end_block
+            } else {
+                false
             }
         }
 
-        /// Executes a cross-contract call to a player in order to
-        /// fetch the pixel that the player wants to paint.
-        fn fetch_player_turn(&self, player: &Player, max_gas: u64) -> PlayerTurn {
-            ink::env::debug_println!("calling player {:?}", player.id);
-            ink::env::debug_println!("max gas {:?}", max_gas);
-            let ret: PlayerTurn = build_call::<DefaultEnvironment>()
-                .call_type(Call::new().callee(player.id))
-                //.gas_limit(max_gas)
-                // for some reason the cross-contract call currently only runs
-                // with `gas_limit = 0`.
-                .gas_limit(0)
-                .exec_input(ExecutionInput::new(Selector::from([0x00; 4])))
-                .returns::<PlayerTurn>()
-                .fire()
-                .unwrap_or_else(|err| {
-                    panic!("error during cross-contract call: {:?}", err)
-                });
-            ret
-        }
-
-        /// Returns the dimension of the playground.
-        #[ink(message)]
-        pub fn get_dimensions(&self) -> (u32, u32) {
-            (self.width, self.height)
+        fn idx(&self, x: u32, y: u32) -> u32 {
+            let (width, _height) = self.dimensions;
+            x + y * width
         }
     }
 }
