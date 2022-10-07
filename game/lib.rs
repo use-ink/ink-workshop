@@ -1,7 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 #[ink::contract]
-mod sqink_splash {
+mod squink_splash {
     use ink::{
         env::{
             call::{
