@@ -2,6 +2,7 @@
 
 #[ink::contract]
 mod squink_splash {
+    use core::ops::RangeInclusive;
     use ink::{
         env::{
             call::{
@@ -28,7 +29,7 @@ mod squink_splash {
     const PLAYER_LIMIT: usize = 25;
 
     /// Maximum number of bytes in a players name.
-    const PLAYER_NAME_LIMIT: usize = 12;
+    const ALLOWED_NAME_SIZES: RangeInclusive<usize> = 3..=12;
 
     /// How much score should be addded per field that is occupied by a user.
     const SCORE_PER_FIELD: u64 = 1_000_000_000;
@@ -146,9 +147,22 @@ mod squink_splash {
         /// Add a new player to the game. Only allowed while the game has not started.
         #[ink(message, payable)]
         pub fn register_player(&mut self, id: AccountId, name: String) {
-            assert!(matches!(self.state, State::Forming));
-            assert!(name.len() <= PLAYER_NAME_LIMIT);
-            assert_eq!(self.buy_in, self.env().transferred_value());
+            assert!(
+                matches!(self.state, State::Forming),
+                "Game must be in the forming phase."
+            );
+            assert!(
+                ALLOWED_NAME_SIZES.contains(&name.len()),
+                "Invalid length for name. Allowed: [{}, {}]",
+                ALLOWED_NAME_SIZES.start(),
+                ALLOWED_NAME_SIZES.end()
+            );
+            assert_eq!(
+                self.buy_in,
+                self.env().transferred_value(),
+                "Wrong buy in. Needs to be: {}",
+                self.buy_in
+            );
             let mut players = self.players();
             assert!(players.len() < PLAYER_LIMIT, "Maximum player count reached");
             match Self::find_player(&id, &players) {
