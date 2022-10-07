@@ -321,7 +321,9 @@ mod squink_splash {
             }
 
             players.into_iter().map(move |p| {
-                let score = scores[&p.id]
+                let score = scores
+                    .get(&p.id)
+                    .unwrap_or(&0)
                     .saturating_sub(p.gas_used)
                     .saturating_sub(p.storage_used.into());
                 (p, score)
