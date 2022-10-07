@@ -94,7 +94,7 @@ mod squink_splash {
         /// When the game is in finished the contract can be deleted by the admin.
         #[ink(message)]
         pub fn destroy(&mut self) {
-            assert_eq!(self.admin, self.env().caller());
+            assert_eq!(self.admin, self.env().caller(), "Only admin can call this.");
             if let State::Finished { .. } = self.state {
                 self.env().terminate_contract(self.admin)
             } else {
@@ -105,9 +105,9 @@ mod squink_splash {
         /// The admin can start the game.
         #[ink(message)]
         pub fn start_game(&mut self, rounds: u32) {
-            assert_eq!(self.admin, self.env().caller());
+            assert_eq!(self.admin, self.env().caller(), "Only admin can call this.");
             let players = self.players();
-            assert!(!players.is_empty());
+            assert!(!players.is_empty(), "You need at least one player.");
             let start_block = self.env().block_number();
             let end_block = start_block + rounds;
             self.state = State::Running { end_block };
@@ -149,7 +149,7 @@ mod squink_splash {
         pub fn register_player(&mut self, id: AccountId, name: String) {
             assert!(
                 matches!(self.state, State::Forming),
-                "Game must be in the forming phase."
+                "Players can only be registered in the forming phase."
             );
             assert!(
                 ALLOWED_NAME_SIZES.contains(&name.len()),
@@ -164,10 +164,16 @@ mod squink_splash {
                 self.buy_in
             );
             let mut players = self.players();
-            assert!(players.len() < PLAYER_LIMIT, "Maximum player count reached");
+            assert!(
+                players.len() < PLAYER_LIMIT,
+                "Maximum player count reached."
+            );
             match Self::find_player(&id, &players) {
                 Err(idx) => {
-                    assert!(!players.iter().any(|p| p.name == name), "Name not unique.");
+                    assert!(
+                        !players.iter().any(|p| p.name == name),
+                        "This name is already taken."
+                    );
                     players.insert(
                         idx,
                         Player {
@@ -190,14 +196,20 @@ mod squink_splash {
         /// to return the proper result the turn of forfeited and the gas usage is still recorded.
         #[ink(message)]
         pub fn submit_turn(&mut self, id: AccountId) {
-            assert!(self.is_running());
+            assert!(
+                self.is_running(),
+                "The game does not accept turns right now."
+            );
             let mut players = self.players();
             let player = if let Some(player) = Self::player_mut(&id, &mut players) {
                 // We need to immediately write back the the players since we need to record
                 // that a player did attempted a turn. Otherwise a player could make multiple
                 // turns per round by reentrancy.
                 let current_block = self.env().block_number();
-                assert!(player.last_turn < current_block);
+                assert!(
+                    player.last_turn < current_block,
+                    "This player already made its turn for this round."
+                );
                 player.last_turn = current_block;
                 self.players.set(&players);
                 // need to reborrow
