@@ -224,7 +224,8 @@ mod squink_splash {
                 let current_block = self.env().block_number();
                 assert!(
                     player.last_turn < current_block,
-                    "This player already made its turn for this round."
+                    "This player already made its turn for this round. Last turn: {} Current Block: {}",
+                    player.last_turn, current_block,
                 );
                 player.last_turn = current_block;
                 self.players.set(&players);
@@ -247,9 +248,15 @@ mod squink_splash {
 
             // We don't bubble up the error cause we still want to record the gas usage
             // and disallow another try. This should be enough punishment for a defunct contract.
-            if let Ok((x, y)) = turn {
-                // Just overpaint. Overpainting is the best case cause it steals points.
-                self.board.insert(self.idx(x, y), &player.id);
+            match &turn {
+                Ok((x, y)) => {
+                    // Just overpaint. Overpainting is the best case cause it steals points.
+                    self.board.insert(self.idx(*x, *y), &player.id);
+                    ink::env::debug_println!("Player painted: x={:03} y={:03}", x, y);
+                }
+                Err(err) => {
+                    ink::env::debug_println!("Contract failed to make a turn: {:?}", err);
+                }
             }
 
             self.env().emit_event(TurnTaken {
