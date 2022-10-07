@@ -78,14 +78,16 @@ mod squink_splash {
         /// Create a new game.
         #[ink(constructor)]
         pub fn new(dimensions: (u32, u32), buy_in: Balance) -> Self {
-            Self {
+            let mut ret = Self {
                 admin: Self::env().caller(),
                 state: State::Forming,
                 board: Default::default(),
                 dimensions,
                 players: Default::default(),
                 buy_in,
-            }
+            };
+            ret.players.set(&Vec::new());
+            ret
         }
 
         /// When the game is in finished the contract can be deleted by the admin.
@@ -142,7 +144,7 @@ mod squink_splash {
         }
 
         /// Add a new player to the game. Only allowed while the game has not started.
-        #[ink(message)]
+        #[ink(message, payable)]
         pub fn register_player(&mut self, id: AccountId, name: String) {
             assert!(matches!(self.state, State::Forming));
             assert!(name.len() <= PLAYER_NAME_LIMIT);
@@ -220,7 +222,9 @@ mod squink_splash {
         /// List of all players sorted by id.
         #[ink(message)]
         pub fn players(&self) -> Vec<Player> {
-            self.players.get().expect("Why does Lazy return Option?")
+            self.players
+                .get()
+                .expect("Initial value is set in constructor.")
         }
 
         /// List of of all players (sorted by id) and their current scores.
