@@ -118,6 +118,10 @@ mod squink_splash {
         #[ink(message)]
         pub fn start_game(&mut self, rounds: u32) {
             assert_eq!(self.admin, self.env().caller(), "Only admin can call this.");
+            assert!(
+                matches!(self.state, State::Forming),
+                "Game already started."
+            );
             let players = self.players();
             assert!(!players.is_empty(), "You need at least one player.");
             let start_block = self.env().block_number();
