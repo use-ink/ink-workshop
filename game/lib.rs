@@ -75,6 +75,18 @@ mod squink_splash {
         last_turn: u32,
     }
 
+    /// A player attempted to make a turn.
+    #[ink(event)]
+    pub struct TurnTaken {
+        /// The player that attempted the turn.
+        player: AccountId,
+        /// The field that was painted by the player.
+        ///
+        /// This is `None` if the turn failed. This will happen if the player's contract
+        /// fails to return a proper turn.
+        turn: Option<(u32, u32)>,
+    }
+
     impl SquinkSplash {
         /// Create a new game.
         #[ink(constructor)]
@@ -235,6 +247,11 @@ mod squink_splash {
                 // Just overpaint. Overpainting is the best case cause it steals points.
                 self.board.insert(self.idx(x, y), &player.id);
             }
+
+            self.env().emit_event(TurnTaken {
+                player: player.id,
+                turn: turn.ok(),
+            });
 
             self.players.set(&players);
         }
