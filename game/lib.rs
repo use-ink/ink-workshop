@@ -72,6 +72,7 @@ mod squink_splash {
         gas_used: u64,
         /// TODO: This is not used yet.
         storage_used: u32,
+        /// This is per block. We could allow more than one turn per block.
         last_turn: u32,
     }
 
@@ -211,8 +212,10 @@ mod squink_splash {
         ///
         /// Each player can only make one turn per block. If the contract panics or fails
         /// to return the proper result the turn of forfeited and the gas usage is still recorded.
+        ///
+        /// The `data` argument is passed verbatim to the player contract.
         #[ink(message)]
-        pub fn submit_turn(&mut self, id: AccountId) {
+        pub fn submit_turn(&mut self, id: AccountId, data: Vec<u8>) {
             assert!(
                 self.is_running(),
                 "The game does not accept turns right now."
@@ -239,7 +242,7 @@ mod squink_splash {
             // We need to call with reentrancy enabled to allow those contracts to query us.
             let call = build_call::<DefaultEnvironment>()
                 .call_type(Call::new().callee(player.id))
-                .exec_input(ExecutionInput::new(Selector::from([0x00; 4])))
+                .exec_input(ExecutionInput::new(Selector::from([0x00; 4])).push_arg(data))
                 .call_flags(CallFlags::default().set_allow_reentry(true))
                 .returns::<(u32, u32)>();
 
