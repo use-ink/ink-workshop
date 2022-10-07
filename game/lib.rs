@@ -31,8 +31,8 @@ mod squink_splash {
     /// Maximum number of bytes in a players name.
     const ALLOWED_NAME_SIZES: RangeInclusive<usize> = 3..=12;
 
-    /// How much score should be addded per field that is occupied by a user.
-    const SCORE_PER_FIELD: u64 = 1_000_000_000;
+    /// How much score is a field worth in multiplies of average gas used by all players.
+    const SCORE_PER_FIELD_MULTIPLIER: u64 = 2;
 
     #[ink(storage)]
     pub struct SquinkSplash {
@@ -326,9 +326,17 @@ mod squink_splash {
             let board = self.board();
             let mut scores = BTreeMap::<AccountId, u64>::new();
 
+            // The score depends on the average gas used by all players
+            let score_per_field: u64 = players
+                .iter()
+                .map(|p| p.gas_used + u64::from(p.storage_used))
+                .sum::<u64>()
+                / (players.len() as u64)
+                * SCORE_PER_FIELD_MULTIPLIER;
+
             for owner in board.into_iter().flatten() {
                 let entry = scores.entry(owner).or_default();
-                *entry = entry.saturating_add(SCORE_PER_FIELD);
+                *entry = entry.saturating_add(score_per_field);
             }
 
             players.into_iter().map(move |p| {
