@@ -15,6 +15,7 @@ mod squink_splash {
         },
         prelude::{
             collections::BTreeMap,
+            string::String,
             vec::Vec,
         },
         storage::{
@@ -25,6 +26,9 @@ mod squink_splash {
 
     /// The amount of players that are allowed to register for a single game.
     const PLAYER_LIMIT: usize = 25;
+
+    /// Maximum number of bytes in a players name.
+    const PLAYER_NAME_LIMIT: usize = 12;
 
     /// How much score should be addded per field that is occupied by a user.
     const SCORE_PER_FIELD: u64 = 1_000_000_000;
@@ -63,6 +67,7 @@ mod squink_splash {
     )]
     pub struct Player {
         id: AccountId,
+        name: String,
         gas_used: u64,
         /// TODO: This is not used yet.
         storage_used: u32,
@@ -138,17 +143,20 @@ mod squink_splash {
 
         /// Add a new player to the game. Only allowed while the game has not started.
         #[ink(message)]
-        pub fn register_player(&mut self, id: AccountId) {
+        pub fn register_player(&mut self, id: AccountId, name: String) {
             assert!(matches!(self.state, State::Forming));
+            assert!(name.len() <= PLAYER_NAME_LIMIT);
             assert_eq!(self.buy_in, self.env().transferred_value());
             let mut players = self.players();
             assert!(players.len() < PLAYER_LIMIT, "Maximum player count reached");
             match Self::find_player(&id, &players) {
                 Err(idx) => {
+                    assert!(!players.iter().any(|p| p.name == name), "Name not unique.");
                     players.insert(
                         idx,
                         Player {
                             id,
+                            name,
                             gas_used: 0,
                             storage_used: 0,
                             last_turn: 0,
