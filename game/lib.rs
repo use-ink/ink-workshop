@@ -36,8 +36,6 @@ mod squink_splash {
 
     #[ink(storage)]
     pub struct SquinkSplash {
-        /// Owner of the contract. Can initiate a new game.
-        admin: AccountId,
         /// In which game phase is this contract.
         state: State,
         /// List of fields with their owner (if any).
@@ -48,6 +46,8 @@ mod squink_splash {
         players: Lazy<Vec<Player>>,
         /// The amount of balance that needs to be payed to join the game.
         buy_in: Balance,
+        /// The amount of blocks that this game is played for once it started.
+        rounds: u32,
     }
 
     #[derive(scale::Decode, scale::Encode, Clone)]
@@ -56,7 +56,7 @@ mod squink_splash {
         derive(Debug, scale_info::TypeInfo, ink::storage::traits::StorageLayout)
     )]
     pub enum State {
-        Forming,
+        Forming { earliest_start: u32 },
         Running { end_block: u32 },
         Finished { winner: AccountId },
     }
@@ -72,7 +72,7 @@ mod squink_splash {
         gas_used: u64,
         /// TODO: This is not used yet.
         storage_used: u32,
-        /// This is per block. We could allow more than one turn per block.
+        /// The block number this player made its last turn.
         last_turn: u32,
     }
 
@@ -91,43 +91,62 @@ mod squink_splash {
 
     impl SquinkSplash {
         /// Create a new game.
+        ///
+        /// - `dimensions`: (width,height) Of the board
+        /// - `buy_in`: The amount of balance each player needs to submit in order to play.
+        /// - `forming_rounds`: Number of blocks that needs to pass until anyone can start the game.
+        /// - `rounds`: The number of blocks a game can be played for.
         #[ink(constructor)]
-        pub fn new(dimensions: (u32, u32), buy_in: Balance) -> Self {
+        pub fn new(
+            dimensions: (u32, u32),
+            buy_in: Balance,
+            forming_rounds: u32,
+            rounds: u32,
+        ) -> Self {
             let mut ret = Self {
-                admin: Self::env().caller(),
-                state: State::Forming,
+                state: State::Forming {
+                    earliest_start: Self::env().block_number() + forming_rounds,
+                },
                 board: Default::default(),
                 dimensions,
                 players: Default::default(),
                 buy_in,
+                rounds,
             };
             ret.players.set(&Vec::new());
             ret
         }
 
-        /// When the game is in finished the contract can be deleted by the admin.
+        /// When the game is in finished the contract can be deleted by the winner.
         #[ink(message)]
         pub fn destroy(&mut self) {
-            assert_eq!(self.admin, self.env().caller(), "Only admin can call this.");
-            if let State::Finished { .. } = self.state {
-                self.env().terminate_contract(self.admin)
+            if let State::Finished { winner } = self.state {
+                assert_eq!(
+                    winner,
+                    self.env().caller(),
+                    "Only winner is allowed to destroy the contract."
+                );
+                self.env().terminate_contract(winner)
             } else {
                 panic!("Only finished games can be destroyed.")
             }
         }
 
-        /// The admin can start the game.
+        /// Anyone can start the game when `earliest_start` is reached.
         #[ink(message)]
-        pub fn start_game(&mut self, rounds: u32) {
-            assert_eq!(self.admin, self.env().caller(), "Only admin can call this.");
-            assert!(
-                matches!(self.state, State::Forming),
-                "Game already started."
-            );
+        pub fn start_game(&mut self) {
+            if let State::Forming { earliest_start } = self.state {
+                assert!(
+                    self.env().block_number() >= earliest_start,
+                    "Game can't be started, yet."
+                );
+            } else {
+                panic!("Game already started.")
+            };
             let players = self.players();
             assert!(!players.is_empty(), "You need at least one player.");
             let start_block = self.env().block_number();
-            let end_block = start_block + rounds;
+            let end_block = start_block + self.rounds;
             self.state = State::Running { end_block };
         }
 
@@ -166,7 +185,7 @@ mod squink_splash {
         #[ink(message, payable)]
         pub fn register_player(&mut self, id: AccountId, name: String) {
             assert!(
-                matches!(self.state, State::Forming),
+                matches!(self.state, State::Forming { .. }),
                 "Players can only be registered in the forming phase."
             );
             assert!(
@@ -326,13 +345,14 @@ mod squink_splash {
             let board = self.board();
             let mut scores = BTreeMap::<AccountId, u64>::new();
 
-            // The score depends on the average gas used by all players
+            // The score depends on the average gas used by all players per round.
             let score_per_field: u64 = players
                 .iter()
                 .map(|p| p.gas_used + u64::from(p.storage_used))
                 .sum::<u64>()
+                * SCORE_PER_FIELD_MULTIPLIER
                 / (players.len() as u64)
-                * SCORE_PER_FIELD_MULTIPLIER;
+                / u64::from(self.rounds);
 
             for owner in board.into_iter().flatten() {
                 let entry = scores.entry(owner).or_default();
