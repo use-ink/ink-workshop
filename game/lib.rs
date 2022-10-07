@@ -2,7 +2,11 @@
 
 #[ink::contract]
 mod squink_splash {
-    use core::ops::RangeInclusive;
+    use core::ops::{
+        Div,
+        Mul,
+        RangeInclusive,
+    };
     use ink::{
         env::{
             call::{
@@ -57,7 +61,7 @@ mod squink_splash {
     )]
     pub enum State {
         Forming { earliest_start: u32 },
-        Running { end_block: u32 },
+        Running { start_block: u32, end_block: u32 },
         Finished { winner: AccountId },
     }
 
@@ -147,7 +151,10 @@ mod squink_splash {
             assert!(!players.is_empty(), "You need at least one player.");
             let start_block = self.env().block_number();
             let end_block = start_block + self.rounds;
-            self.state = State::Running { end_block };
+            self.state = State::Running {
+                start_block,
+                end_block,
+            };
         }
 
         /// When enough time has passed no new turns can be submitted.
@@ -156,7 +163,7 @@ mod squink_splash {
         #[ink(message)]
         pub fn end_game(&mut self) {
             match self.state {
-                State::Running { end_block }
+                State::Running { end_block, .. }
                     if self.env().block_number() >= end_block =>
                 {
                     let mut num_players = 0u64;
@@ -348,9 +355,10 @@ mod squink_splash {
                 .iter()
                 .map(|p| p.gas_used + u64::from(p.storage_used))
                 .sum::<u64>()
-                * SCORE_PER_FIELD_MULTIPLIER
-                / (players.len() as u64)
-                / u64::from(self.rounds);
+                .mul(SCORE_PER_FIELD_MULTIPLIER)
+                .checked_div(u64::from(self.rounds_played()))
+                .unwrap_or(0)
+                .div(players.len() as u64);
 
             for owner in board.into_iter().flatten() {
                 let entry = scores.entry(owner).or_default();
@@ -381,7 +389,7 @@ mod squink_splash {
         }
 
         fn is_running(&self) -> bool {
-            if let State::Running { end_block } = self.state {
+            if let State::Running { end_block, .. } = self.state {
                 self.env().block_number() < end_block
             } else {
                 false
@@ -396,6 +404,15 @@ mod squink_splash {
         fn is_valid_coord(&self, x: u32, y: u32) -> bool {
             let (width, height) = self.dimensions;
             self.idx(x, y) < width * height
+        }
+
+        fn rounds_played(&self) -> u32 {
+            match self.state {
+                State::Forming { .. } | State::Finished { .. } => 0,
+                State::Running { start_block, .. } => {
+                    self.env().block_number() - start_block
+                }
+            }
         }
     }
 }
