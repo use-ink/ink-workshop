@@ -7,6 +7,7 @@
 /examples/**/target/
 /design/
 
+
 # Ignore backup files creates by cargo fmt.
 **/*.rs.bk
 
@@ -16,3 +17,23 @@ Cargo.lock
 
 # Ignore history files.
 **/.history/**
+
+
+# frontend
+
+/frontend/node_modules
+/frontend/.next
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+yarn.lock
+
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
