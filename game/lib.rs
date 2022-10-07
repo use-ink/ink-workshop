@@ -2,6 +2,11 @@
 
 #[ink::contract]
 mod squink_splash {
+    use core::ops::{
+        Div,
+        Mul,
+        RangeInclusive,
+    };
     use ink::{
         env::{
             call::{
@@ -28,15 +33,13 @@ mod squink_splash {
     const PLAYER_LIMIT: usize = 25;
 
     /// Maximum number of bytes in a players name.
-    const PLAYER_NAME_LIMIT: usize = 12;
+    const ALLOWED_NAME_SIZES: RangeInclusive<usize> = 3..=12;
 
-    /// How much score should be addded per field that is occupied by a user.
-    const SCORE_PER_FIELD: u64 = 1_000_000_000;
+    /// How much score is a field worth in multiplies of average gas used by all players.
+    const SCORE_PER_FIELD_MULTIPLIER: u64 = 2;
 
     #[ink(storage)]
     pub struct SquinkSplash {
-        /// Owner of the contract. Can initiate a new game.
-        admin: AccountId,
         /// In which game phase is this contract.
         state: State,
         /// List of fields with their owner (if any).
@@ -47,6 +50,8 @@ mod squink_splash {
         players: Lazy<Vec<Player>>,
         /// The amount of balance that needs to be payed to join the game.
         buy_in: Balance,
+        /// The amount of blocks that this game is played for once it started.
+        rounds: u32,
     }
 
     #[derive(scale::Decode, scale::Encode, Clone)]
@@ -55,8 +60,8 @@ mod squink_splash {
         derive(Debug, scale_info::TypeInfo, ink::storage::traits::StorageLayout)
     )]
     pub enum State {
-        Forming,
-        Running { end_block: u32 },
+        Forming { earliest_start: u32 },
+        Running { start_block: u32, end_block: u32 },
         Finished { winner: AccountId },
     }
 
@@ -71,43 +76,85 @@ mod squink_splash {
         gas_used: u64,
         /// TODO: This is not used yet.
         storage_used: u32,
+        /// The block number this player made its last turn.
         last_turn: u32,
+    }
+
+    /// A player attempted to make a turn.
+    #[ink(event)]
+    pub struct TurnTaken {
+        /// The player that attempted the turn.
+        player: AccountId,
+        /// The field that was painted by the player.
+        ///
+        /// This is `None` if the turn failed. This will happen if the player's contract
+        /// fails to return a proper turn. Either because the contract panics, returns garbage
+        /// or paints outside of the board.
+        turn: Option<(u32, u32)>,
     }
 
     impl SquinkSplash {
         /// Create a new game.
+        ///
+        /// - `dimensions`: (width,height) Of the board
+        /// - `buy_in`: The amount of balance each player needs to submit in order to play.
+        /// - `forming_rounds`: Number of blocks that needs to pass until anyone can start the game.
+        /// - `rounds`: The number of blocks a game can be played for.
         #[ink(constructor)]
-        pub fn new(dimensions: (u32, u32), buy_in: Balance) -> Self {
-            Self {
-                admin: Self::env().caller(),
-                state: State::Forming,
+        pub fn new(
+            dimensions: (u32, u32),
+            buy_in: Balance,
+            forming_rounds: u32,
+            rounds: u32,
+        ) -> Self {
+            let mut ret = Self {
+                state: State::Forming {
+                    earliest_start: Self::env().block_number() + forming_rounds,
+                },
                 board: Default::default(),
                 dimensions,
                 players: Default::default(),
                 buy_in,
-            }
+                rounds,
+            };
+            ret.players.set(&Vec::new());
+            ret
         }
 
-        /// When the game is in finished the contract can be deleted by the admin.
+        /// When the game is in finished the contract can be deleted by the winner.
         #[ink(message)]
         pub fn destroy(&mut self) {
-            assert_eq!(self.admin, self.env().caller());
-            if let State::Finished { .. } = self.state {
-                self.env().terminate_contract(self.admin)
+            if let State::Finished { winner } = self.state {
+                assert_eq!(
+                    winner,
+                    self.env().caller(),
+                    "Only winner is allowed to destroy the contract."
+                );
+                self.env().terminate_contract(winner)
             } else {
                 panic!("Only finished games can be destroyed.")
             }
         }
 
-        /// The admin can start the game.
+        /// Anyone can start the game when `earliest_start` is reached.
         #[ink(message)]
-        pub fn start_game(&mut self, rounds: u32) {
-            assert_eq!(self.admin, self.env().caller());
+        pub fn start_game(&mut self) {
+            if let State::Forming { earliest_start } = self.state {
+                assert!(
+                    self.env().block_number() >= earliest_start,
+                    "Game can't be started, yet."
+                );
+            } else {
+                panic!("Game already started.")
+            };
             let players = self.players();
-            assert!(!players.is_empty());
+            assert!(!players.is_empty(), "You need at least one player.");
             let start_block = self.env().block_number();
-            let end_block = start_block + rounds;
-            self.state = State::Running { end_block };
+            let end_block = start_block + self.rounds;
+            self.state = State::Running {
+                start_block,
+                end_block,
+            };
         }
 
         /// When enough time has passed no new turns can be submitted.
@@ -116,7 +163,7 @@ mod squink_splash {
         #[ink(message)]
         pub fn end_game(&mut self) {
             match self.state {
-                State::Running { end_block }
+                State::Running { end_block, .. }
                     if self.env().block_number() >= end_block =>
                 {
                     let mut num_players = 0u64;
@@ -142,16 +189,35 @@ mod squink_splash {
         }
 
         /// Add a new player to the game. Only allowed while the game has not started.
-        #[ink(message)]
+        #[ink(message, payable)]
         pub fn register_player(&mut self, id: AccountId, name: String) {
-            assert!(matches!(self.state, State::Forming));
-            assert!(name.len() <= PLAYER_NAME_LIMIT);
-            assert_eq!(self.buy_in, self.env().transferred_value());
+            assert!(
+                matches!(self.state, State::Forming { .. }),
+                "Players can only be registered in the forming phase."
+            );
+            assert!(
+                ALLOWED_NAME_SIZES.contains(&name.len()),
+                "Invalid length for name. Allowed: [{}, {}]",
+                ALLOWED_NAME_SIZES.start(),
+                ALLOWED_NAME_SIZES.end()
+            );
+            assert_eq!(
+                self.buy_in,
+                self.env().transferred_value(),
+                "Wrong buy in. Needs to be: {}",
+                self.buy_in
+            );
             let mut players = self.players();
-            assert!(players.len() < PLAYER_LIMIT, "Maximum player count reached");
+            assert!(
+                players.len() < PLAYER_LIMIT,
+                "Maximum player count reached."
+            );
             match Self::find_player(&id, &players) {
                 Err(idx) => {
-                    assert!(!players.iter().any(|p| p.name == name), "Name not unique.");
+                    assert!(
+                        !players.iter().any(|p| p.name == name),
+                        "This name is already taken."
+                    );
                     players.insert(
                         idx,
                         Player {
@@ -174,14 +240,21 @@ mod squink_splash {
         /// to return the proper result the turn of forfeited and the gas usage is still recorded.
         #[ink(message)]
         pub fn submit_turn(&mut self, id: AccountId) {
-            assert!(self.is_running());
+            assert!(
+                self.is_running(),
+                "The game does not accept turns right now."
+            );
             let mut players = self.players();
             let player = if let Some(player) = Self::player_mut(&id, &mut players) {
                 // We need to immediately write back the the players since we need to record
                 // that a player did attempted a turn. Otherwise a player could make multiple
                 // turns per round by reentrancy.
                 let current_block = self.env().block_number();
-                assert!(player.last_turn < current_block);
+                assert!(
+                    player.last_turn < current_block,
+                    "This player already made its turn for this round. Last turn: {} Current Block: {}",
+                    player.last_turn, current_block,
+                );
                 player.last_turn = current_block;
                 self.players.set(&players);
                 // need to reborrow
@@ -203,10 +276,28 @@ mod squink_splash {
 
             // We don't bubble up the error cause we still want to record the gas usage
             // and disallow another try. This should be enough punishment for a defunct contract.
-            if let Ok((x, y)) = turn {
-                // Just overpaint. Overpainting is the best case cause it steals points.
-                self.board.insert(self.idx(x, y), &player.id);
+            match &turn {
+                Ok((x, y)) if self.is_valid_coord(*x, *y) => {
+                    // Just overpaint. Overpainting is the best case cause it steals points.
+                    self.board.insert(self.idx(*x, *y), &player.id);
+                    ink::env::debug_println!("Player painted: x={:03} y={:03}", x, y);
+                }
+                Ok((x, y)) => {
+                    ink::env::debug_println!(
+                        "Turn not inside the board: x={:03} y={:03}",
+                        x,
+                        y
+                    );
+                }
+                Err(err) => {
+                    ink::env::debug_println!("Contract failed to make a turn: {:?}", err);
+                }
             }
+
+            self.env().emit_event(TurnTaken {
+                player: player.id,
+                turn: turn.ok(),
+            });
 
             self.players.set(&players);
         }
@@ -220,7 +311,9 @@ mod squink_splash {
         /// List of all players sorted by id.
         #[ink(message)]
         pub fn players(&self) -> Vec<Player> {
-            self.players.get().expect("Why does Lazy return Option?")
+            self.players
+                .get()
+                .expect("Initial value is set in constructor.")
         }
 
         /// List of of all players (sorted by id) and their current scores.
@@ -257,13 +350,25 @@ mod squink_splash {
             let board = self.board();
             let mut scores = BTreeMap::<AccountId, u64>::new();
 
+            // The score depends on the average gas used by all players per round.
+            let score_per_field: u64 = players
+                .iter()
+                .map(|p| p.gas_used + u64::from(p.storage_used))
+                .sum::<u64>()
+                .mul(SCORE_PER_FIELD_MULTIPLIER)
+                .checked_div(u64::from(self.rounds_played()))
+                .unwrap_or(0)
+                .div(players.len() as u64);
+
             for owner in board.into_iter().flatten() {
                 let entry = scores.entry(owner).or_default();
-                *entry = entry.saturating_add(SCORE_PER_FIELD);
+                *entry = entry.saturating_add(score_per_field);
             }
 
             players.into_iter().map(move |p| {
-                let score = scores[&p.id]
+                let score = scores
+                    .get(&p.id)
+                    .unwrap_or(&0)
                     .saturating_sub(p.gas_used)
                     .saturating_sub(p.storage_used.into());
                 (p, score)
@@ -284,7 +389,7 @@ mod squink_splash {
         }
 
         fn is_running(&self) -> bool {
-            if let State::Running { end_block } = self.state {
+            if let State::Running { end_block, .. } = self.state {
                 self.env().block_number() < end_block
             } else {
                 false
@@ -294,6 +399,20 @@ mod squink_splash {
         fn idx(&self, x: u32, y: u32) -> u32 {
             let (width, _height) = self.dimensions;
             x + y * width
+        }
+
+        fn is_valid_coord(&self, x: u32, y: u32) -> bool {
+            let (width, height) = self.dimensions;
+            self.idx(x, y) < width * height
+        }
+
+        fn rounds_played(&self) -> u32 {
+            match self.state {
+                State::Forming { .. } | State::Finished { .. } => 0,
+                State::Running { start_block, .. } => {
+                    self.env().block_number() - start_block
+                }
+            }
         }
     }
 }
