@@ -2,9 +2,6 @@
 
 #[ink::contract]
 mod player {
-    use ink::prelude::vec::Vec;
-    use scale::Decode;
-
     #[ink(storage)]
     pub struct Player {}
 
@@ -20,8 +17,8 @@ mod player {
         /// `&mut self` is important, so that players can retain state if
         /// they want to.
         #[ink(message, selector = 0)]
-        pub fn your_turn(&mut self, data: Vec<u8>) -> (u32, u32) {
-            Decode::decode(&mut data.as_ref()).unwrap()
+        pub fn your_turn(&mut self) -> (u32, u32) {
+            (10, 10)
         }
     }
 }
