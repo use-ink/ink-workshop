@@ -83,7 +83,8 @@ mod squink_splash {
         /// The field that was painted by the player.
         ///
         /// This is `None` if the turn failed. This will happen if the player's contract
-        /// fails to return a proper turn.
+        /// fails to return a proper turn. Either because the contract panics, returns garbage
+        /// or paints outside of the board.
         turn: Option<(u32, u32)>,
     }
 
@@ -249,10 +250,17 @@ mod squink_splash {
             // We don't bubble up the error cause we still want to record the gas usage
             // and disallow another try. This should be enough punishment for a defunct contract.
             match &turn {
-                Ok((x, y)) => {
+                Ok((x, y)) if self.is_valid_coord(*x, *y) => {
                     // Just overpaint. Overpainting is the best case cause it steals points.
                     self.board.insert(self.idx(*x, *y), &player.id);
                     ink::env::debug_println!("Player painted: x={:03} y={:03}", x, y);
+                }
+                Ok((x, y)) => {
+                    ink::env::debug_println!(
+                        "Turn not inside the board: x={:03} y={:03}",
+                        x,
+                        y
+                    );
                 }
                 Err(err) => {
                     ink::env::debug_println!("Contract failed to make a turn: {:?}", err);
@@ -354,6 +362,11 @@ mod squink_splash {
         fn idx(&self, x: u32, y: u32) -> u32 {
             let (width, _height) = self.dimensions;
             x + y * width
+        }
+
+        fn is_valid_coord(&self, x: u32, y: u32) -> bool {
+            let (width, height) = self.dimensions;
+            self.idx(x, y) < width * height
         }
     }
 }
