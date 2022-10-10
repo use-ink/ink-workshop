@@ -1,6 +1,5 @@
 import dynamic from 'next/dynamic';
 import React from 'react';
-import { Entity } from '../Entity';
 
 const GameBoard = dynamic(() => import('./GameBoard').then((mod) => mod.GameBoard), {
   ssr: false,
