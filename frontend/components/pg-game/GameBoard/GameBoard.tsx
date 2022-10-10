@@ -1,11 +1,12 @@
 import React from 'react';
-import { useDimensions, useBoard, usePlayerScores } from '../../../hooks/useGameContract';
+import { useDimensions, useBoard, usePlayerScores, useGameState } from '../../../hooks/useGameContract';
 import { Board } from '../../Board';
 
 export const GameBoard: React.FC = () => {
   const dim = useDimensions();
   const board = useBoard();
   const scores = usePlayerScores();
+  useGameState();
 
   if (!dim) {
     return (

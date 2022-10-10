@@ -1,15 +1,16 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import { ABI } from '../constants';
 import { useContract } from '../lib/useInk/hooks';
-import { useInk } from '../lib/useInk';
 import { useUI } from '../contexts/UIContext';
+import { useBlockSubscription } from '../lib/useInk/hooks/useBlockSubscription';
+
+type AccountId = string;
 
 export const useGameContract = () => {
   const {
-    rpcURL,
     game: { address },
   } = useUI();
-  return useContract(address || '', ABI, rpcURL);
+  return useContract(address || '', ABI);
 };
 
 export type Dimensions = {
@@ -21,30 +22,40 @@ export const useDimensions = (): Dimensions | null => {
   const game = useGameContract();
   const [dimensions, setDimensions] = useState<Dimensions | null>(null);
 
-  useEffect(() => {
+  useBlockSubscription(() => {
     game?.query?.dimensions('', {}).then((res) => {
       if (res.result.isOk) {
         const [x, y] = res.output?.toHuman() as string[];
         setDimensions({ x: parseInt(x), y: parseInt(y) });
       }
     });
-  }, [game]);
+  });
 
   return dimensions;
+};
+
+type GameState = {
+  phase: string;
+  startBlock: string;
+  endBlock: string;
+};
+
+type GameInfo = {
+  state: GameState | null;
 };
 
 export const useGameState = (): string | null => {
   const game = useGameContract();
   const [gameState, setGameState] = useState<string | null>(null);
 
-  useEffect(() => {
+  useBlockSubscription(() => {
     game?.query?.state('', {}).then((res) => {
       if (res.result.isOk) {
         const gs = res.output?.toHuman() as string;
         setGameState(gs);
       }
     });
-  }, [game]);
+  });
 
   return gameState;
 };
@@ -79,7 +90,7 @@ export const usePlayerColors = (): PlayerColors => {
   const game = useGameContract();
   const [playerColors, setPlayerColors] = useState<PlayerColors>({});
 
-  useEffect(() => {
+  useBlockSubscription(() => {
     game?.query?.players('', {}).then((res) => {
       if (res.result.isOk) {
         const players = res.output?.toHuman() as Player[];
@@ -90,7 +101,7 @@ export const usePlayerColors = (): PlayerColors => {
         setPlayerColors(colors);
       }
     });
-  }, [game]);
+  });
 
   return playerColors;
 };
@@ -108,7 +119,7 @@ export const usePlayerScores = (): PlayerScore[] => {
   const colors = usePlayerColors();
   const [scores, setScores] = useState<PlayerScore[]>([]);
 
-  useEffect(() => {
+  useBlockSubscription(() => {
     game?.query?.playerScores('', {}).then((res) => {
       if (res.result.isOk) {
         const s = res.output?.toHuman() as PlayerScoreData[];
@@ -122,7 +133,7 @@ export const usePlayerScores = (): PlayerScore[] => {
         setScores(sorted);
       }
     });
-  }, [colors, game]);
+  });
 
   return scores;
 };
@@ -143,7 +154,7 @@ export const useBoard = (): BoardPosition[] => {
   const colors = usePlayerColors();
   const [board, setBoard] = useState<BoardPosition[]>([]);
 
-  useEffect(() => {
+  useBlockSubscription(() => {
     dim &&
       game &&
       game?.query?.board('', {}).then((res) => {
@@ -160,44 +171,7 @@ export const useBoard = (): BoardPosition[] => {
         }
         setBoard(data);
       });
-  }, [game, dim, colors]);
+  });
 
   return board;
-};
-
-type AccountId = string;
-
-type Status = 'pending' | 'finalized' | 'none';
-
-type Response = {
-  send: () => void;
-  status: Status;
-};
-
-export const useStartGameFunc = (): Response => {
-  const game = useGameContract();
-  const { activeAccount, activeSigner } = useInk();
-  const [status, setStatus] = useState<Status>('none');
-
-  const send = useMemo(
-    () => () => {
-      if (!activeAccount || !game || !activeSigner) return () => null;
-
-      game.tx
-        .startGame({ gasLimit: -1 })
-        .signAndSend(activeAccount.address, { signer: activeSigner.signer }, async (result) => {
-          if (result.status.isInBlock) {
-            setStatus('pending');
-          } else if (result.status.isFinalized) {
-            setStatus('finalized');
-          }
-        });
-    },
-    [activeAccount, activeSigner, game],
-  );
-
-  return {
-    send,
-    status,
-  };
 };

@@ -77,7 +77,7 @@ export const Board: React.FC<Props> = ({ className, board, dimensions, scores, b
           className="absolute rounded-l-xl rounded-r-md flex flex-wrap items-center justify-center overflow-hidden"
           style={{
             ...pixelBoardPosition,
-            boxShadow: 'inset 0 0 0 2px #f7f7f7, inset 0 0 0 2px #f7f7f7',
+            boxShadow: 'inset 0 0 0 3px #f7f7f7, inset 0 0 0 3px #f7f7f7',
             display: 'grid',
             gridTemplateColumns: `repeat(${dimensions.x},minmax(0,1fr))`,
           }}
@@ -103,7 +103,12 @@ export const Board: React.FC<Props> = ({ className, board, dimensions, scores, b
           })}
         </div>
       )}
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1537.68 857.71" className="mx-auto" style={{ width: boardWidth }}>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 1537.68 857.71"
+        className="mx-auto"
+        style={{ width: boardWidth }}
+      >
         <defs>
           <clipPath id="a">
             <path
