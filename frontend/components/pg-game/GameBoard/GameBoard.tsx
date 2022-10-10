@@ -18,5 +18,5 @@ export const GameBoard: React.FC = () => {
     );
   }
 
-  return <Board board={board} dimensions={dim} scores={scores} className="w-full h-full" />;
+  return <Board boardWidth="75%" board={board} dimensions={dim} scores={scores} className="w-full h-full" />;
 };

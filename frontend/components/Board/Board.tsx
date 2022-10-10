@@ -6,6 +6,7 @@ import { ScoreItem } from './ScoreItem';
 
 type Props = {
   className?: string;
+  boardWidth: string | number;
   board: BoardPosition[];
   dimensions?: Dimensions;
   scores: PlayerScore[];
@@ -20,7 +21,7 @@ type CanvasPosition = {
   height: number;
 };
 
-export const Board: React.FC<Props> = ({ className, board, dimensions, scores }) => {
+export const Board: React.FC<Props> = ({ className, board, dimensions, scores, boardWidth }) => {
   const pixelBoardRef = useRef<SVGGElement>(null);
   const scoreBoardRef = useRef<SVGGElement>(null);
   const [pixelBoardPosition, setPixelBoardPosition] = useState<CanvasPosition | null>(null);
@@ -102,7 +103,7 @@ export const Board: React.FC<Props> = ({ className, board, dimensions, scores })
           })}
         </div>
       )}
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1537.68 857.71" className="w-[65%] mx-auto">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1537.68 857.71" className="mx-auto" style={{ width: boardWidth }}>
         <defs>
           <clipPath id="a">
             <path

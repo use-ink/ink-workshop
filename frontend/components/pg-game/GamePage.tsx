@@ -7,7 +7,7 @@ const GameBoard = dynamic(() => import('./GameBoard').then((mod) => mod.GameBoar
 
 export const GamePage: React.FC = () => {
   return (
-    <section className="h-screen w-full mx-auto pt-[66px]">
+    <section className="h-screen w-full mx-auto pt-[40px]">
       <GameBoard />
     </section>
   );
