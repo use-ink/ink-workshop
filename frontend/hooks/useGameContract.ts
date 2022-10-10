@@ -22,7 +22,7 @@ export const useDimensions = (): Dimensions | null => {
   const [dimensions, setDimensions] = useState<Dimensions | null>(null);
 
   useEffect(() => {
-    game?.query?.dimensions('', { value: 0, gasLimit: -1 }).then((res) => {
+    game?.query?.dimensions('', {}).then((res) => {
       if (res.result.isOk) {
         const [x, y] = res.output?.toHuman() as string[];
         setDimensions({ x: parseInt(x), y: parseInt(y) });
@@ -38,7 +38,7 @@ export const useGameState = (): string | null => {
   const [gameState, setGameState] = useState<string | null>(null);
 
   useEffect(() => {
-    game?.query?.state('', { value: 0, gasLimit: -1 }).then((res) => {
+    game?.query?.state('', {}).then((res) => {
       if (res.result.isOk) {
         const gs = res.output?.toHuman() as string;
         setGameState(gs);
@@ -80,7 +80,7 @@ export const usePlayerColors = (): PlayerColors => {
   const [playerColors, setPlayerColors] = useState<PlayerColors>({});
 
   useEffect(() => {
-    game?.query?.players('', { value: 0, gasLimit: -1 }).then((res) => {
+    game?.query?.players('', {}).then((res) => {
       if (res.result.isOk) {
         const players = res.output?.toHuman() as Player[];
         const colors = players.reduce((acc, p, index) => {
@@ -109,7 +109,7 @@ export const usePlayerScores = (): PlayerScore[] => {
   const [scores, setScores] = useState<PlayerScore[]>([]);
 
   useEffect(() => {
-    game?.query?.playerScores('', { value: 0, gasLimit: -1 }).then((res) => {
+    game?.query?.playerScores('', {}).then((res) => {
       if (res.result.isOk) {
         const s = res.output?.toHuman() as PlayerScoreData[];
         const sorted = [...s]
@@ -146,7 +146,7 @@ export const useBoard = (): BoardPosition[] => {
   useEffect(() => {
     dim &&
       game &&
-      game?.query?.board('', { value: 0, gasLimit: -1 }).then((res) => {
+      game?.query?.board('', {}).then((res) => {
         const data: BoardPosition[] = [];
         const raw = res.output?.toHuman() as (AccountId | null)[];
 
