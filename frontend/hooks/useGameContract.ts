@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ABI } from '../constants';
 import { useContract } from '../lib/useInk/hooks';
 import { useUI } from '../contexts/UIContext';
 import { useBlockSubscription } from '../lib/useInk/hooks/useBlockSubscription';
+import { useInk } from '../lib/useInk';
 
 type AccountId = string;
 
@@ -22,37 +23,94 @@ export const useDimensions = (): Dimensions | null => {
   const game = useGameContract();
   const [dimensions, setDimensions] = useState<Dimensions | null>(null);
 
-  useBlockSubscription(() => {
+  useEffect(() => {
     game?.query?.dimensions('', {}).then((res) => {
       if (res.result.isOk) {
         const [x, y] = res.output?.toHuman() as string[];
         setDimensions({ x: parseInt(x), y: parseInt(y) });
       }
     });
-  });
+  }, [game]);
 
   return dimensions;
 };
 
-type GameState = {
-  phase: string;
-  startBlock: string;
-  endBlock: string;
+export type Forming = {
+  status: 'Forming';
+  earliestStart: number;
+  startingIn: number;
 };
 
-type GameInfo = {
-  state: GameState | null;
+export type Running = {
+  status: 'Running';
+  startBlock: number;
+  endBlock: number;
+  totalRounds: number;
+  currentRound: number;
 };
 
-export const useGameState = (): string | null => {
+export type Finished = {
+  status: 'Finished';
+  winner: AccountId;
+};
+
+type GameState = Forming | Running | Finished;
+
+const toRunningStatus = (gameState: any, header: number | undefined): Running => {
+  const currentBlock = header || 0;
+  console.log('currentBlock', currentBlock);
+
+  const startBlock = parseInt(gameState?.Running.startBlock.split(',').join('')) || 0;
+  const endBlock = parseInt(gameState?.Running.endBlock.split(',').join('')) || 0;
+  const totalRounds = gameState ? endBlock - startBlock : 0;
+  const hasEnded = endBlock < currentBlock;
+  const currentRound = hasEnded ? totalRounds : endBlock - startBlock;
+
+  return {
+    status: 'Running',
+    startBlock,
+    endBlock,
+    totalRounds,
+    currentRound,
+  };
+};
+
+export const useGameState = (): GameState | null => {
   const game = useGameContract();
-  const [gameState, setGameState] = useState<string | null>(null);
+  const { header } = useInk();
+  const [gameState, setGameState] = useState<GameState | null>(null);
+  const currentBlock = header?.number.toNumber() || 0;
 
   useBlockSubscription(() => {
     game?.query?.state('', {}).then((res) => {
       if (res.result.isOk) {
-        const gs = res.output?.toHuman() as string;
-        setGameState(gs);
+        const gs = res.output?.toHuman() as any;
+        const phase = Object.keys(gs || {})[0];
+
+        let state: GameState | null = null;
+        if ('Forming'.toLocaleLowerCase() === phase.toLocaleLowerCase()) {
+          const earliestStart = parseInt(gs?.Forming?.earliestStart.split(',').join('')) || 0;
+          const startingIn = currentBlock < earliestStart ? earliestStart - currentBlock : 0;
+          state = {
+            status: 'Forming',
+            earliestStart,
+            startingIn,
+          };
+        }
+
+        if ('Running'.toLocaleLowerCase() === phase.toLocaleLowerCase()) {
+          state = toRunningStatus(gs, currentBlock);
+        }
+
+        if ('Finished'.toLocaleLowerCase() === phase.toLocaleLowerCase()) {
+          const winner = gs?.[phase].winner;
+          state = {
+            status: 'Finished',
+            winner,
+          };
+        }
+
+        setGameState(state);
       }
     });
   });
@@ -74,7 +132,7 @@ const PLAYER_COLORS = [
 ];
 
 export type Player = {
-  id: string;
+  id: AccountId;
   name: string;
   gasUsed: number;
   storageUsed: number;

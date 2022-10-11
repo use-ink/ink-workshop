@@ -1,7 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 import classNames from 'classnames';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Dimensions, BoardPosition, PlayerScore } from '../../hooks/useGameContract';
+import { Dimensions, BoardPosition, PlayerScore, useGameState } from '../../hooks/useGameContract';
+import { useInk } from '../../lib/useInk';
 import { ScoreItem } from './ScoreItem';
 
 type Props = {

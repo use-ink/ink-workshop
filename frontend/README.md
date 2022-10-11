@@ -14,7 +14,9 @@ Open [http://localhost:3000](http://localhost:3000) with your browser.
 
 An example game can be found using this address. Enter it into the input on the home page.
 
-```5HJdQ6psLyuvVL9183jXdoMeUsefMomcfkY1h4G99wu6yY3M```
+### Completed Game
+
+```5CWnF6YqFXLaMQ1MddNQ76MfLyEK9mvL2nEECvpd3bRTGbWM```
 
 If you would like to deploy your own game here are the steps:
 
