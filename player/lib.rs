@@ -24,10 +24,5 @@ mod player {
         pub fn your_turn(&mut self) -> (u32, u32) {
             self.turn
         }
-
-        #[ink(message)]
-        pub fn next_turn(&mut self, turn: (u32, u32)) {
-            self.turn = turn;
-        }
     }
 }
