@@ -3,10 +3,12 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { Layout } from '../components/Layout';
+import { useUI } from '../contexts/UIContext';
 
 const Home: NextPage = () => {
   const router = useRouter();
   const [address, setAddress] = useState('');
+  const { setShowRules } = useUI();
 
   return (
     <Layout>
@@ -26,10 +28,17 @@ const Home: NextPage = () => {
             value={address}
           />
           <button
-            className="w-full mt-6 rounded-2xl py-4 px-6 bg-players-8 hover:bg-players-8/80 drop-shadow-md transition duration-200 focus:outline-none focus:ring-4 focus:ring-players-9"
+            className="font-fred w-full mt-6 rounded-2xl py-4 px-6 bg-players-8 hover:bg-players-8/80 drop-shadow-md transition duration-200 focus:outline-none focus:ring-4 focus:ring-players-9"
             onClick={() => address && router.push(`/game/${address}`)}
           >
-            <h6>Let&apos;s Play!</h6>
+            Play a game!
+          </button>
+
+          <button
+            className="text-white font-fred w-full mt-3 rounded-2xl py-4 px-6 bg-brand-500 hover:bg-brand-500/80 drop-shadow-md transition duration-200 focus:outline-none focus:ring-4 focus:ring-players-9"
+            onClick={() => setShowRules(true)}
+          >
+            Learn how to play
           </button>
         </div>
       </section>

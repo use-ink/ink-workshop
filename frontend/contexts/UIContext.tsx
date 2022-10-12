@@ -6,6 +6,8 @@ const DEFAULT_RPC_URL = 'wss://rococo-contracts-rpc.polkadot.io';
 type UI = {
   showAccounts: boolean;
   showWalletConnect: boolean;
+  showRules: boolean;
+  setShowRules: (show: boolean) => void;
   setShowWalletConnect: (show: boolean) => void;
   setGameAddress: (address: string | null) => void;
   setRpcURL: (url: string) => void;
@@ -18,6 +20,8 @@ type UI = {
 const DEFAULT_UI: UI = {
   showAccounts: false,
   showWalletConnect: false,
+  showRules: false,
+  setShowRules: (_: boolean) => null,
   setShowWalletConnect: (_: boolean) => null,
   rpcURL: DEFAULT_RPC_URL,
   setRpcURL: (_: string) => null,
@@ -29,12 +33,15 @@ const DEFAULT_UI: UI = {
 
 const useUIValues = (): UI => {
   const [showWalletConnect, setShowWalletConnect] = useState(false);
+  const [showRules, setShowRules] = useState(false);
   const [gameAddress, setGameAddress] = useState<string | null>(null);
   const [rpcURL, setRpcURL] = useState<string>(DEFAULT_RPC_URL);
   return {
     ...DEFAULT_UI,
     showWalletConnect,
     setShowWalletConnect,
+    setShowRules,
+    showRules,
     setRpcURL,
     rpcURL,
     setGameAddress,
