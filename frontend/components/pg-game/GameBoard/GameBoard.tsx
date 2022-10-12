@@ -1,6 +1,7 @@
 import React from 'react';
 import { useDimensions, useBoard, usePlayerScores } from '../../../hooks/useGameContract';
 import { Board } from '../../Board';
+import { GameStatus } from '../../GameStatus';
 
 export const GameBoard: React.FC = () => {
   const dim = useDimensions();
@@ -18,5 +19,12 @@ export const GameBoard: React.FC = () => {
     );
   }
 
-  return <Board board={board} dimensions={dim} scores={scores} className="w-full h-full" />;
+  return (
+    <>
+      <div className="fixed top-3 right-3 min-w-[180px]">
+        <GameStatus />
+      </div>
+      <Board boardWidth="75%" board={board} dimensions={dim} scores={scores} className="w-full h-full" />
+    </>
+  );
 };

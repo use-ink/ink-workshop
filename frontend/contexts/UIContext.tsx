@@ -1,6 +1,7 @@
 import React, { createContext, ReactNode, useContext, useState } from 'react';
 
 const DEFAULT_RPC_URL = 'wss://rococo-contracts-rpc.polkadot.io';
+// const DEFAULT_RPC_URL = 'ws://127.0.0.1:9944';
 
 type UI = {
   showAccounts: boolean;

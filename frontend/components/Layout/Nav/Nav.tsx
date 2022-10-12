@@ -2,20 +2,10 @@
 import classNames from 'classnames';
 import React from 'react';
 
-import dynamic from 'next/dynamic';
-import { useInk } from '../../../lib/useInk';
-import { Button } from '../../Button';
-import { useStartGameFunc } from '../../../hooks/useGameContract';
 import { useRouter } from 'next/router';
-
-const ConnectWallet = dynamic(() => import('../../ConnectWallet').then((mod) => mod.ConnectWallet), {
-  ssr: false,
-});
 
 export const Nav = () => {
   const classes = classNames('transition ease-in-out py-1 w-full z-11 flex items-center justify-between fixed top-0');
-  const { activeAccount } = useInk();
-  const executeGame = useStartGameFunc();
   const router = useRouter();
 
   return (
@@ -33,14 +23,6 @@ export const Nav = () => {
                   onClick={() => router.push('/')}
                 />
               </li>
-              {activeAccount && (
-                <li className="mr-3">
-                  <Button onClick={() => executeGame.send()} className="mr-3">
-                    {executeGame.status === 'pending' ? 'Pending...' : 'Play Game'}
-                  </Button>
-                </li>
-              )}
-              <li className="mr-3">{<ConnectWallet />}</li>
             </ul>
           </div>
         </div>

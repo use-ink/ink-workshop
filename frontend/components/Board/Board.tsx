@@ -1,11 +1,13 @@
 /* eslint-disable @next/next/no-img-element */
 import classNames from 'classnames';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Dimensions, BoardPosition, PlayerScore } from '../../hooks/useGameContract';
+import { Dimensions, BoardPosition, PlayerScore, useGameState } from '../../hooks/useGameContract';
+import { useInk } from '../../lib/useInk';
 import { ScoreItem } from './ScoreItem';
 
 type Props = {
   className?: string;
+  boardWidth: string | number;
   board: BoardPosition[];
   dimensions?: Dimensions;
   scores: PlayerScore[];
@@ -20,7 +22,7 @@ type CanvasPosition = {
   height: number;
 };
 
-export const Board: React.FC<Props> = ({ className, board, dimensions, scores }) => {
+export const Board: React.FC<Props> = ({ className, board, dimensions, scores, boardWidth }) => {
   const pixelBoardRef = useRef<SVGGElement>(null);
   const scoreBoardRef = useRef<SVGGElement>(null);
   const [pixelBoardPosition, setPixelBoardPosition] = useState<CanvasPosition | null>(null);
@@ -76,7 +78,7 @@ export const Board: React.FC<Props> = ({ className, board, dimensions, scores })
           className="absolute rounded-l-xl rounded-r-md flex flex-wrap items-center justify-center overflow-hidden"
           style={{
             ...pixelBoardPosition,
-            boxShadow: 'inset 0 0 0 2px #f7f7f7, inset 0 0 0 2px #f7f7f7',
+            boxShadow: 'inset 0 0 0 3px #f7f7f7, inset 0 0 0 3px #f7f7f7',
             display: 'grid',
             gridTemplateColumns: `repeat(${dimensions.x},minmax(0,1fr))`,
           }}
@@ -102,7 +104,12 @@ export const Board: React.FC<Props> = ({ className, board, dimensions, scores })
           })}
         </div>
       )}
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1537.68 857.71" className="w-[65%] mx-auto">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 1537.68 857.71"
+        className="mx-auto"
+        style={{ width: boardWidth }}
+      >
         <defs>
           <clipPath id="a">
             <path

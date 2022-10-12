@@ -1,10 +1,6 @@
 import dynamic from 'next/dynamic';
 import { Entity } from '../Entity';
 
-const ConnectWalletModal = dynamic(() => import('../ConnectWalletModal').then((mod) => mod.ConnectWalletModal), {
-  ssr: false,
-});
-
 const Nav = dynamic(() => import('./Nav').then((mod) => mod.Nav), {
   ssr: false,
 });
@@ -16,7 +12,6 @@ type Props = {
 export const Layout: React.FC<Props> = ({ children }) => {
   return (
     <div className="bg-sea bg-cover bg-no-repeat bg-bottom fixed top-0 left-0 right-0 bottom-0 w-full h-screen">
-      <ConnectWalletModal />
       <Nav />
       <Entity
         alt="plant"

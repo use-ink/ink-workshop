@@ -1,6 +1,5 @@
 import dynamic from 'next/dynamic';
 import React from 'react';
-import { Entity } from '../Entity';
 
 const GameBoard = dynamic(() => import('./GameBoard').then((mod) => mod.GameBoard), {
   ssr: false,
@@ -8,7 +7,7 @@ const GameBoard = dynamic(() => import('./GameBoard').then((mod) => mod.GameBoar
 
 export const GamePage: React.FC = () => {
   return (
-    <section className="h-screen w-full mx-auto pt-[66px]">
+    <section className="h-screen w-full mx-auto pt-[40px]">
       <GameBoard />
     </section>
   );

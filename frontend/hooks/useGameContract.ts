@@ -1,15 +1,17 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ABI } from '../constants';
 import { useContract } from '../lib/useInk/hooks';
-import { useInk } from '../lib/useInk';
 import { useUI } from '../contexts/UIContext';
+import { useBlockSubscription } from '../lib/useInk/hooks/useBlockSubscription';
+import { useInk } from '../lib/useInk';
+
+type AccountId = string;
 
 export const useGameContract = () => {
   const {
-    rpcURL,
     game: { address },
   } = useUI();
-  return useContract(address || '', ABI, rpcURL);
+  return useContract(address || '', ABI);
 };
 
 export type Dimensions = {
@@ -22,7 +24,7 @@ export const useDimensions = (): Dimensions | null => {
   const [dimensions, setDimensions] = useState<Dimensions | null>(null);
 
   useEffect(() => {
-    game?.query?.dimensions('', { value: 0, gasLimit: -1 }).then((res) => {
+    game?.query?.dimensions('', {}).then((res) => {
       if (res.result.isOk) {
         const [x, y] = res.output?.toHuman() as string[];
         setDimensions({ x: parseInt(x), y: parseInt(y) });
@@ -33,18 +35,85 @@ export const useDimensions = (): Dimensions | null => {
   return dimensions;
 };
 
-export const useGameState = (): string | null => {
-  const game = useGameContract();
-  const [gameState, setGameState] = useState<string | null>(null);
+export type Forming = {
+  status: 'Forming';
+  earliestStart: number;
+  startingIn: number;
+};
 
-  useEffect(() => {
-    game?.query?.state('', { value: 0, gasLimit: -1 }).then((res) => {
+export type Running = {
+  status: 'Running';
+  startBlock: number;
+  endBlock: number;
+  totalRounds: number;
+  currentRound: number;
+};
+
+export type Finished = {
+  status: 'Finished';
+  winner: AccountId;
+};
+
+type GameState = Forming | Running | Finished;
+
+const toRunningStatus = (gameState: any, header: number | undefined): Running => {
+  const currentBlock = header || 0;
+  console.log('currentBlock', currentBlock);
+
+  const startBlock = parseInt(gameState?.Running.startBlock.split(',').join('')) || 0;
+  const endBlock = parseInt(gameState?.Running.endBlock.split(',').join('')) || 0;
+  const totalRounds = gameState ? endBlock - startBlock : 0;
+  const hasEnded = endBlock < currentBlock;
+  const currentRound = hasEnded ? totalRounds : endBlock - startBlock;
+
+  return {
+    status: 'Running',
+    startBlock,
+    endBlock,
+    totalRounds,
+    currentRound,
+  };
+};
+
+export const useGameState = (): GameState | null => {
+  const game = useGameContract();
+  const { header } = useInk();
+  const [gameState, setGameState] = useState<GameState | null>(null);
+  const currentBlock = header?.number.toNumber() || 0;
+
+  useBlockSubscription(() => {
+    game?.query?.state('', {}).then((res) => {
       if (res.result.isOk) {
-        const gs = res.output?.toHuman() as string;
-        setGameState(gs);
+        const gs = res.output?.toHuman() as any;
+        const phase = Object.keys(gs || {})[0];
+
+        let state: GameState | null = null;
+        if ('Forming'.toLocaleLowerCase() === phase.toLocaleLowerCase()) {
+          const earliestStart = parseInt(gs?.Forming?.earliestStart.split(',').join('')) || 0;
+          const startingIn = currentBlock < earliestStart ? earliestStart - currentBlock : 0;
+          state = {
+            status: 'Forming',
+            earliestStart,
+            startingIn,
+          };
+        }
+
+        if ('Running'.toLocaleLowerCase() === phase.toLocaleLowerCase()) {
+          state = toRunningStatus(gs, currentBlock);
+        }
+
+        if ('Finished'.toLocaleLowerCase() === phase.toLocaleLowerCase()) {
+          const winner = gs?.[phase].winner;
+          state = {
+            status: 'Finished',
+            winner,
+          };
+        }
+
+        setGameState(state);
       }
     });
-  }, [game]);
+  });
 
   return gameState;
 };
@@ -63,7 +132,7 @@ const PLAYER_COLORS = [
 ];
 
 export type Player = {
-  id: string;
+  id: AccountId;
   name: string;
   gasUsed: number;
   storageUsed: number;
@@ -79,8 +148,8 @@ export const usePlayerColors = (): PlayerColors => {
   const game = useGameContract();
   const [playerColors, setPlayerColors] = useState<PlayerColors>({});
 
-  useEffect(() => {
-    game?.query?.players('', { value: 0, gasLimit: -1 }).then((res) => {
+  useBlockSubscription(() => {
+    game?.query?.players('', {}).then((res) => {
       if (res.result.isOk) {
         const players = res.output?.toHuman() as Player[];
         const colors = players.reduce((acc, p, index) => {
@@ -90,7 +159,7 @@ export const usePlayerColors = (): PlayerColors => {
         setPlayerColors(colors);
       }
     });
-  }, [game]);
+  });
 
   return playerColors;
 };
@@ -108,8 +177,8 @@ export const usePlayerScores = (): PlayerScore[] => {
   const colors = usePlayerColors();
   const [scores, setScores] = useState<PlayerScore[]>([]);
 
-  useEffect(() => {
-    game?.query?.playerScores('', { value: 0, gasLimit: -1 }).then((res) => {
+  useBlockSubscription(() => {
+    game?.query?.playerScores('', {}).then((res) => {
       if (res.result.isOk) {
         const s = res.output?.toHuman() as PlayerScoreData[];
         const sorted = [...s]
@@ -122,7 +191,7 @@ export const usePlayerScores = (): PlayerScore[] => {
         setScores(sorted);
       }
     });
-  }, [colors, game]);
+  });
 
   return scores;
 };
@@ -143,10 +212,10 @@ export const useBoard = (): BoardPosition[] => {
   const colors = usePlayerColors();
   const [board, setBoard] = useState<BoardPosition[]>([]);
 
-  useEffect(() => {
+  useBlockSubscription(() => {
     dim &&
       game &&
-      game?.query?.board('', { value: 0, gasLimit: -1 }).then((res) => {
+      game?.query?.board('', {}).then((res) => {
         const data: BoardPosition[] = [];
         const raw = res.output?.toHuman() as (AccountId | null)[];
 
@@ -160,44 +229,7 @@ export const useBoard = (): BoardPosition[] => {
         }
         setBoard(data);
       });
-  }, [game, dim, colors]);
+  });
 
   return board;
-};
-
-type AccountId = string;
-
-type Status = 'pending' | 'finalized' | 'none';
-
-type Response = {
-  send: () => void;
-  status: Status;
-};
-
-export const useStartGameFunc = (): Response => {
-  const game = useGameContract();
-  const { activeAccount, activeSigner } = useInk();
-  const [status, setStatus] = useState<Status>('none');
-
-  const send = useMemo(
-    () => () => {
-      if (!activeAccount || !game || !activeSigner) return () => null;
-
-      game.tx
-        .startGame({ gasLimit: -1 })
-        .signAndSend(activeAccount.address, { signer: activeSigner.signer }, async (result) => {
-          if (result.status.isInBlock) {
-            setStatus('pending');
-          } else if (result.status.isFinalized) {
-            setStatus('finalized');
-          }
-        });
-    },
-    [activeAccount, activeSigner, game],
-  );
-
-  return {
-    send,
-    status,
-  };
 };

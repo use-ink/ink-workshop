@@ -14,6 +14,10 @@ Open [http://localhost:3000](http://localhost:3000) with your browser.
 
 An example game can be found using this address. Enter it into the input on the home page.
 
+### Completed Game
+
+```5CWnF6YqFXLaMQ1MddNQ76MfLyEK9mvL2nEECvpd3bRTGbWM```
+
 If you would like to deploy your own game here are the steps:
 
 1. deploy your game contract here https://polkadot.js.org/apps/?rpc=wss%3A%2F%2Frococo-contracts-rpc.polkadot.io#/contracts
