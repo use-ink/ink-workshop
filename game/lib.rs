@@ -408,10 +408,11 @@ mod squink_splash {
 
         fn rounds_played(&self) -> u32 {
             match self.state {
-                State::Forming { .. } | State::Finished { .. } => 0,
+                State::Forming { .. } => 0,
                 State::Running { start_block, .. } => {
-                    self.env().block_number() - start_block
+                    self.rounds.min(self.env().block_number() - start_block)
                 }
+                State::Finished { .. } => self.rounds,
             }
         }
     }
