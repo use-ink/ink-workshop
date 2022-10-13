@@ -1,8 +1,11 @@
 import dynamic from 'next/dynamic';
 import { useUI } from '../../contexts/UIContext';
 import { Button } from '../Button';
-import { Entity } from '../Entity';
 import { Rules } from './Rules';
+
+const Entity = dynamic(() => import('../Entity').then((mod) => mod.Entity), {
+  ssr: false,
+});
 
 const Nav = dynamic(() => import('./Nav').then((mod) => mod.Nav), {
   ssr: false,
