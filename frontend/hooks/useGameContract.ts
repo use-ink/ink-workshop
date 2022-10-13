@@ -58,13 +58,12 @@ type GameState = Forming | Running | Finished;
 
 const toRunningStatus = (gameState: any, header: number | undefined): Running => {
   const currentBlock = header || 0;
-  console.log('currentBlock', currentBlock);
 
   const startBlock = parseInt(gameState?.Running.startBlock.split(',').join('')) || 0;
   const endBlock = parseInt(gameState?.Running.endBlock.split(',').join('')) || 0;
   const totalRounds = gameState ? endBlock - startBlock : 0;
   const hasEnded = endBlock < currentBlock;
-  const currentRound = hasEnded ? totalRounds : endBlock - startBlock;
+  const currentRound = hasEnded ? totalRounds : currentBlock - startBlock;
 
   return {
     status: 'Running',
@@ -220,13 +219,15 @@ export const useBoard = (): BoardPosition[] => {
         const raw = res.output?.toHuman() as (AccountId | null)[];
 
         let index = 0;
-        for (let x = 0; x < dim.x; x += 1) {
-          for (let y = 0; y < dim.y; y += 1) {
+        for (let y = 0; y < dim.y; y += 1) {
+          for (let x = 0; x < dim.x; x += 1) {
             const owner = raw?.[index];
+            console.log('x,y', x, y);
             data.push({ x, y, owner, color: colors[owner || ''] });
             index += 1;
           }
         }
+        console.log('board', data);
         setBoard(data);
       });
   });
