@@ -222,12 +222,10 @@ export const useBoard = (): BoardPosition[] => {
         for (let y = 0; y < dim.y; y += 1) {
           for (let x = 0; x < dim.x; x += 1) {
             const owner = raw?.[index];
-            console.log('x,y', x, y);
             data.push({ x, y, owner, color: colors[owner || ''] });
             index += 1;
           }
         }
-        console.log('board', data);
         setBoard(data);
       });
   });
