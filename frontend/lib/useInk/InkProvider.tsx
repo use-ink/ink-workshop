@@ -8,6 +8,7 @@ import { ContractPromise } from '@polkadot/api-contract';
 
 type InkDappItems = Extension & {
   header?: Header;
+  currentBlock?: number;
   api?: ApiPromise;
   game?: ContractPromise;
 };
@@ -30,6 +31,7 @@ const InkProvider: React.FC<InkConfig> = ({ children }) => {
   const api = useApi(DEFAULT_RPC_URL);
   const [header, setHeader] = useState<Header | undefined>();
   const game = useGameContract();
+  const currentBlock = header?.number?.toNumber();
 
   useEffect(() => {
     async function listenToBlocks() {
@@ -43,7 +45,11 @@ const InkProvider: React.FC<InkConfig> = ({ children }) => {
     return () => cleanUp && cleanUp();
   }, [api]);
 
-  return <InkContext.Provider value={{ ...DEFAULTS, ...extension, header, api, game }}>{children}</InkContext.Provider>;
+  return (
+    <InkContext.Provider value={{ ...DEFAULTS, ...extension, header, api, game, currentBlock }}>
+      {children}
+    </InkContext.Provider>
+  );
 };
 
 export const useInk = () => useContext(InkContext);
