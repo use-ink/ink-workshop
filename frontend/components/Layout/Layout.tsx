@@ -1,9 +1,18 @@
 import dynamic from 'next/dynamic';
+import { GiBookCover } from 'react-icons/gi';
 import { useUI } from '../../contexts/UIContext';
 import { Button } from '../Button';
 import { Rules } from './Rules';
 
 const Entity = dynamic(() => import('../Entity').then((mod) => mod.Entity), {
+  ssr: false,
+});
+
+const ConnectWallet = dynamic(() => import('../ConnectWallet').then((mod) => mod.ConnectWallet), {
+  ssr: false,
+});
+
+const ConnectWalletModal = dynamic(() => import('../ConnectWalletModal').then((mod) => mod.ConnectWalletModal), {
   ssr: false,
 });
 
@@ -51,11 +60,19 @@ export const Layout: React.FC<Props> = ({ children }) => {
           className="absolute right-[3%] xl:top-[34%] top-[15%] md:w-32 w-20"
         />
       </div>
-      <Button className="fixed right-3 bottom-3" onClick={() => setShowRules(true)}>
-        Rules
-      </Button>
+
+      <div className="fixed right-3 bottom-3 flex items-center">
+        <Button className="px-3" onClick={() => setShowRules(true)}>
+          <GiBookCover size={20} />
+        </Button>
+        <ConnectWallet className="ml-3" />
+      </div>
+
       <Rules />
-      <div className="">{children}</div>
+
+      <ConnectWalletModal />
+
+      <div>{children}</div>
     </div>
   );
 };
