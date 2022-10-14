@@ -32,6 +32,7 @@ module.exports = {
       fontFamily: {
         Headings: ['Fredoka One', 'cursive'],
         fred: ['Fredoka One', 'cursive'],
+        mont: ['Montserrat', 'sans-serif'],
       },
       backgroundImage: {
         'sea': "url('/sea-bg.svg')",

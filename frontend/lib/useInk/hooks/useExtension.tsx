@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 
 export type Extension = {
   accounts: InjectedAccountWithMeta[] | null;
-  setActiveAccount: (account: InjectedAccountWithMeta) => void;
+  setActiveAccount: (account: InjectedAccountWithMeta | null) => void;
   activeAccount?: InjectedAccountWithMeta | null;
   activeSigner?: InjectedExtension | null;
   isConnected: boolean;
@@ -13,7 +13,7 @@ export type Extension = {
 
 export const EXTENSION_DEFAULTS: Extension = {
   accounts: null,
-  setActiveAccount: (_: InjectedAccountWithMeta) => null,
+  setActiveAccount: (_: InjectedAccountWithMeta | null) => null,
   activeAccount: null,
   fetchAccounts: () => null,
   isConnected: false,

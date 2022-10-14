@@ -4,20 +4,26 @@ import classNames from 'classnames';
 
 type Props = {
   open: boolean;
-  handleClose: () => void;
+  handleClose?: () => void;
   className?: string;
   children: ReactNode;
 };
 
 export const Modal: React.FC<Props> = ({ open, handleClose, children, className }) => {
   const containerClasses = classNames(
-    'inline-block bg-brand-500 border border-white/20 rounded-2xl overflow-scroll shadow-xl transform transition-all',
+    'inline-block bg-brand-500 border border-white/20 rounded-2xl overflow-scroll shadow-xl transform transition-all w-full max-w-xl',
     className,
   );
 
   return (
     <Transition.Root show={open} as={Fragment}>
-      <Dialog as="div" static className="fixed z-40 inset-0 overflow-y-auto" open={open} onClose={handleClose}>
+      <Dialog
+        as="div"
+        static
+        className="fixed z-40 inset-0 overflow-y-auto"
+        open={open}
+        onClose={() => handleClose && handleClose()}
+      >
         <div className="flex flex-col items-center sm:py-8 justify-center h-screen lg:pt-32 pt-4 px-4 pb-20 text-center">
           <Transition.Child
             as={Fragment}
