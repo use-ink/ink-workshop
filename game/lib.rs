@@ -3,7 +3,6 @@
 #[ink::contract]
 mod squink_splash {
     use core::ops::{
-        Div,
         Mul,
         RangeInclusive,
     };
@@ -350,15 +349,18 @@ mod squink_splash {
             let board = self.board();
             let mut scores = BTreeMap::<AccountId, u64>::new();
 
-            // The score depends on the average gas used by all players per round.
-            let score_per_field: u64 = players
+            let avg_gas_per_player = players
                 .iter()
-                .map(|p| p.gas_used + u64::from(p.storage_used))
+                .map(|p| p.gas_used)
                 .sum::<u64>()
+                .checked_div(players.len() as u64)
+                .unwrap_or(0);
+
+            // The score depends on the average gas used by all players per round.
+            let score_per_field: u64 = avg_gas_per_player
                 .mul(SCORE_PER_FIELD_MULTIPLIER)
                 .checked_div(u64::from(self.rounds_played()))
-                .unwrap_or(0)
-                .div(players.len() as u64);
+                .unwrap_or(0);
 
             for owner in board.into_iter().flatten() {
                 let entry = scores.entry(owner).or_default();
@@ -366,11 +368,8 @@ mod squink_splash {
             }
 
             players.into_iter().map(move |p| {
-                let score = scores
-                    .get(&p.id)
-                    .unwrap_or(&0)
-                    .saturating_sub(p.gas_used)
-                    .saturating_sub(p.storage_used.into());
+                let bonus_gas = avg_gas_per_player.saturating_sub(p.gas_used);
+                let score = scores.get(&p.id).unwrap_or(&0).saturating_add(bonus_gas);
                 (p, score)
             })
         }
