@@ -10,7 +10,7 @@ Here are the important links to get you playing.
 * [`polkadot-js` extension](https://polkadot.js.org/extension/) for Chrome or Firefox
 * Basic `player` smart contract
   * [On the ink! Playground](https://ink-playground.substrate.io/?id=9230e11fc09945ac2cdc928d53cfbfdd)
-  * [On GitHub](https://github.com/paritytech/ink-workshop/blob/master/beginners-workshop/basic-player)
+  * [On GitHub](https://github.com/paritytech/ink-workshop/blob/main/beginners-workshop/basic-player/lib.rs)
 * [`polkadot-js` frontend for our Contracts parachain on Rococo](https://polkadot.js.org/apps/?rpc=wss%3A%2F%2Frococo-contracts-rpc.polkadot.io#/explorer)
 * Our Testnet faucet:
   * [Faucet chat room on Matrix](https://matrix.to/#/#rococo-faucet:matrix.org)
