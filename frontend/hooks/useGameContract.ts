@@ -54,7 +54,9 @@ export type Finished = {
   winner: AccountId;
 };
 
-type GameState = Forming | Running | Finished;
+export type GameStatus = 'Forming' | 'Running' | 'Finished';
+
+export type GameState = Forming | Running | Finished;
 
 const toRunningStatus = (gameState: any, header: number | undefined): Running => {
   const currentBlock = header || 0;

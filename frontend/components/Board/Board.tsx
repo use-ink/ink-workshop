@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import classNames from 'classnames';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Dimensions, BoardPosition, PlayerScore } from '../../hooks/useGameContract';
+import { Dimensions, BoardPosition, PlayerScore, GameState, GameStatus } from '../../hooks/useGameContract';
 import { ScoreItem } from './ScoreItem';
 
 type Props = {
@@ -10,6 +10,7 @@ type Props = {
   board: BoardPosition[];
   dimensions?: Dimensions;
   scores: PlayerScore[];
+  status?: GameStatus;
 };
 
 type CanvasPosition = {
@@ -21,11 +22,18 @@ type CanvasPosition = {
   height: number;
 };
 
-export const Board: React.FC<Props> = ({ className, board, dimensions, scores, boardWidth }) => {
+export const Board: React.FC<Props> = ({ className, board, dimensions, scores, boardWidth, status }) => {
   const pixelBoardRef = useRef<SVGGElement>(null);
   const scoreBoardRef = useRef<SVGGElement>(null);
   const [pixelBoardPosition, setPixelBoardPosition] = useState<CanvasPosition | null>(null);
   const [scoreBoardPosition, setScoreBoardPosition] = useState<CanvasPosition | null>(null);
+  const sirenColor = status
+    ? {
+        Forming: '#ffc32b',
+        Running: '#50d985',
+        Finished: '#ff705e',
+      }[status]
+    : '#ffc32b';
 
   const setPosition = useCallback(() => {
     if (pixelBoardRef && pixelBoardRef.current) {
@@ -436,7 +444,7 @@ export const Board: React.FC<Props> = ({ className, board, dimensions, scores, b
               d="M1208.47 119.18L1192.25 119.18"
             ></path>
             <path
-              fill="#ffc32b"
+              fill={sirenColor}
               d="M195.08 117.74s-1.7-34.16-3.65-40.24-14.26-5.3-21.5-3.85c-7.24 1.45-7.06 13.9-7.06 20.98v23.11h32.21z"
             ></path>
             <path
@@ -496,7 +504,7 @@ export const Board: React.FC<Props> = ({ className, board, dimensions, scores, b
               d="M365.03 139.29L178.22 139.29"
             ></path>
             <circle cx="147.6" cy="138.94" r="3.14" fill="#0e0e0e"></circle>
-            <circle cx="129.7" cy="138.94" r="5.57" fill="#ffc32b"></circle>
+            <circle cx="129.7" cy="138.94" r="5.57" fill={sirenColor}></circle>
             <g>
               <path fill="#8747cc" d="M271.52 126.34L277.93 119.69 391.87 119.69 396.97 126.34 271.52 126.34z"></path>
               <path

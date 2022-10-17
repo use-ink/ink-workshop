@@ -1,6 +1,6 @@
 import dynamic from 'next/dynamic';
 import React from 'react';
-import { useDimensions, useBoard, usePlayerScores } from '../../../hooks/useGameContract';
+import { useDimensions, useBoard, usePlayerScores, useGameState } from '../../../hooks/useGameContract';
 import { Board } from '../../Board';
 import { ConnectWallet } from '../../ConnectWallet';
 
@@ -12,6 +12,7 @@ export const GameBoard: React.FC = () => {
   const dim = useDimensions();
   const board = useBoard();
   const scores = usePlayerScores();
+  const { status } = useGameState() || {};
 
   if (!dim) {
     return (
@@ -29,7 +30,14 @@ export const GameBoard: React.FC = () => {
       <div className="fixed right-3 bottom-3 max-w-sm">
         <ConnectWallet />
       </div>
-      <Board boardWidth="75%" board={board} dimensions={dim} scores={scores} className="w-full h-full" />
+      <Board
+        boardWidth="75%"
+        board={board}
+        dimensions={dim}
+        scores={scores}
+        className="w-full h-full"
+        status={status}
+      />
     </>
   );
 };
