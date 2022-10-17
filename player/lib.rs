@@ -3,26 +3,29 @@
 #[ink::contract]
 mod player {
     #[ink(storage)]
-    pub struct Player {
-        turn: (u32, u32)
-    }
+    pub struct Player {}
 
     impl Player {
         #[ink(constructor)]
         pub fn new() -> Self {
-            Self {
-                turn: (0, 0)
-            }
+            Self {}
         }
 
-        /// A function with selector `0` always needs to be exposed by a player.
         /// This is the function that will be called during every game round.
         ///
-        /// `&mut self` is important, so that players can retain state if
-        /// they want to.
+        /// The function returns an `(x, y)` coordinate of the pixel which you
+        /// want to color.
+        ///
+        /// # Notes
+        ///
+        /// The function signature `&mut self` is so that you can retain state
+        /// in the contract's storage if you want to.
+        ///
+        /// The function can be named as you like, but it always needs to have
+        /// a defined selector of `0`.
         #[ink(message, selector = 0)]
         pub fn your_turn(&mut self) -> (u32, u32) {
-            self.turn
+            (0, 0)
         }
     }
 }
