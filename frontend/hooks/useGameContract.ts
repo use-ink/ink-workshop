@@ -163,7 +163,7 @@ export const usePlayerColors = (): PlayerColors => {
   return playerColors;
 };
 
-type Score = number;
+type Score = string;
 export type PlayerScoreData = [Player, Score];
 
 export type PlayerScore = Player & {
@@ -181,7 +181,13 @@ export const usePlayerScores = (): PlayerScore[] => {
       if (res.result.isOk) {
         const s = res.output?.toHuman() as PlayerScoreData[];
         const sorted = [...s]
-          .sort((a, b) => (a[1] >= b[1] ? 1 : 0))
+          .sort((a, b) => {
+            try {
+              return parseInt(a[1]) <= parseInt(b[1]) ? 1 : 0;
+            } catch {
+              return 1;
+            }
+          })
           .map((data, i) => ({
             ...data[0],
             score: data[1],
