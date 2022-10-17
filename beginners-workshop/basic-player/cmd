@@ -1,0 +1,1 @@
+RUST_LOG=trace cargo contract call --contract 5HVxQoaCEwLEFWvtz52o19UMoUY9Kmhv642bBCsvoWy3tLzu --message "register_player" --url wss://rococo-contracts-rpc.polkadot.io --suri "control obtain mesh december device music upgrade diesel mask marriage soldier lake" --args 5HSLHaB6yykNg8SCsL6Hfyq56tQfDUnn3zxD7ffu6RX4FBWS Huhu
