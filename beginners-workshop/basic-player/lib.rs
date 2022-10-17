@@ -28,4 +28,21 @@ mod player {
             (0, 0)
         }
     }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn works() {
+            // given
+            let mut contract = Player::new();
+
+            // when
+            let turn = contract.your_turn();
+
+            // then
+            assert_eq!(turn, (0, 0));
+        }
+    }
 }
