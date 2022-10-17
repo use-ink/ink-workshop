@@ -1,8 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import classNames from 'classnames';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Dimensions, BoardPosition, PlayerScore, useGameState } from '../../hooks/useGameContract';
-import { useInk } from '../../lib/useInk';
+import { Dimensions, BoardPosition, PlayerScore } from '../../hooks/useGameContract';
 import { ScoreItem } from './ScoreItem';
 
 type Props = {
@@ -83,8 +82,7 @@ export const Board: React.FC<Props> = ({ className, board, dimensions, scores, b
             gridTemplateColumns: `repeat(${dimensions.x},minmax(0,1fr))`,
           }}
         >
-          {board.map((position) => {
-            const { x, y, owner, color } = position;
+          {board.map(({ x, y, owner, color }) => {
             return (
               <span
                 key={`(${x}, ${y})`}
