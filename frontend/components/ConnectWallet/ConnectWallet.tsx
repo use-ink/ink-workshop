@@ -7,7 +7,8 @@ import { GiScrollUnfurled, GiWallet } from 'react-icons/gi';
 import { RiRefreshLine } from 'react-icons/ri';
 import { SimpleWidget } from '../SimpleWidget';
 import { useMemo } from 'react';
-import { usePlayerScores } from '../../hooks/useGameContract';
+import { usePlayerScores, useSubmitTurnFunc } from '../../hooks/useGameContract';
+import { hasAny, isBroadcasting, isPendingSignature } from '../../lib/useInk/utils/contractFunctionUtils';
 
 type Props = {
   className?: string;
@@ -17,11 +18,18 @@ export const ConnectWallet: React.FC<Props> = ({ className }) => {
   const { setShowWalletConnect, player } = useUI();
   const scores = usePlayerScores();
   const { activeAccount } = useInk();
+  const submitTurn = useSubmitTurnFunc();
 
   const playerName = useMemo(() => {
     const p = scores.find((s) => s.id === player);
     return p?.name || truncateHash(player || '');
   }, [scores, player]);
+
+  const buttonTitle = () => {
+    if (isPendingSignature(submitTurn)) return 'Awaiting signature...';
+    if (isBroadcasting(submitTurn)) return 'Broadcasting...';
+    return 'Submit Turn';
+  };
 
   if (!activeAccount || !player) {
     return (
@@ -35,9 +43,9 @@ export const ConnectWallet: React.FC<Props> = ({ className }) => {
   }
 
   return (
-    <SimpleWidget className="fixed md:right-3 right-0 bottom-3 lg:max-w-md w-full">
+    <SimpleWidget className="fixed md:right-3 right-0 bottom-3 w-full max-w-xl">
       <div className="flex justify-between gap-10">
-        <div className="flex justify-start items-center gap-2">
+        <div className="flex justify-start items-center gap-2 w-full">
           <Button className="px-2 bg-squink-800 border-0" onClick={() => setShowWalletConnect(true)}>
             <RiRefreshLine size={18} />
           </Button>
@@ -53,12 +61,13 @@ export const ConnectWallet: React.FC<Props> = ({ className }) => {
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-end gap-2 w-full">
           <Button
-            className="w-full bg-players-2 hover:bg-players-2/80 border-2 border-brand-300 drop-shadow-md"
-            onClick={() => null}
+            className="w-full bg-players-2 hover:bg-players-2/80 border-2 border-brand-300 drop-shadow-md disabled:bg-players-2/60 disabled:text-gray-300"
+            disabled={hasAny(submitTurn, 'pending', 'broadcasted')}
+            onClick={() => player && submitTurn.send(player)}
           >
-            Submit Turn!
+            {buttonTitle()}
           </Button>
         </div>
       </div>

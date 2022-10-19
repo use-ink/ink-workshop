@@ -4,10 +4,6 @@ import { useDimensions, useBoard, usePlayerScores, useGameState } from '../../..
 import { Board } from '../../Board';
 import { ConnectWallet } from '../../ConnectWallet';
 
-// const ConnectWallet = dynamic(() => import('../../ConnectWallet').then((mod) => mod.ConnectWallet), {
-//   ssr: false,
-// });
-
 export const GameBoard: React.FC = () => {
   const dim = useDimensions();
   const board = useBoard();

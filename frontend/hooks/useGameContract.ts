@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ABI } from '../constants';
 import { useContract } from '../lib/useInk/hooks';
 import { useUI } from '../contexts/UIContext';
 import { useBlockSubscription } from '../lib/useInk/hooks/useBlockSubscription';
 import { useInk } from '../lib/useInk';
+import { Status } from '../lib/useInk/utils';
 
 type AccountId = string;
 
@@ -239,4 +240,45 @@ export const useBoard = (): BoardPosition[] => {
   });
 
   return board;
+};
+
+export type Response = {
+  send: (player: AccountId) => void;
+  status: Status;
+  error?: string | null;
+};
+
+export const useSubmitTurnFunc = (): Response => {
+  const game = useGameContract();
+  const { activeAccount, activeSigner } = useInk();
+  const [status, setStatus] = useState<Status>('none');
+  const [error, setError] = useState<string | null>(null);
+
+  const send = useMemo(
+    () => (player: AccountId) => {
+      if (!activeAccount || !game || !activeSigner || !player) return () => null;
+
+      error && setError(null);
+      setStatus('pending');
+      game.tx
+        .submitTurn({ gasLimit: -1 }, player)
+        .signAndSend(activeAccount.address, { signer: activeSigner.signer }, (result) => {
+          console.log('result', result.status.toHuman());
+          if (result.status.isBroadcast) setStatus('broadcasted');
+          if (result.status.isInBlock) setStatus('in-block');
+          if (result.status.isFinalized) setStatus('finalized');
+        })
+        .catch((e) => {
+          setStatus('none');
+          console.error('error', JSON.stringify(e));
+        });
+    },
+    [activeAccount, activeSigner, game],
+  );
+
+  return {
+    send,
+    status,
+    error,
+  };
 };
