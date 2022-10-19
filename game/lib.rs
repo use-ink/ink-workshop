@@ -73,8 +73,6 @@ mod squink_splash {
         id: AccountId,
         name: String,
         gas_used: u64,
-        /// TODO: This is not used yet.
-        storage_used: u32,
         /// The block number this player made its last turn.
         last_turn: u32,
     }
@@ -223,7 +221,6 @@ mod squink_splash {
                             id,
                             name,
                             gas_used: 0,
-                            storage_used: 0,
                             last_turn: 0,
                         },
                     );
