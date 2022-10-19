@@ -23,17 +23,25 @@ export const GameBoard: React.FC = () => {
 
   return (
     <>
-      <div className="fixed right-3 bottom-3 max-w-sm">
-        <ConnectWallet />
+      <div className="w-full h-screen lg:hidden flex items-center text-center justify-center flex-col">
+        <h1>Please use a larger screen...</h1>
+        <h1>... or just enjoy this ocean scene.</h1>
       </div>
-      <Board
-        boardWidth="75%"
-        board={board}
-        dimensions={dim}
-        scores={scores}
-        className="w-full h-full"
-        status={status}
-      />
+
+      <div className="hidden lg:block">
+        <div className="fixed right-3 bottom-3 max-w-sm">
+          <ConnectWallet />
+        </div>
+
+        <Board
+          boardWidth="75%"
+          board={board}
+          dimensions={dim}
+          scores={scores}
+          className="w-full h-full"
+          status={status}
+        />
+      </div>
     </>
   );
 };
