@@ -48,7 +48,7 @@ export const Layout: React.FC<Props> = ({ children }) => {
           startDown
           alt="Jelly"
           src="/jelly-fish.svg"
-          className="absolute right-[3%] xl:top-[34%] top-[15%] md:w-32 w-20"
+          className="absolute right-[1%] xl:top-[34%] top-[15%] md:w-32 w-20"
         />
       </div>
 

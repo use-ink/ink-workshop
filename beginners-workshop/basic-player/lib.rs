@@ -3,12 +3,15 @@
 #[ink::contract]
 mod player {
     #[ink(storage)]
-    pub struct Player {}
+    pub struct Player {
+        x: u32,
+        y: u32,
+    }
 
     impl Player {
         #[ink(constructor)]
-        pub fn new() -> Self {
-            Self {}
+        pub fn new(x: u32, y: u32) -> Self {
+            Self { x, y }
         }
 
         /// This is the function that will be called during every game round.
@@ -25,7 +28,14 @@ mod player {
         /// a defined selector of `0`.
         #[ink(message, selector = 0)]
         pub fn your_turn(&mut self) -> (u32, u32) {
-            (0, 0)
+            if self.x == 0 {
+                self.y -= 1;
+                self.x = 10;
+            }
+
+            self.x -= 1;
+
+            (self.x, self.y)
         }
     }
 

@@ -32,7 +32,11 @@ export const useExtension = (web3OriginName?: string): Extension => {
     try {
       const extensions = await web3Enable(web3OriginName || 'Extension');
       if (extensions.length === 0) return;
-      await web3Accounts().then((list) => setAccounts(list));
+      await web3Accounts().then((list) => {
+        setAccounts(list);
+        const first = list.length && list[0];
+        first && setActiveAccount(first);
+      });
     } catch (err) {
       console.error('Extension setup failed', err);
     }

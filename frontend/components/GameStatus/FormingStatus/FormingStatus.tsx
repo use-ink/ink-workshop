@@ -7,7 +7,6 @@ type Props = {
 
 export const FormingStatus: React.FC<Props> = ({ forming }) => {
   const categoryClass = 'mr-1';
-  console.log(forming);
 
   return (
     <>

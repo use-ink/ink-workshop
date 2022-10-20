@@ -1,36 +1,17 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-pub use squink_splash::{
-    SquinkSplash,
-    SquinkSplashRef,
-};
+pub use squink_splash::{SquinkSplash, SquinkSplashRef};
 
 #[ink::contract]
 mod squink_splash {
-    use core::ops::{
-        Mul,
-        RangeInclusive,
-    };
+    use core::ops::{Mul, RangeInclusive};
     use ink::{
         env::{
-            call::{
-                build_call,
-                Call,
-                ExecutionInput,
-                Selector,
-            },
-            CallFlags,
-            DefaultEnvironment,
+            call::{build_call, Call, ExecutionInput, Selector},
+            CallFlags, DefaultEnvironment,
         },
-        prelude::{
-            collections::BTreeMap,
-            string::String,
-            vec::Vec,
-        },
-        storage::{
-            Lazy,
-            Mapping,
-        },
+        prelude::{collections::BTreeMap, string::String, vec::Vec},
+        storage::{Lazy, Mapping},
     };
 
     /// The amount of players that are allowed to register for a single game.
@@ -301,6 +282,12 @@ mod squink_splash {
             });
 
             self.players.set(&players);
+        }
+
+        /// The buy in amount to register a player
+        #[ink(message)]
+        pub fn buy_in_amount(&self) -> Balance {
+            self.buy_in
         }
 
         /// The current game state.

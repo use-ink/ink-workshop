@@ -100,7 +100,12 @@ export const Board: React.FC<Props> = ({ className, board, dimensions, scores, b
                 }}
               >
                 {!owner && (
-                  <p className={classNames('text-xs text-black/20 transition duration-100')}>
+                  <p
+                    className={classNames(
+                      'text-[8px] text-black/20 transition duration-100',
+                      board.length > 100 ? 'text-[8px]' : 'text-xs',
+                    )}
+                  >
                     ({x},{y})
                   </p>
                 )}

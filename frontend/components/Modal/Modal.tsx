@@ -24,7 +24,7 @@ export const Modal: React.FC<Props> = ({ open, handleClose, children, className 
         open={open}
         onClose={() => handleClose && handleClose()}
       >
-        <div className="flex flex-col items-center sm:py-8 justify-center h-screen lg:pt-32 pt-4 px-4 pb-20 text-center">
+        <div className="flex flex-col items-center sm:py-8 justify-start h-screen lg:pt-32 pt-4 px-4 pb-20 text-center">
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"

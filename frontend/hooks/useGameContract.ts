@@ -5,6 +5,7 @@ import { useUI } from '../contexts/UIContext';
 import { useBlockSubscription } from '../lib/useInk/hooks/useBlockSubscription';
 import { useInk } from '../lib/useInk';
 import { Status } from '../lib/useInk/utils';
+import BN from 'bn.js';
 
 type AccountId = string;
 
@@ -120,6 +121,22 @@ export const useGameState = (): GameState | null => {
   return gameState;
 };
 
+export const useBuyInAmount = (): BN | null => {
+  const game = useGameContract();
+  const [buyInAmount, setBuyInAmount] = useState<BN | null>(null);
+
+  useBlockSubscription(() => {
+    game?.query?.buyInAmount('', {}).then((res) => {
+      if (res.result.isOk) {
+        const amount = res.output?.toHuman()?.toString();
+        amount && setBuyInAmount(new BN(amount.split(',').join('')));
+      }
+    });
+  });
+
+  return buyInAmount;
+};
+
 const PLAYER_COLORS = [
   '#6effdb',
   '#ff705e',
@@ -137,7 +154,6 @@ export type Player = {
   id: AccountId;
   name: string;
   gasUsed: number;
-  storageUsed: number;
   lastTurn: number;
 };
 
@@ -243,9 +259,10 @@ export const useBoard = (): BoardPosition[] => {
 };
 
 export type Response = {
-  send: (player: AccountId) => void;
+  send: (...args: any[]) => void;
   status: Status;
   error?: string | null;
+  resetState: () => void;
 };
 
 export const useSubmitTurnFunc = (): Response => {
@@ -280,5 +297,48 @@ export const useSubmitTurnFunc = (): Response => {
     send,
     status,
     error,
+    resetState: () => {
+      setStatus('none');
+      setError(null);
+    },
+  };
+};
+
+export const useRegisterPlayerFunc = (): Response => {
+  const game = useGameContract();
+  const { activeAccount, activeSigner } = useInk();
+  const [status, setStatus] = useState<Status>('none');
+  const [error, setError] = useState<string | null>(null);
+
+  const send = useMemo(
+    () => (player: AccountId, name: string, value: number) => {
+      if (!activeAccount || !game || !activeSigner || !player) return () => null;
+
+      error && setError(null);
+      setStatus('pending');
+      game.tx
+        .registerPlayer({ gasLimit: -1, value }, player, name)
+        .signAndSend(activeAccount.address, { signer: activeSigner.signer }, (result) => {
+          console.log('result', result.status.toHuman());
+          if (result.status.isBroadcast) setStatus('broadcasted');
+          if (result.status.isInBlock) setStatus('in-block');
+          if (result.status.isFinalized) setStatus('finalized');
+        })
+        .catch((e) => {
+          setStatus('none');
+          console.error('error', JSON.stringify(e));
+        });
+    },
+    [activeAccount, activeSigner, game],
+  );
+
+  return {
+    send,
+    status,
+    error,
+    resetState: () => {
+      setStatus('none');
+      setError(null);
+    },
   };
 };

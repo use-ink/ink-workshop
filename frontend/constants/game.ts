@@ -3,7 +3,7 @@
 
 export const ABI = {
   source: {
-    hash: '0xe7e575aab1738ee8494c191b5cd76658fe556280489e0beb64357c7c7940ba8c',
+    hash: '0x9b4ea2cbf7196de9a0e01fb31ebfdd36e04be356019123e43344d83374416194',
     language: 'ink! 4.0.0-alpha.3',
     compiler: 'rustc 1.64.0',
   },
@@ -168,6 +168,18 @@ export const ABI = {
         payable: false,
         returnType: null,
         selector: '0xd73c7bba',
+      },
+      {
+        args: [],
+        docs: ['The buy in amount to register a player'],
+        label: 'buy_in_amount',
+        mutates: false,
+        payable: false,
+        returnType: {
+          displayName: ['Balance'],
+          type: 8,
+        },
+        selector: '0x3bd6cf8d',
       },
       {
         args: [],
