@@ -3,9 +3,9 @@
 
 export const ABI = {
   source: {
-    hash: '0x876f282341a08c6a6d9513b1a12adea8888f44d174995d6ca1e43813eff0828d',
+    hash: '0xe7e575aab1738ee8494c191b5cd76658fe556280489e0beb64357c7c7940ba8c',
     language: 'ink! 4.0.0-alpha.3',
-    compiler: 'rustc 1.63.0',
+    compiler: 'rustc 1.64.0',
   },
   contract: {
     name: 'squink_splash',
@@ -480,11 +480,6 @@ export const ABI = {
                 name: 'gas_used',
                 type: 7,
                 typeName: 'u64',
-              },
-              {
-                name: 'storage_used',
-                type: 0,
-                typeName: 'u32',
               },
               {
                 name: 'last_turn',
