@@ -326,7 +326,7 @@ export const useRegisterPlayerFunc = (): Response => {
         .registerPlayer(activeAccount.address, { gasLimit: QUERY_GAS_LIMIT }, player, name)
         .then(({ gasRequired }) => {
           game.tx
-            .registerPlayer({ gasLimit: -1, value }, player, name)
+            .registerPlayer({ gasLimit: gasRequired, value }, player, name)
             .signAndSend(activeAccount.address, { signer: activeSigner.signer }, (result) => {
               if (result.status.isBroadcast) setStatus('broadcasted');
               if (result.status.isInBlock) setStatus('in-block');
