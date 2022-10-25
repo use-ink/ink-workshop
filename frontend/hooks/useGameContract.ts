@@ -9,6 +9,9 @@ import BN from 'bn.js';
 
 type AccountId = string;
 
+// -1 for gas blows up so we need to set this really high for queries now...
+const QUERY_GAS_LIMIT = new BN('10000000000000000000');
+
 export const useGameContract = () => {
   const {
     game: { address },
@@ -278,7 +281,7 @@ export const useSubmitTurnFunc = (): Response => {
       error && setError(null);
       setStatus('pending');
 
-      game.query.submitTurn(activeAccount.address, { gasLimit: -1 }, player).then(({ gasRequired }) => {
+      game.query.submitTurn(activeAccount.address, { gasLimit: QUERY_GAS_LIMIT }, player).then(({ gasRequired }) => {
         game.tx
           .submitTurn({ gasLimit: gasRequired }, player)
           .signAndSend(activeAccount.address, { signer: activeSigner.signer }, (result) => {
@@ -319,19 +322,21 @@ export const useRegisterPlayerFunc = (): Response => {
       error && setError(null);
       setStatus('pending');
 
-      game.query.registerPlayer(activeAccount.address, { gasLimit: -1 }, player, name).then(({ gasRequired }) => {
-        game.tx
-          .registerPlayer({ gasLimit: -1, value }, player, name)
-          .signAndSend(activeAccount.address, { signer: activeSigner.signer }, (result) => {
-            if (result.status.isBroadcast) setStatus('broadcasted');
-            if (result.status.isInBlock) setStatus('in-block');
-            if (result.status.isFinalized) setStatus('finalized');
-          })
-          .catch((e) => {
-            setStatus('none');
-            console.error('error', JSON.stringify(e));
-          });
-      });
+      game.query
+        .registerPlayer(activeAccount.address, { gasLimit: QUERY_GAS_LIMIT }, player, name)
+        .then(({ gasRequired }) => {
+          game.tx
+            .registerPlayer({ gasLimit: -1, value }, player, name)
+            .signAndSend(activeAccount.address, { signer: activeSigner.signer }, (result) => {
+              if (result.status.isBroadcast) setStatus('broadcasted');
+              if (result.status.isInBlock) setStatus('in-block');
+              if (result.status.isFinalized) setStatus('finalized');
+            })
+            .catch((e) => {
+              setStatus('none');
+              console.error('error', JSON.stringify(e));
+            });
+        });
     },
     [activeAccount, activeSigner, game],
   );
