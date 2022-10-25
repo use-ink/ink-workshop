@@ -18,6 +18,8 @@ Here are the important links to get you playing.
   * [Guided instructions](https://use.ink/testnet)
 * [The game frontend](http://splash.use.ink)
 
-## Advanced Workshop
+### 📝 Workshop Survey
 
-…
+<a href="https://forms.gle/LA6aidjTSZjXrvhq8"><img src=".images/beginner-survey.png" width="300" /></a>
+
+[Survey Link](https://forms.gle/LA6aidjTSZjXrvhq8)
