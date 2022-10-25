@@ -277,18 +277,20 @@ export const useSubmitTurnFunc = (): Response => {
 
       error && setError(null);
       setStatus('pending');
-      game.tx
-        .submitTurn({ gasLimit: -1 }, player)
-        .signAndSend(activeAccount.address, { signer: activeSigner.signer }, (result) => {
-          console.log('result', result.status.toHuman());
-          if (result.status.isBroadcast) setStatus('broadcasted');
-          if (result.status.isInBlock) setStatus('in-block');
-          if (result.status.isFinalized) setStatus('finalized');
-        })
-        .catch((e) => {
-          setStatus('none');
-          console.error('error', JSON.stringify(e));
-        });
+
+      game.query.submitTurn(activeAccount.address, { gasLimit: -1 }, player).then(({ gasRequired }) => {
+        game.tx
+          .submitTurn({ gasLimit: gasRequired }, player)
+          .signAndSend(activeAccount.address, { signer: activeSigner.signer }, (result) => {
+            if (result.status.isBroadcast) setStatus('broadcasted');
+            if (result.status.isInBlock) setStatus('in-block');
+            if (result.status.isFinalized) setStatus('finalized');
+          })
+          .catch((e) => {
+            setStatus('none');
+            console.error('error', JSON.stringify(e));
+          });
+      });
     },
     [activeAccount, activeSigner, game],
   );
@@ -316,18 +318,20 @@ export const useRegisterPlayerFunc = (): Response => {
 
       error && setError(null);
       setStatus('pending');
-      game.tx
-        .registerPlayer({ gasLimit: -1, value }, player, name)
-        .signAndSend(activeAccount.address, { signer: activeSigner.signer }, (result) => {
-          console.log('result', result.status.toHuman());
-          if (result.status.isBroadcast) setStatus('broadcasted');
-          if (result.status.isInBlock) setStatus('in-block');
-          if (result.status.isFinalized) setStatus('finalized');
-        })
-        .catch((e) => {
-          setStatus('none');
-          console.error('error', JSON.stringify(e));
-        });
+
+      game.query.registerPlayer(activeAccount.address, { gasLimit: -1 }, player, name).then(({ gasRequired }) => {
+        game.tx
+          .registerPlayer({ gasLimit: -1, value }, player, name)
+          .signAndSend(activeAccount.address, { signer: activeSigner.signer }, (result) => {
+            if (result.status.isBroadcast) setStatus('broadcasted');
+            if (result.status.isInBlock) setStatus('in-block');
+            if (result.status.isFinalized) setStatus('finalized');
+          })
+          .catch((e) => {
+            setStatus('none');
+            console.error('error', JSON.stringify(e));
+          });
+      });
     },
     [activeAccount, activeSigner, game],
   );
