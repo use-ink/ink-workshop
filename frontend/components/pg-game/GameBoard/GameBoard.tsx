@@ -34,7 +34,7 @@ export const GameBoard: React.FC = () => {
         </div>
 
         <Board
-          boardWidth="85%"
+          boardWidth="75%"
           board={board}
           dimensions={dim}
           scores={scores}
