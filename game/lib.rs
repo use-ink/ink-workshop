@@ -259,14 +259,14 @@ mod squink_splash {
             // We don't bubble up the error cause we still want to record the gas usage
             // and disallow another try. This should be enough punishment for a defunct contract.
             match &turn {
-                Ok((x, y)) if self.is_valid_coord(*x, *y) => {
-                    // Just overpaint. Overpainting is the best case cause it steals points.
+                Ok((x, y)) if self.is_valid_coord(*x, *y) && self.board.get(self.idx(*x, *y)).is_none() => {
+                    // We only allow to paint if the field is not yet occupied
                     self.board.insert(self.idx(*x, *y), &player.id);
                     ink::env::debug_println!("Player painted: x={:03} y={:03}", x, y);
                 }
                 Ok((x, y)) => {
                     ink::env::debug_println!(
-                        "Turn not inside the board: x={:03} y={:03}",
+                        "Turn not inside the board or field already occupied: x={:03} y={:03}",
                         x,
                         y
                     );
