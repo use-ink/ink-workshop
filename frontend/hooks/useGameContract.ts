@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ABI } from '../constants';
+import ABI from '../constants/game/metadata.json';
 import { useContract } from '../lib/useInk/hooks';
 import { useUI } from '../contexts/UIContext';
 import { useBlockSubscription } from '../lib/useInk/hooks/useBlockSubscription';
