@@ -7,20 +7,10 @@ We are going to be using ink! version 4, which comes bundled in `cargo-contract`
 
 1. `rustup default stable`
 
-2. Install binaryen - A WebAssembly package for your operating system to optimize the WebAssembly bytecode for the contract.
-
-    - OSX: `brew install binaryen`
-    - Linux: `sudo apt install binaryen`
-    - Other OS: [download binary](https://github.com/WebAssembly/binaryen/releases)
-
-3. Install `cargo-contract`
-    - Install cargo-dylint to check ink! contracts and warn you about issues that might lead to security vulnerabilities.
-
-        ```cargo install cargo-dylint dylint-link```
-
+2. Install `cargo-contract`
     - Install cargo-contract by running the following command:
 
-        ```cargo install cargo-contract --force```
+        ```cargo install cargo-contract --version 2.0.0-alpha.5```
 
     - Verify the version is `2^`
 
