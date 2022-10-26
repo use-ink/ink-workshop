@@ -8,6 +8,7 @@ edition = "2021"
 ink = { version = "4.0.0-alpha.3", default-features = false }
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 scale-info = { version = "2", default-features = false, features = ["derive"], optional = true }
+game = { package = "squink_splash", git = "https://github.com/paritytech/ink-workshop", default-features = false, features = ["ink-as-dependency"] }
 
 [lib]
 name = "player"
@@ -23,5 +24,6 @@ std = [
     "ink/std",
     "scale/std",
     "scale-info/std",
+    "game/std",
 ]
 ink-as-dependency = []

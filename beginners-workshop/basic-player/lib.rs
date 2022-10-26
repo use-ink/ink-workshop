@@ -2,13 +2,25 @@
 
 #[ink::contract]
 mod player {
+    use game::SquinkSplashRef;
+    use ink::env::call::FromAccountId;
+
     #[ink(storage)]
-    pub struct Player {}
+    pub struct Player {
+        game: SquinkSplashRef,
+        dimensions: (u32, u32),
+        seed: u32,
+    }
 
     impl Player {
         #[ink(constructor)]
-        pub fn new() -> Self {
-            Self {}
+        pub fn new(game: AccountId) -> Self {
+            let game = SquinkSplashRef::from_account_id(game);
+            Self {
+                dimensions: game.dimensions(),
+                seed: Self::env().block_number(),
+                game,
+            }
         }
 
         /// This is the function that will be called during every game round.
@@ -25,27 +37,17 @@ mod player {
         /// a defined selector of `0`.
         #[ink(message, selector = 0)]
         pub fn your_turn(&mut self) -> (u32, u32) {
-            // =======================================================
-            // TODO: Add your custom logic here...
-            // =======================================================
+            let size = self.dimensions.0 * self.dimensions.1;
+            for i in 0..size {
+                let turn = {
+                    let turn = (i + self.seed) % size;
+                    (turn % self.dimensions.0, turn / self.dimensions.0)
+                };
+                if self.game.field(turn.0, turn.1).is_none() {
+                    return turn
+                }
+            }
             (0, 0)
-        }
-    }
-
-    #[cfg(test)]
-    mod tests {
-        use super::*;
-
-        #[test]
-        fn works() {
-            // given
-            let mut contract = Player::new();
-
-            // when
-            let turn = contract.your_turn();
-
-            // then
-            assert_eq!(turn, (0, 0));
         }
     }
 }
