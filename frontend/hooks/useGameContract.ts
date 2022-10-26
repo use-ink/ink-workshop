@@ -9,8 +9,7 @@ import BN from 'bn.js';
 
 type AccountId = string;
 
-// -1 for gas blows up so we need to set this really high for queries now...
-const QUERY_GAS_LIMIT = 0; // new BN('10000000000000000000');
+const QUERY_GAS_LIMIT = 0;
 
 export const useGameContract = () => {
   const {

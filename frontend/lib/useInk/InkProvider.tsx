@@ -5,6 +5,7 @@ import { useApi } from './hooks/useApi';
 import { ApiPromise } from '@polkadot/api';
 import { useGameContract } from '../../hooks/useGameContract';
 import { ContractPromise } from '@polkadot/api-contract';
+import { DEFAULT_RPC_URL } from './constants';
 
 type InkDappItems = Extension & {
   header?: Header;
@@ -27,7 +28,6 @@ type InkConfig = {
 
 const InkProvider: React.FC<InkConfig> = ({ children }) => {
   const extension = useExtension();
-  const DEFAULT_RPC_URL = 'wss://rococo-contracts-rpc.polkadot.io';
   const api = useApi(DEFAULT_RPC_URL);
   const [header, setHeader] = useState<Header | undefined>();
   const game = useGameContract();
