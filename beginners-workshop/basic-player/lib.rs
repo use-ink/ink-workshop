@@ -25,6 +25,9 @@ mod player {
         /// a defined selector of `0`.
         #[ink(message, selector = 0)]
         pub fn your_turn(&mut self) -> (u32, u32) {
+            // =======================================================
+            // TODO: Add your custom logic here...
+            // =======================================================
             (0, 0)
         }
     }
