@@ -193,6 +193,8 @@ export type PlayerScore = Player & {
   color: Color;
 };
 
+const toBN = (valWithCommas: string): BN => new BN(valWithCommas.split(',').join(''));
+
 export const usePlayerScores = (): PlayerScore[] => {
   const game = useGameContract();
   const colors = usePlayerColors();
@@ -205,8 +207,8 @@ export const usePlayerScores = (): PlayerScore[] => {
         const sorted = [...s]
           .sort((a, b) => {
             try {
-              return parseInt(a[1]) <= parseInt(b[1]) ? 1 : 0;
-            } catch {
+              return toBN(a[1]).lte(toBN(b[1])) ? 1 : 0;
+            } catch (e) {
               return 1;
             }
           })
