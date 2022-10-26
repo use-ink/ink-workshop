@@ -3,8 +3,7 @@ import { ABI } from '../constants';
 import { useContract } from '../lib/useInk/hooks';
 import { useUI } from '../contexts/UIContext';
 import { useBlockSubscription } from '../lib/useInk/hooks/useBlockSubscription';
-import { useInk } from '../lib/useInk';
-import { Status } from '../lib/useInk/utils';
+import { useInk, Status } from '../lib/useInk';
 import BN from 'bn.js';
 
 type AccountId = string;

@@ -39,6 +39,7 @@ export const ConnectWalletModal: React.FC = () => {
   }, [registerFunc.status]);
 
   const registerPlayerButtonTitle = () => {
+    if ('pre-flight' === registerFunc.status) return 'Calculating gas...';
     if ('broadcasted' === registerFunc.status) return 'Broadcasting...';
     if ('pending' === registerFunc.status) return 'Awaiting signature...';
     if ('in-block' === registerFunc.status) return 'In block...';

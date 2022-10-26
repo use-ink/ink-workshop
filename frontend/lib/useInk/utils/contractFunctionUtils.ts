@@ -1,10 +1,12 @@
-export type Status = 'pending' | 'broadcasted' | 'in-block' | 'finalized' | 'none';
+export type Status = 'pre-flight' | 'pending' | 'broadcasted' | 'in-block' | 'finalized' | 'none';
 
 export type Response = {
   status: Status;
 };
 
 export const isNone = (func: { status: Status }): boolean => func.status === 'none';
+
+export const isPreFlight = (func: { status: Status }): boolean => func.status === 'pre-flight';
 
 export const isPendingSignature = (func: { status: Status }): boolean => func.status === 'pending';
 
