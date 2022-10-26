@@ -24,6 +24,10 @@ Cargo.lock
 /frontend/node_modules
 /frontend/.next
 
+# IDE
+.vscode/
+*.swap
+
 # debug
 npm-debug.log*
 yarn-debug.log*
