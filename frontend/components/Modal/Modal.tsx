@@ -11,7 +11,7 @@ type Props = {
 
 export const Modal: React.FC<Props> = ({ open, handleClose, children, className }) => {
   const containerClasses = classNames(
-    'inline-block bg-brand-500 border border-white/20 rounded-2xl overflow-scroll shadow-xl transform transition-all w-full max-w-xl',
+    'inline-block bg-brand-500 border border-white/20 rounded-2xl overflow-scroll shadow-xl transform transition-all w-full max-w-3xl',
     className,
   );
 

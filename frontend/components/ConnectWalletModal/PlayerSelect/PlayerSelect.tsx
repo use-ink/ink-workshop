@@ -17,7 +17,7 @@ export const PlayerSelect: React.FC<Props> = ({ className }) => {
     <div className={classNames('', className)}>
       <Listbox value={player} onChange={setPlayer}>
         <div className="relative mt-1">
-          <Listbox.Button className="relative w-full flex items-center hover:cursor-pointer cursor-default rounded-lg text-brand-600 bg-white py-2 pl-3 pr-10 text-left shadow-md focus:outline-none sm:text-sm">
+          <Listbox.Button className="relative w-full flex items-center hover:cursor-pointer cursor-default rounded-lg text-brand-600 bg-white py-4 pl-3 pr-10 text-left shadow-md focus:outline-none sm:text-sm">
             <span className="block truncate">{player ? player : 'Select a player'}</span>
             <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
               <RiArrowDownSFill className="h-5 w-5 text-brand-600/70" aria-hidden="true" />
@@ -27,12 +27,12 @@ export const PlayerSelect: React.FC<Props> = ({ className }) => {
             {players.length === 0 ? (
               <p className="mt-3 text-md text-white/70">Loading...</p>
             ) : (
-              <Listbox.Options className=" mt-1 max-h-60 w-full overflow-auto rounded-md bg-white text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+              <Listbox.Options className=" mt-2 max-h-60 w-full overflow-auto rounded-md bg-white text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                 {players.map((player, playerIndex) => (
                   <Listbox.Option
                     key={player.id}
                     className={({ active }) =>
-                      `relative cursor-default select-none py-2 px-10 transition duration-75 text-brand-600 ${
+                      `relative cursor-default select-none py-4 px-10 transition duration-75 text-brand-600 ${
                         active && 'bg-players-4/30'
                       } hover:cursor-pointer`
                     }

@@ -34,7 +34,7 @@ export const ConnectWallet: React.FC<Props> = ({ className }) => {
   if (!activeAccount || !player) {
     return (
       <Button
-        className={classNames('rounded-md text-sm uppercase duration-25 transition px-6 py-2 text-center', className)}
+        className={classNames('rounded-md text-sm uppercase duration-25 transition px-6 py-4 text-center', className)}
         onClick={() => setShowWalletConnect(true)}
       >
         Join Game
@@ -50,13 +50,13 @@ export const ConnectWallet: React.FC<Props> = ({ className }) => {
             <RiRefreshLine size={18} />
           </Button>
 
-          <div className="w-full text-md">
+          <div className="w-full">
             <span className="flex items-center gap-2">
-              <GiWallet size={16} />
+              <GiWallet size={18} />
               {activeAccount.meta.name}
             </span>
             <span className="flex items-center gap-2 mt-1">
-              <GiScrollUnfurled size={16} />
+              <GiScrollUnfurled size={18} />
               {playerName}
             </span>
           </div>

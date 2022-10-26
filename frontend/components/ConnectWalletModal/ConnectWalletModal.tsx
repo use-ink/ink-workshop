@@ -167,7 +167,7 @@ export const ConnectWalletModal: React.FC = () => {
                   />
                   <PlayerSelect className="mt-3" />
                   <button
-                    className="font-fred w-full mt-3 rounded-2xl py-4 px-6 bg-players-2 hover:bg-players-2/80 disabled:hover:cursor-not-allowed disabled:bg-players-2/50 drop-shadow-md transition duration-200 focus:outline-none focus:ring-2 focus:ring-players-9"
+                    className="font-fred w-full mt-6 rounded-2xl py-4 px-6 bg-players-2 hover:bg-players-2/80 disabled:hover:cursor-not-allowed disabled:bg-players-2/50 drop-shadow-md transition duration-200 focus:outline-none focus:ring-2 focus:ring-players-9"
                     disabled={!player || !activeAccount}
                     onClick={() => {
                       setShowWalletConnect(false);

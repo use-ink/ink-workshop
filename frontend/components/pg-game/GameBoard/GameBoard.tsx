@@ -25,7 +25,7 @@ export const GameBoard: React.FC = () => {
     <>
       <div className="w-full h-screen lg:hidden flex items-center text-center justify-center flex-col">
         <h1>Please use a larger screen...</h1>
-        <h1>... or just enjoy this ocean scene.</h1>
+        <h1>or simply enjoy the serene scene.</h1>
       </div>
 
       <div className="hidden lg:block">

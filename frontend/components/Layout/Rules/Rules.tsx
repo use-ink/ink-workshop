@@ -12,7 +12,7 @@ export const Rules = () => {
 
   return (
     <Modal open={showRules} handleClose={() => setShowRules(false)}>
-      <div className="bg-players-9 flex flex-col p-8 w-full max-w-2xl text-start overflow-y-scroll">
+      <div className="bg-players-9 flex flex-col p-8 w-full max-w-3xl text-start overflow-y-scroll">
         <h3 className="text-2xl text-center">Game Rules</h3>
         <h4 className="text-lg text-white/90 mt-3 text-start">Objective</h4>
         <p className="text-md text-white/90 mt-1">
