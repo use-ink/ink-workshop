@@ -1,17 +1,36 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-pub use squink_splash::{SquinkSplash, SquinkSplashRef};
+pub use squink_splash::{
+    SquinkSplash,
+    SquinkSplashRef,
+};
 
 #[ink::contract]
 mod squink_splash {
-    use core::ops::{Mul, RangeInclusive};
+    use core::ops::{
+        Mul,
+        RangeInclusive,
+    };
     use ink::{
         env::{
-            call::{build_call, Call, ExecutionInput, Selector},
-            CallFlags, DefaultEnvironment,
+            call::{
+                build_call,
+                Call,
+                ExecutionInput,
+                Selector,
+            },
+            CallFlags,
+            DefaultEnvironment,
         },
-        prelude::{collections::BTreeMap, string::String, vec::Vec},
-        storage::{Lazy, Mapping},
+        prelude::{
+            collections::BTreeMap,
+            string::String,
+            vec::Vec,
+        },
+        storage::{
+            Lazy,
+            Mapping,
+        },
     };
 
     /// The amount of players that are allowed to register for a single game.
@@ -19,9 +38,6 @@ mod squink_splash {
 
     /// Maximum number of bytes in a players name.
     const ALLOWED_NAME_SIZES: RangeInclusive<usize> = 3..=12;
-
-    /// How much score is a field worth in multiplies of average gas used by all players.
-    const SCORE_PER_FIELD_MULTIPLIER: u64 = 2;
 
     #[ink(storage)]
     pub struct SquinkSplash {
@@ -37,6 +53,8 @@ mod squink_splash {
         buy_in: Balance,
         /// The amount of blocks that this game is played for once it started.
         rounds: u32,
+        /// How much score is a field worth in multiplies of average gas used by all players.
+        score_multiplier: u32,
     }
 
     #[derive(scale::Decode, scale::Encode, Clone)]
@@ -83,12 +101,14 @@ mod squink_splash {
         /// - `buy_in`: The amount of balance each player needs to submit in order to play.
         /// - `forming_rounds`: Number of blocks that needs to pass until anyone can start the game.
         /// - `rounds`: The number of blocks a game can be played for.
+        /// - `score_multiplier`: The higher the more score you get per field.
         #[ink(constructor)]
         pub fn new(
             dimensions: (u32, u32),
             buy_in: Balance,
             forming_rounds: u32,
             rounds: u32,
+            score_multiplier: u32,
         ) -> Self {
             let mut ret = Self {
                 state: State::Forming {
@@ -99,6 +119,7 @@ mod squink_splash {
                 players: Default::default(),
                 buy_in,
                 rounds,
+                score_multiplier,
             };
             ret.players.set(&Vec::new());
             ret
@@ -259,7 +280,10 @@ mod squink_splash {
             // We don't bubble up the error cause we still want to record the gas usage
             // and disallow another try. This should be enough punishment for a defunct contract.
             match &turn {
-                Ok((x, y)) if self.is_valid_coord(*x, *y) && self.board.get(self.idx(*x, *y)).is_none() => {
+                Ok((x, y))
+                    if self.is_valid_coord(*x, *y)
+                        && self.board.get(self.idx(*x, *y)).is_none() =>
+                {
                     // We only allow to paint if the field is not yet occupied
                     self.board.insert(self.idx(*x, *y), &player.id);
                     ink::env::debug_println!("Player painted: x={:03} y={:03}", x, y);
@@ -347,7 +371,7 @@ mod squink_splash {
 
             // The score depends on the average gas used by all players per round.
             let score_per_field: u64 = avg_gas_per_player
-                .mul(SCORE_PER_FIELD_MULTIPLIER)
+                .mul(u64::from(self.score_multiplier))
                 .checked_div(u64::from(self.rounds_played()))
                 .unwrap_or(0);
 
