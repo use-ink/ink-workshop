@@ -3,7 +3,7 @@
 
 export const ABI = {
   source: {
-    hash: '0x9b4ea2cbf7196de9a0e01fb31ebfdd36e04be356019123e43344d83374416194',
+    hash: '0x32c3066d4182287432dfdaeb12c8b5aa163d43234feabeb8ac42638b8309c63b',
     language: 'ink! 4.0.0-alpha.3',
     compiler: 'rustc 1.64.0',
   },
@@ -44,6 +44,13 @@ export const ABI = {
               type: 0,
             },
           },
+          {
+            label: 'score_multiplier',
+            type: {
+              displayName: ['u32'],
+              type: 0,
+            },
+          },
         ],
         docs: [
           'Create a new game.',
@@ -52,6 +59,7 @@ export const ABI = {
           '- `buy_in`: The amount of balance each player needs to submit in order to play.',
           '- `forming_rounds`: Number of blocks that needs to pass until anyone can start the game.',
           '- `rounds`: The number of blocks a game can be played for.',
+          '- `score_multiplier`: The higher the more score you get per field.',
         ],
         label: 'new',
         payable: false,
@@ -410,6 +418,15 @@ export const ABI = {
                 },
               },
               name: 'rounds',
+            },
+            {
+              layout: {
+                leaf: {
+                  key: '0x00000000',
+                  ty: 0,
+                },
+              },
+              name: 'score_multiplier',
             },
           ],
           name: 'SquinkSplash',
