@@ -39,11 +39,10 @@ mod player {
         pub fn your_turn(&mut self) -> (u32, u32) {
             let size = self.dimensions.0 * self.dimensions.1;
             for i in 0..size {
-                let turn = {
-                    let turn = (i + self.seed) % size;
-                    (turn % self.dimensions.0, turn / self.dimensions.0)
-                };
+                let idx = (i + self.seed) % size;
+                let turn = (idx % self.dimensions.0, idx / self.dimensions.0);
                 if self.game.field(turn.0, turn.1).is_none() {
+                    self.seed = idx;
                     return turn
                 }
             }
