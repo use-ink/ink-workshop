@@ -32,7 +32,7 @@ export const PlayerSelect: React.FC<Props> = ({ className }) => {
                   <Listbox.Option
                     key={player.id}
                     className={({ active }) =>
-                      `relative cursor-default select-none py-2 pl-10 pr-4 transition duration-75 text-brand-600 ${
+                      `relative cursor-default select-none py-2 px-10 transition duration-75 text-brand-600 ${
                         active && 'bg-players-4/30'
                       } hover:cursor-pointer`
                     }
@@ -40,11 +40,11 @@ export const PlayerSelect: React.FC<Props> = ({ className }) => {
                   >
                     {({ selected }) => (
                       <>
-                        <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                        <span className={`text-center block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
                           {player.name}
                         </span>
                         {selected ? (
-                          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-amber-600">
+                          <span className="absolute inset-y-0 left-3 flex items-center text-amber-600">
                             <RiCheckFill className="h-5 w-5" aria-hidden="true" />
                           </span>
                         ) : null}

@@ -3,7 +3,8 @@ import { ABI } from '../constants';
 import { useContract } from '../lib/useInk/hooks';
 import { useUI } from '../contexts/UIContext';
 import { useBlockSubscription } from '../lib/useInk/hooks/useBlockSubscription';
-import { useInk, Status } from '../lib/useInk';
+import { useInk } from '../lib/useInk';
+import { Status } from '../lib/useInk/utils';
 import BN from 'bn.js';
 
 type AccountId = string;
@@ -280,19 +281,25 @@ export const useSubmitTurnFunc = (): Response => {
       error && setError(null);
       setStatus('pending');
 
-      game.query.submitTurn(activeAccount.address, { gasLimit: QUERY_GAS_LIMIT }, player).then(({ gasRequired }) => {
-        game.tx
-          .submitTurn({ gasLimit: gasRequired }, player)
-          .signAndSend(activeAccount.address, { signer: activeSigner.signer }, (result) => {
-            if (result.status.isBroadcast) setStatus('broadcasted');
-            if (result.status.isInBlock) setStatus('in-block');
-            if (result.status.isFinalized) setStatus('finalized');
-          })
-          .catch((e) => {
-            setStatus('none');
-            console.error('error', JSON.stringify(e));
-          });
-      });
+      game.query
+        .submitTurn(activeAccount.address, { gasLimit: QUERY_GAS_LIMIT }, player)
+        .then(({ gasRequired }) => {
+          game.tx
+            .submitTurn({ gasLimit: gasRequired }, player)
+            .signAndSend(activeAccount.address, { signer: activeSigner.signer }, (result) => {
+              if (result.status.isBroadcast) setStatus('broadcasted');
+              if (result.status.isInBlock) setStatus('in-block');
+              if (result.status.isFinalized) setStatus('finalized');
+            })
+            .catch((e) => {
+              setStatus('none');
+              console.error('error', JSON.stringify(e));
+            });
+        })
+        .catch((e) => {
+          setError(e?.message() || e);
+          console.error('error', JSON.stringify(e));
+        });
     },
     [activeAccount, activeSigner, game],
   );
@@ -335,6 +342,10 @@ export const useRegisterPlayerFunc = (): Response => {
               setStatus('none');
               console.error('error', JSON.stringify(e));
             });
+        })
+        .catch((e) => {
+          setError(e?.message() || e);
+          console.error('error', JSON.stringify(e));
         });
     },
     [activeAccount, activeSigner, game],

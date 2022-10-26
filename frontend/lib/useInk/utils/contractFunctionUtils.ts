@@ -1,4 +1,4 @@
-export type Status = 'pre-flight' | 'pending' | 'broadcasted' | 'in-block' | 'finalized' | 'none';
+export type Status = 'pending' | 'pre-flight' | 'broadcasted' | 'in-block' | 'finalized' | 'none';
 
 export type Response = {
   status: Status;

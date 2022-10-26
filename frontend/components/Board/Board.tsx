@@ -102,8 +102,8 @@ export const Board: React.FC<Props> = ({ className, board, dimensions, scores, b
                 {!owner && (
                   <p
                     className={classNames(
-                      'text-[8px] text-black/20 transition duration-100',
-                      board.length > 100 ? 'text-[8px]' : 'text-xs',
+                      'text-xs text-black/20 transition duration-100',
+                      board.length > 100 && 'text-[10px]',
                     )}
                   >
                     ({x},{y})

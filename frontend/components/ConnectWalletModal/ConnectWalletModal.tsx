@@ -143,7 +143,7 @@ export const ConnectWalletModal: React.FC = () => {
                           playerAddress.length != 48 ||
                           !activeAccount ||
                           !hasValidPlayerName ||
-                          hasAny(registerFunc, 'pending', 'broadcasted', 'in-block')
+                          hasAny(registerFunc, 'pre-flight', 'pending', 'broadcasted', 'in-block')
                         }
                         onClick={() => {
                           registerFunc.send(playerAddress, playerName, buyInAmount);
