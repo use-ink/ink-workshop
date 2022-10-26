@@ -9,7 +9,8 @@ import BN from 'bn.js';
 
 type AccountId = string;
 
-const QUERY_GAS_LIMIT = 0;
+// -1 for gas blows up so we need to set this really high for queries now...
+const QUERY_GAS_LIMIT = 0; // new BN('10000000000000000000');
 
 export const useGameContract = () => {
   const {
@@ -282,15 +283,23 @@ export const useSubmitTurnFunc = (): Response => {
       error && setError(null);
       setStatus('pending');
 
-      game.tx
-        .submitTurn({ gasLimit: 0 }, player)
-        .signAndSend(activeAccount.address, { signer: activeSigner.signer }, (result) => {
-          if (result.status.isBroadcast) setStatus('broadcasted');
-          if (result.status.isInBlock) setStatus('in-block');
-          if (result.status.isFinalized) setStatus('finalized');
+      game.query
+        .submitTurn(activeAccount.address, { gasLimit: QUERY_GAS_LIMIT }, player)
+        .then(({ gasRequired }) => {
+          game.tx
+            .submitTurn({ gasLimit: gasRequired }, player)
+            .signAndSend(activeAccount.address, { signer: activeSigner.signer }, (result) => {
+              if (result.status.isBroadcast) setStatus('broadcasted');
+              if (result.status.isInBlock) setStatus('in-block');
+              if (result.status.isFinalized) setStatus('finalized');
+            })
+            .catch((e) => {
+              setStatus('none');
+              console.error('error', JSON.stringify(e));
+            });
         })
         .catch((e) => {
-          setStatus('none');
+          setError(JSON.stringify(e));
           console.error('error', JSON.stringify(e));
         });
     },
@@ -321,15 +330,23 @@ export const useRegisterPlayerFunc = (): Response => {
       error && setError(null);
       setStatus('pending');
 
-      game.tx
-        .registerPlayer({ gasLimit: 0, value }, player, name)
-        .signAndSend(activeAccount.address, { signer: activeSigner.signer }, (result) => {
-          if (result.status.isBroadcast) setStatus('broadcasted');
-          if (result.status.isInBlock) setStatus('in-block');
-          if (result.status.isFinalized) setStatus('finalized');
+      game.query
+        .registerPlayer(activeAccount.address, { gasLimit: QUERY_GAS_LIMIT }, player, name)
+        .then(({ gasRequired }) => {
+          game.tx
+            .registerPlayer({ gasLimit: gasRequired, value }, player, name)
+            .signAndSend(activeAccount.address, { signer: activeSigner.signer }, (result) => {
+              if (result.status.isBroadcast) setStatus('broadcasted');
+              if (result.status.isInBlock) setStatus('in-block');
+              if (result.status.isFinalized) setStatus('finalized');
+            })
+            .catch((e) => {
+              setStatus('none');
+              console.error('error', JSON.stringify(e));
+            });
         })
         .catch((e) => {
-          setStatus('none');
+          setError(JSON.stringify(e));
           console.error('error', JSON.stringify(e));
         });
     },
