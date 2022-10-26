@@ -33,14 +33,18 @@ export const Rules = () => {
         <h4 className="text-lg text-white/90 mt-6 text-start">Instructions</h4>
         <ol className="list-decimal pl-4">
           <li className="text-md text-white/90 mt-1">
-            <ExternalLink href="https://github.com/paritytech/ink-workshop/workshop/1_SETUP.md" secondary underline>
+            <ExternalLink
+              href="https://github.com/paritytech/ink-workshop/blob/main/workshop/1_SETUP.md"
+              secondary
+              underline
+            >
               Setup
             </ExternalLink>
           </li>
 
           <li className="text-md text-white/90 mt-1">
             <ExternalLink
-              href="https://github.com/paritytech/ink-workshop/workshop/2_THE_FIRST_GAME.md"
+              href="https://github.com/paritytech/ink-workshop/blob/main/workshop/2_THE_FIRST_GAME.md"
               secondary
               underline
             >
