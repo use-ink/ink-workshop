@@ -29,12 +29,12 @@ export const GameBoard: React.FC = () => {
       </div>
 
       <div className="hidden lg:block">
-        <div className="fixed right-3 bottom-3 max-w-sm">
+        <div className="fixed right-3 bottom-3 max-w-sm z-10">
           <ConnectWallet />
         </div>
 
         <Board
-          boardWidth="75%"
+          boardWidth="80%"
           board={board}
           dimensions={dim}
           scores={scores}

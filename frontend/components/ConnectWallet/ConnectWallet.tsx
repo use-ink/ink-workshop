@@ -43,7 +43,7 @@ export const ConnectWallet: React.FC<Props> = ({ className }) => {
   }
 
   return (
-    <SimpleWidget className="fixed md:right-3 right-0 bottom-3 w-full max-w-xl">
+    <SimpleWidget className="md:right-3 right-0 bottom-3 w-full max-w-xl fixed">
       <div className="flex justify-between gap-10">
         <div className="flex justify-start items-center gap-2 w-full">
           <Button className="px-2 bg-squink-800 border-0" onClick={() => setShowWalletConnect(true)}>
@@ -61,7 +61,7 @@ export const ConnectWallet: React.FC<Props> = ({ className }) => {
             </span>
           </div>
         </div>
-        <div className="flex items-center justify-end gap-2 w-full">
+        <div className="flex items-center justify-end gap-2 w-full relative z-10">
           <Button
             className="w-full bg-players-2 hover:bg-players-2/80 border-2 border-brand-300 drop-shadow-md disabled:bg-players-2/60 disabled:text-gray-300"
             disabled={hasAny(submitTurn, 'pending', 'broadcasted')}
