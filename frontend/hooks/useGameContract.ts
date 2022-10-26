@@ -297,7 +297,7 @@ export const useSubmitTurnFunc = (): Response => {
             });
         })
         .catch((e) => {
-          setError(e?.message() || e);
+          setError(JSON.stringify(e));
           console.error('error', JSON.stringify(e));
         });
     },
@@ -344,7 +344,7 @@ export const useRegisterPlayerFunc = (): Response => {
             });
         })
         .catch((e) => {
-          setError(e?.message() || e);
+          setError(JSON.stringify(e));
           console.error('error', JSON.stringify(e));
         });
     },
