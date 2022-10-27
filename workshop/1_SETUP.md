@@ -8,6 +8,11 @@ To participate in this workshop you will need a browser wallet. You can use:
 
 In the extension: set up a test account for the Contracts parachain on Rococo.
 
+<img src=".images/polkadot.js-1.png" />
+
+<img src=".images/polkadot.js-2.png" />
+
+
 ## Get Testnet Funds
 
 1. Visit the Rococo faucet [matrix channel](https://matrix.to/#/#rococo-faucet:matrix.org).
