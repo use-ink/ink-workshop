@@ -11,7 +11,7 @@ You can find the parachain here:
 
 <img src="../.images/polkadot.js-1.png" width="300" />
 
-This is how your "Accounts| tab should look (minus the funds):
+This is how your "Accounts" tab should look (minus the funds):
 
 <img src="../.images/polkadot.js-2.png" />
 
@@ -20,7 +20,7 @@ This is how your "Accounts| tab should look (minus the funds):
 
 1. Visit the Rococo faucet [matrix channel](https://matrix.to/#/#rococo-faucet:matrix.org).
 
-2. Use the command `!drip YOUR_WALLET_ADDRESS:1002`.<br>(Note the `:1002` on the end. We need this so the funds are teleported to our Contracts parachain on Rococo).
+2. Use the command `!drip YOUR_WALLET_ADDRESS:1002`.<br>(Note the `:1002` on the end indicates that the funds are teleported to our Contracts parachain on Rococo).
 
 Guided instructions can be found [here](https://use.ink/testnet).
 
