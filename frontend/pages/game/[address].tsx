@@ -6,11 +6,7 @@ import { Layout } from '../../components/Layout';
 import { GamePage } from '../../components/pg-game';
 import { useUI } from '../../contexts/UIContext';
 
-type Params = {
-  address: string;
-};
-
-const Home: NextPage = () => {
+const Game: NextPage = () => {
   const { setGameAddress } = useUI();
   const { address } = useRouter().query;
 
@@ -30,4 +26,4 @@ const Home: NextPage = () => {
   );
 };
 
-export default Home;
+export default Game;
