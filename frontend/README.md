@@ -2,9 +2,13 @@
 
 Compete to win your place on the board.
 
-## Getting Started
+1. [Installation instructions](https://github.com/paritytech/ink-workshop/blob/main/workshop/1_SETUP.md)
 
-By default the page will connect to the Contracts Rococo network. We will add a dropdown menu so users can switch between RPC providers.
+2. [Playing the first game](https://github.com/paritytech/ink-workshop/blob/main/workshop/2_THE_FIRST_GAME.md)
+
+By default the page will connect to the Contracts Rococo network. 
+
+### Running the Dapp locally
 
 ```bash
 yarn dev
