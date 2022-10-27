@@ -2,9 +2,7 @@
 
 Compete to win your place on the board.
 
-1. [Installation instructions](https://github.com/paritytech/ink-workshop/blob/main/workshop/1_SETUP.md)
-
-2. [Playing the first game](https://github.com/paritytech/ink-workshop/blob/main/workshop/2_THE_FIRST_GAME.md)
+[Installation instructions](https://github.com/paritytech/ink-workshop/blob/main/workshop/1_SETUP.md)
 
 By default the page will connect to the Contracts Rococo network. 
 

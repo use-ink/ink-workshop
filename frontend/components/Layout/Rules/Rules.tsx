@@ -41,16 +41,6 @@ export const Rules = () => {
               Setup
             </ExternalLink>
           </li>
-
-          <li className="text-md text-white/90 mt-1">
-            <ExternalLink
-              href="https://github.com/paritytech/ink-workshop/blob/main/workshop/2_THE_FIRST_GAME.md"
-              secondary
-              underline
-            >
-              The First Game
-            </ExternalLink>
-          </li>
         </ol>
 
         <h4 className="text-lg text-white/90 mt-6 text-start">Game Play</h4>
