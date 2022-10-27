@@ -7,8 +7,11 @@ To participate in this workshop you will need a browser wallet. You can use:
 * Talisman: [Firefox](https://addons.mozilla.org/en-US/firefox/addon/talisman-wallet-extension/?utm_source=addons.mozilla.org&utm_medium=referral&utm_content=search) / [Chrome](https://chrome.google.com/webstore/detail/talisman-polkadot-wallet/fijngjgcjhjmmpcmkeiomlglpeiijkld?hl=en).
 
 In the extension: set up a test account for the Contracts parachain on Rococo.
+You can find the parachain here:
 
-<img src="../.images/polkadot.js-1.png" />
+<img src="../.images/polkadot.js-1.png" width="300" />
+
+This is how your "Accounts| tab should look (minus the funds):
 
 <img src="../.images/polkadot.js-2.png" />
 
