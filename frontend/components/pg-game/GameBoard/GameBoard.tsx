@@ -1,4 +1,3 @@
-import dynamic from 'next/dynamic';
 import React from 'react';
 import { useDimensions, useBoard, usePlayerScores, useGameState } from '../../../hooks/useGameContract';
 import { Board } from '../../Board';
@@ -9,8 +8,6 @@ export const GameBoard: React.FC = () => {
   const board = useBoard();
   const scores = usePlayerScores();
   const { status } = useGameState() || {};
-
-  console.log('res', JSON.stringify(status));
 
   if (!dim) {
     return (
