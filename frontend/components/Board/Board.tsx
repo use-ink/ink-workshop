@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import classNames from 'classnames';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Dimensions, BoardPosition, PlayerScore, GameState, GameStatus } from '../../hooks/useGameContract';
 import { ScoreItem } from './ScoreItem';
 
@@ -27,6 +27,7 @@ export const Board: React.FC<Props> = ({ className, board, dimensions, scores, b
   const scoreBoardRef = useRef<SVGGElement>(null);
   const [pixelBoardPosition, setPixelBoardPosition] = useState<CanvasPosition | null>(null);
   const [scoreBoardPosition, setScoreBoardPosition] = useState<CanvasPosition | null>(null);
+  const isSmallBoard = useMemo(() => dimensions && dimensions?.x <= 10 && dimensions?.y <= 10, [dimensions]);
   const sirenColor = status
     ? {
         Forming: '#ffc32b',
@@ -99,7 +100,7 @@ export const Board: React.FC<Props> = ({ className, board, dimensions, scores, b
                   boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.075)',
                 }}
               >
-                {!owner && (
+                {!owner && isSmallBoard && (
                   <p
                     className={classNames(
                       'text-xs text-black/20 transition duration-100',
