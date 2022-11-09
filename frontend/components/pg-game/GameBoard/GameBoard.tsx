@@ -10,6 +10,8 @@ export const GameBoard: React.FC = () => {
   const scores = usePlayerScores();
   const { status } = useGameState() || {};
 
+  console.log('res', JSON.stringify(status));
+
   if (!dim) {
     return (
       <div className="flex items-center justify-center flex-col h-full">

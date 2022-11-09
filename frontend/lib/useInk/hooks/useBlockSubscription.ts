@@ -6,5 +6,5 @@ export const useBlockSubscription = (fn: VoidFunction, deps?: DependencyList) =>
 
   useEffect(() => {
     header && fn();
-  }, [header?.number?.toHuman(), fn, deps]);
+  }, [header?.number?.toHuman(), deps]);
 };
