@@ -46,7 +46,7 @@ mod squink_splash {
         /// List of fields with their owner (if any).
         board: Mapping<u32, AccountId>,
         /// Width and height of the board.
-        dimensions: (u32, u32),
+        dimensions: Field,
         /// List of all players.
         players: Lazy<Vec<Player>>,
         /// The amount of balance that needs to be payed to join the game.
@@ -57,15 +57,43 @@ mod squink_splash {
         score_multiplier: u32,
     }
 
+    /// The game can be in different states over its lifetime.
     #[derive(scale::Decode, scale::Encode, Clone)]
     #[cfg_attr(
         feature = "std",
         derive(Debug, scale_info::TypeInfo, ink::storage::traits::StorageLayout)
     )]
     pub enum State {
-        Forming { earliest_start: u32 },
-        Running { start_block: u32, end_block: u32 },
-        Finished { winner: AccountId },
+        /// The initial state of the game.
+        ///
+        /// The game is in this state right after instantiation of the contract. This is
+        /// the only state in which players can be registered. No turns can be submitted
+        /// in this state.
+        Forming {
+            /// When this block is reached everybody can can call `start_game` in order
+            /// to progress the state to `Running`.
+            earliest_start: u32,
+        },
+        /// This is the actual playing phase which is entered after calling `start_game`.
+        ///
+        /// No new players can be registered in this phase.
+        Running {
+            /// The block in which `start_game` was called.
+            start_block: u32,
+            /// The block at which the game ends and no new turns will be accepted. Everybody
+            /// can call `end_game` once this block is reached in order to progress the
+            /// `State` to `Finished`.
+            end_block: u32,
+        },
+        /// The game is finished an the pot has been payed out to the `winner`.
+        Finished {
+            /// The player with the highest score when the game ended.
+            ///
+            /// This player is also the one which is allowed to call `destroy` to remove
+            /// the contract. This means that the winner will also collect the storage
+            /// deposits put down by all players as an additional price.
+            winner: AccountId,
+        },
     }
 
     #[derive(scale::Decode, scale::Encode)]
@@ -81,17 +109,83 @@ mod squink_splash {
         last_turn: u32,
     }
 
+    /// Describing either a single point in the field or its dimensions.
+    #[derive(scale::Decode, scale::Encode, Clone, Copy)]
+    #[cfg_attr(
+        feature = "std",
+        derive(Debug, scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+    )]
+    pub struct Field {
+        /// The width component.
+        x: u32,
+        /// The height component.
+        y: u32,
+    }
+
+    /// The different effects resulting from a player making a turn.
+    ///
+    /// Please note that these are only the failures that don't make the transaction fail
+    /// and hence cause an actual state change. For example, trying to do multiple turns
+    /// per block or submitting a turn for an unregistered player are not covered.
+    #[derive(scale::Decode, scale::Encode)]
+    #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+    pub enum TurnOutcome {
+        /// A field was painted.
+        Success {
+            /// The field that was painted.
+            turn: Field,
+        },
+        /// The contract's turn lies outside of the playing field.
+        OutOfBounds {
+            /// The turn that lies outside the playing field.
+            turn: Field,
+        },
+        /// Someone else already painted the field and hence it can't be painted.
+        Occupied {
+            /// The turn that tried to paint.
+            turn: Field,
+            /// The player that occupies the field that was tried to be painted by `turn`.
+            player: AccountId,
+        },
+        /// Player contract failed to return a result. This happens if it paniced, ran out
+        /// of gas, returns garbage or is not even a contract.
+        BrokenPlayer,
+    }
+
+    /// Someone started the game by calling `start_game`.
+    #[ink(event)]
+    pub struct GameStarted {
+        /// The account start called `start_game`.
+        starter: AccountId,
+    }
+
     /// A player attempted to make a turn.
     #[ink(event)]
     pub struct TurnTaken {
         /// The player that attempted the turn.
         player: AccountId,
-        /// The field that was painted by the player.
-        ///
-        /// This is `None` if the turn failed. This will happen if the player's contract
-        /// fails to return a proper turn. Either because the contract panics, returns garbage
-        /// or paints outside of the board.
-        turn: Option<(u32, u32)>,
+        /// The effect of the turn that was performed by the player.
+        outcome: TurnOutcome,
+    }
+
+    /// Someone ended the game by calling `end_game`.
+    ///
+    /// This event doesn't contain information about the winner because the contract still
+    /// exists. Interested parties can read this information from the contract by calling
+    /// `state` and `player_scores`.
+    #[ink(event)]
+    pub struct GameEnded {
+        /// The account that ended the game.
+        ender: AccountId,
+    }
+
+    /// The game ended and the winner destroyed the contract.
+    #[ink(event)]
+    pub struct GameDestroyed {
+        /// The winning player who is also the one who destroyed the contract.
+        winner: Player,
+        /// The winning score of the player.
+        score: u64,
     }
 
     impl SquinkSplash {
@@ -104,7 +198,7 @@ mod squink_splash {
         /// - `score_multiplier`: The higher the more score you get per field.
         #[ink(constructor)]
         pub fn new(
-            dimensions: (u32, u32),
+            dimensions: Field,
             buy_in: Balance,
             forming_rounds: u32,
             rounds: u32,
@@ -134,6 +228,14 @@ mod squink_splash {
                     self.env().caller(),
                     "Only winner is allowed to destroy the contract."
                 );
+                let (winning_player, score) = self
+                    .player_score_iter()
+                    .find(|(player, _score)| player.id == winner)
+                    .expect("The winner is a player; qed");
+                self.env().emit_event(GameDestroyed {
+                    winner: winning_player,
+                    score,
+                });
                 self.env().terminate_contract(winner)
             } else {
                 panic!("Only finished games can be destroyed.")
@@ -159,6 +261,9 @@ mod squink_splash {
                 start_block,
                 end_block,
             };
+            self.env().emit_event(GameStarted {
+                starter: self.env().caller(),
+            });
         }
 
         /// When enough time has passed no new turns can be submitted.
@@ -186,7 +291,10 @@ mod squink_splash {
                         .transfer(winner, Balance::from(num_players) * self.buy_in)
                         .unwrap();
 
-                    self.state = State::Finished { winner }
+                    self.state = State::Finished { winner };
+                    self.env().emit_event(GameEnded {
+                        ender: self.env().caller(),
+                    });
                 }
                 _ => panic!("Game can't be ended or has already ended."),
             }
@@ -271,7 +379,7 @@ mod squink_splash {
                 .call_type(Call::new().callee(player.id))
                 .exec_input(ExecutionInput::new(Selector::from([0x00; 4])))
                 .call_flags(CallFlags::default().set_allow_reentry(true))
-                .returns::<(u32, u32)>();
+                .returns::<Field>();
 
             let gas_before = self.env().gas_left();
             let turn = call.fire();
@@ -279,30 +387,28 @@ mod squink_splash {
 
             // We don't bubble up the error cause we still want to record the gas usage
             // and disallow another try. This should be enough punishment for a defunct contract.
-            match &turn {
-                Ok((x, y))
-                    if self.is_valid_coord(*x, *y)
-                        && self.board.get(self.idx(*x, *y)).is_none() =>
-                {
-                    // We only allow to paint if the field is not yet occupied
-                    self.board.insert(self.idx(*x, *y), &player.id);
-                    ink::env::debug_println!("Player painted: x={:03} y={:03}", x, y);
-                }
-                Ok((x, y)) => {
-                    ink::env::debug_println!(
-                        "Turn not inside the board or field already occupied: x={:03} y={:03}",
-                        x,
-                        y
-                    );
+            let outcome = match turn.as_ref() {
+                Ok(&turn) => {
+                    if !self.is_valid_coord(&turn) {
+                        TurnOutcome::OutOfBounds { turn }
+                    } else {
+                        if let Some(player) = self.board.get(self.idx(&turn)) {
+                            TurnOutcome::Occupied { turn, player }
+                        } else {
+                            self.board.insert(self.idx(&turn), &player.id);
+                            TurnOutcome::Success { turn }
+                        }
+                    }
                 }
                 Err(err) => {
                     ink::env::debug_println!("Contract failed to make a turn: {:?}", err);
+                    TurnOutcome::BrokenPlayer
                 }
-            }
+            };
 
             self.env().emit_event(TurnTaken {
                 player: player.id,
-                turn: turn.ok(),
+                outcome,
             });
 
             self.players.set(&players);
@@ -336,14 +442,14 @@ mod squink_splash {
 
         /// Returns the dimensions of the board.
         #[ink(message)]
-        pub fn dimensions(&self) -> (u32, u32) {
+        pub fn dimensions(&self) -> Field {
             self.dimensions
         }
 
         /// Returns the value (owner) of the supplied field.
         #[ink(message)]
-        pub fn field(&self, x: u32, y: u32) -> Option<AccountId> {
-            self.board.get(self.idx(x, y))
+        pub fn field(&self, coord: Field) -> Option<AccountId> {
+            self.board.get(self.idx(&coord))
         }
 
         /// Returns the complete board.
@@ -351,9 +457,10 @@ mod squink_splash {
         /// The index into the vector is calculated as `x + y * width`.
         #[ink(message)]
         pub fn board(&self) -> Vec<Option<AccountId>> {
-            let (width, height) = self.dimensions;
-            (0..height)
-                .flat_map(|y| (0..width).map(move |x| self.field(x, y)))
+            (0..self.dimensions.y)
+                .flat_map(|y| {
+                    (0..self.dimensions.x).map(move |x| self.field(Field { x, y }))
+                })
                 .collect()
         }
 
@@ -408,14 +515,12 @@ mod squink_splash {
             }
         }
 
-        fn idx(&self, x: u32, y: u32) -> u32 {
-            let (width, _height) = self.dimensions;
-            x + y * width
+        fn idx(&self, coord: &Field) -> u32 {
+            coord.x + coord.y * self.dimensions.y
         }
 
-        fn is_valid_coord(&self, x: u32, y: u32) -> bool {
-            let (width, height) = self.dimensions;
-            self.idx(x, y) < width * height
+        fn is_valid_coord(&self, coord: &Field) -> bool {
+            self.idx(coord) < self.dimensions.x * self.dimensions.y
         }
 
         fn rounds_played(&self) -> u32 {

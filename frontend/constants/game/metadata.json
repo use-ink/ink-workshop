@@ -1,780 +1,899 @@
 {
-    "source": {
-      "hash": "0x32c3066d4182287432dfdaeb12c8b5aa163d43234feabeb8ac42638b8309c63b",
-      "language": "ink! 4.0.0-alpha.3",
-      "compiler": "rustc 1.64.0"
-    },
-    "contract": {
-      "name": "squink_splash",
-      "version": "0.1.0",
-      "authors": [
-        "Parity Technologies <admin@parity.io>"
-      ]
-    },
-    "spec": {
-      "constructors": [
-        {
-          "args": [
-            {
-              "label": "dimensions",
-              "type": {
-                "displayName": [],
-                "type": 9
-              }
-            },
-            {
-              "label": "buy_in",
-              "type": {
-                "displayName": [
-                  "Balance"
-                ],
-                "type": 8
-              }
-            },
-            {
-              "label": "forming_rounds",
-              "type": {
-                "displayName": [
-                  "u32"
-                ],
-                "type": 0
-              }
-            },
-            {
-              "label": "rounds",
-              "type": {
-                "displayName": [
-                  "u32"
-                ],
-                "type": 0
-              }
-            },
-            {
-              "label": "score_multiplier",
-              "type": {
-                "displayName": [
-                  "u32"
-                ],
-                "type": 0
-              }
-            }
-          ],
-          "docs": [
-            "Create a new game.",
-            "",
-            "- `dimensions`: (width,height) Of the board",
-            "- `buy_in`: The amount of balance each player needs to submit in order to play.",
-            "- `forming_rounds`: Number of blocks that needs to pass until anyone can start the game.",
-            "- `rounds`: The number of blocks a game can be played for.",
-            "- `score_multiplier`: The higher the more score you get per field."
-          ],
-          "label": "new",
-          "payable": false,
-          "selector": "0x9bae9d5e"
-        }
-      ],
-      "docs": [],
-      "events": [
-        {
-          "args": [
-            {
-              "docs": [
-                " The player that attempted the turn."
-              ],
-              "indexed": false,
-              "label": "player",
-              "type": {
-                "displayName": [
-                  "AccountId"
-                ],
-                "type": 1
-              }
-            },
-            {
-              "docs": [
-                " The field that was painted by the player.",
-                "",
-                " This is `None` if the turn failed. This will happen if the player's contract",
-                " fails to return a proper turn. Either because the contract panics, returns garbage",
-                " or paints outside of the board."
-              ],
-              "indexed": false,
-              "label": "turn",
-              "type": {
-                "displayName": [
-                  "Option"
-                ],
-                "type": 15
-              }
-            }
-          ],
-          "docs": [
-            " A player attempted to make a turn."
-          ],
-          "label": "TurnTaken"
-        }
-      ],
-      "messages": [
-        {
-          "args": [],
-          "docs": [
-            "When the game is in finished the contract can be deleted by the winner."
-          ],
-          "label": "destroy",
-          "mutates": true,
-          "payable": false,
-          "returnType": null,
-          "selector": "0xc7e248e4"
-        },
-        {
-          "args": [],
-          "docs": [
-            "Anyone can start the game when `earliest_start` is reached."
-          ],
-          "label": "start_game",
-          "mutates": true,
-          "payable": false,
-          "returnType": null,
-          "selector": "0x0dad731d"
-        },
-        {
-          "args": [],
-          "docs": [
-            "When enough time has passed no new turns can be submitted.",
-            "Then everybody can call this to end the game and trigger the payout to",
-            "the winner."
-          ],
-          "label": "end_game",
-          "mutates": true,
-          "payable": false,
-          "returnType": null,
-          "selector": "0xc76d285a"
-        },
-        {
-          "args": [
-            {
-              "label": "id",
-              "type": {
-                "displayName": [
-                  "AccountId"
-                ],
-                "type": 1
-              }
-            },
-            {
-              "label": "name",
-              "type": {
-                "displayName": [
-                  "String"
-                ],
-                "type": 6
-              }
-            }
-          ],
-          "docs": [
-            "Add a new player to the game. Only allowed while the game has not started."
-          ],
-          "label": "register_player",
-          "mutates": true,
-          "payable": true,
-          "returnType": null,
-          "selector": "0x44c9d826"
-        },
-        {
-          "args": [
-            {
-              "label": "id",
-              "type": {
-                "displayName": [
-                  "AccountId"
-                ],
-                "type": 1
-              }
-            }
-          ],
-          "docs": [
-            "Each block every player can submit their turn.",
-            "",
-            "Each player can only make one turn per block. If the contract panics or fails",
-            "to return the proper result the turn of forfeited and the gas usage is still recorded."
-          ],
-          "label": "submit_turn",
-          "mutates": true,
-          "payable": false,
-          "returnType": null,
-          "selector": "0xd73c7bba"
-        },
-        {
-          "args": [],
-          "docs": [
-            "The buy in amount to register a player"
-          ],
-          "label": "buy_in_amount",
-          "mutates": false,
-          "payable": false,
-          "returnType": {
-            "displayName": [
-              "Balance"
-            ],
-            "type": 8
-          },
-          "selector": "0x3bd6cf8d"
-        },
-        {
-          "args": [],
-          "docs": [
-            "The current game state."
-          ],
-          "label": "state",
-          "mutates": false,
-          "payable": false,
-          "returnType": {
-            "displayName": [
-              "State"
-            ],
-            "type": 10
-          },
-          "selector": "0x0ced162a"
-        },
-        {
-          "args": [],
-          "docs": [
-            "List of all players sorted by id."
-          ],
-          "label": "players",
-          "mutates": false,
-          "payable": false,
-          "returnType": {
-            "displayName": [
-              "Vec"
-            ],
-            "type": 4
-          },
-          "selector": "0x4c3724ad"
-        },
-        {
-          "args": [],
-          "docs": [
-            "List of of all players (sorted by id) and their current scores."
-          ],
-          "label": "player_scores",
-          "mutates": false,
-          "payable": false,
-          "returnType": {
-            "displayName": [
-              "Vec"
-            ],
-            "type": 11
-          },
-          "selector": "0x2ec966dd"
-        },
-        {
-          "args": [],
-          "docs": [
-            "Returns the dimensions of the board."
-          ],
-          "label": "dimensions",
-          "mutates": false,
-          "payable": false,
-          "returnType": {
-            "displayName": [],
-            "type": 9
-          },
-          "selector": "0xf10dee95"
-        },
-        {
-          "args": [
-            {
-              "label": "x",
-              "type": {
-                "displayName": [
-                  "u32"
-                ],
-                "type": 0
-              }
-            },
-            {
-              "label": "y",
-              "type": {
-                "displayName": [
-                  "u32"
-                ],
-                "type": 0
-              }
-            }
-          ],
-          "docs": [
-            "Returns the value (owner) of the supplied field."
-          ],
-          "label": "field",
-          "mutates": false,
-          "payable": false,
-          "returnType": {
-            "displayName": [
-              "Option"
-            ],
-            "type": 13
-          },
-          "selector": "0x4abe8f1b"
-        },
-        {
-          "args": [],
-          "docs": [
-            "Returns the complete board.",
-            "",
-            "The index into the vector is calculated as `x + y * width`."
-          ],
-          "label": "board",
-          "mutates": false,
-          "payable": false,
-          "returnType": {
-            "displayName": [
-              "Vec"
-            ],
-            "type": 14
-          },
-          "selector": "0x276086cb"
-        }
-      ]
-    },
-    "storage": {
-      "root": {
-        "layout": {
-          "struct": {
-            "fields": [
-              {
-                "layout": {
-                  "enum": {
-                    "dispatchKey": "0x00000000",
-                    "name": "State",
-                    "variants": {
-                      "0": {
-                        "fields": [
-                          {
-                            "layout": {
-                              "leaf": {
-                                "key": "0x00000000",
-                                "ty": 0
-                              }
-                            },
-                            "name": "earliest_start"
-                          }
-                        ],
-                        "name": "Forming"
-                      },
-                      "1": {
-                        "fields": [
-                          {
-                            "layout": {
-                              "leaf": {
-                                "key": "0x00000000",
-                                "ty": 0
-                              }
-                            },
-                            "name": "start_block"
-                          },
-                          {
-                            "layout": {
-                              "leaf": {
-                                "key": "0x00000000",
-                                "ty": 0
-                              }
-                            },
-                            "name": "end_block"
-                          }
-                        ],
-                        "name": "Running"
-                      },
-                      "2": {
-                        "fields": [
-                          {
-                            "layout": {
-                              "leaf": {
-                                "key": "0x00000000",
-                                "ty": 1
-                              }
-                            },
-                            "name": "winner"
-                          }
-                        ],
-                        "name": "Finished"
-                      }
-                    }
-                  }
-                },
-                "name": "state"
-              },
-              {
-                "layout": {
-                  "root": {
-                    "layout": {
-                      "leaf": {
-                        "key": "0xb93a8c6e",
-                        "ty": 1
-                      }
-                    },
-                    "root_key": "0xb93a8c6e"
-                  }
-                },
-                "name": "board"
-              },
-              {
-                "layout": {
-                  "struct": {
-                    "fields": [
-                      {
-                        "layout": {
-                          "leaf": {
-                            "key": "0x00000000",
-                            "ty": 0
-                          }
-                        },
-                        "name": "0"
-                      },
-                      {
-                        "layout": {
-                          "leaf": {
-                            "key": "0x00000000",
-                            "ty": 0
-                          }
-                        },
-                        "name": "1"
-                      }
-                    ],
-                    "name": "(A, B)"
-                  }
-                },
-                "name": "dimensions"
-              },
-              {
-                "layout": {
-                  "root": {
-                    "layout": {
-                      "leaf": {
-                        "key": "0x900fc968",
-                        "ty": 4
-                      }
-                    },
-                    "root_key": "0x900fc968"
-                  }
-                },
-                "name": "players"
-              },
-              {
-                "layout": {
-                  "leaf": {
-                    "key": "0x00000000",
-                    "ty": 8
-                  }
-                },
-                "name": "buy_in"
-              },
-              {
-                "layout": {
-                  "leaf": {
-                    "key": "0x00000000",
-                    "ty": 0
-                  }
-                },
-                "name": "rounds"
-              },
-              {
-                "layout": {
-                  "leaf": {
-                    "key": "0x00000000",
-                    "ty": 0
-                  }
-                },
-                "name": "score_multiplier"
-              }
-            ],
-            "name": "SquinkSplash"
-          }
-        },
-        "root_key": "0x00000000"
+  "source": {
+    "hash": "0xd8fc500d0026eb3a7b058469a7c1dbdc47608b00f1b57795c4486903dc962b37",
+    "language": "ink! 4.0.0-alpha.3",
+    "compiler": "rustc 1.65.0",
+    "build_info": {
+      "build_mode": "Debug",
+      "cargo_contract_version": "2.0.0-alpha.5",
+      "rust_toolchain": "stable-aarch64-apple-darwin",
+      "wasm_opt_settings": {
+        "keep_debug_symbols": false,
+        "optimization_passes": "Z"
       }
-    },
-    "types": [
+    }
+  },
+  "contract": {
+    "name": "squink_splash",
+    "version": "0.1.0",
+    "authors": [
+      "Parity Technologies <admin@parity.io>"
+    ]
+  },
+  "spec": {
+    "constructors": [
       {
-        "id": 0,
-        "type": {
-          "def": {
-            "primitive": "u32"
-          }
-        }
-      },
-      {
-        "id": 1,
-        "type": {
-          "def": {
-            "composite": {
-              "fields": [
-                {
-                  "type": 2,
-                  "typeName": "[u8; 32]"
-                }
-              ]
-            }
-          },
-          "path": [
-            "ink_primitives",
-            "types",
-            "AccountId"
-          ]
-        }
-      },
-      {
-        "id": 2,
-        "type": {
-          "def": {
-            "array": {
-              "len": 32,
-              "type": 3
-            }
-          }
-        }
-      },
-      {
-        "id": 3,
-        "type": {
-          "def": {
-            "primitive": "u8"
-          }
-        }
-      },
-      {
-        "id": 4,
-        "type": {
-          "def": {
-            "sequence": {
-              "type": 5
-            }
-          }
-        }
-      },
-      {
-        "id": 5,
-        "type": {
-          "def": {
-            "composite": {
-              "fields": [
-                {
-                  "name": "id",
-                  "type": 1,
-                  "typeName": "AccountId"
-                },
-                {
-                  "name": "name",
-                  "type": 6,
-                  "typeName": "String"
-                },
-                {
-                  "name": "gas_used",
-                  "type": 7,
-                  "typeName": "u64"
-                },
-                {
-                  "name": "last_turn",
-                  "type": 0,
-                  "typeName": "u32"
-                }
-              ]
-            }
-          },
-          "path": [
-            "game",
-            "squink_splash",
-            "Player"
-          ]
-        }
-      },
-      {
-        "id": 6,
-        "type": {
-          "def": {
-            "primitive": "str"
-          }
-        }
-      },
-      {
-        "id": 7,
-        "type": {
-          "def": {
-            "primitive": "u64"
-          }
-        }
-      },
-      {
-        "id": 8,
-        "type": {
-          "def": {
-            "primitive": "u128"
-          }
-        }
-      },
-      {
-        "id": 9,
-        "type": {
-          "def": {
-            "tuple": [
-              0,
-              0
-            ]
-          }
-        }
-      },
-      {
-        "id": 10,
-        "type": {
-          "def": {
-            "variant": {
-              "variants": [
-                {
-                  "fields": [
-                    {
-                      "name": "earliest_start",
-                      "type": 0,
-                      "typeName": "u32"
-                    }
-                  ],
-                  "index": 0,
-                  "name": "Forming"
-                },
-                {
-                  "fields": [
-                    {
-                      "name": "start_block",
-                      "type": 0,
-                      "typeName": "u32"
-                    },
-                    {
-                      "name": "end_block",
-                      "type": 0,
-                      "typeName": "u32"
-                    }
-                  ],
-                  "index": 1,
-                  "name": "Running"
-                },
-                {
-                  "fields": [
-                    {
-                      "name": "winner",
-                      "type": 1,
-                      "typeName": "AccountId"
-                    }
-                  ],
-                  "index": 2,
-                  "name": "Finished"
-                }
-              ]
-            }
-          },
-          "path": [
-            "game",
-            "squink_splash",
-            "State"
-          ]
-        }
-      },
-      {
-        "id": 11,
-        "type": {
-          "def": {
-            "sequence": {
-              "type": 12
-            }
-          }
-        }
-      },
-      {
-        "id": 12,
-        "type": {
-          "def": {
-            "tuple": [
-              5,
-              7
-            ]
-          }
-        }
-      },
-      {
-        "id": 13,
-        "type": {
-          "def": {
-            "variant": {
-              "variants": [
-                {
-                  "index": 0,
-                  "name": "None"
-                },
-                {
-                  "fields": [
-                    {
-                      "type": 1
-                    }
-                  ],
-                  "index": 1,
-                  "name": "Some"
-                }
-              ]
-            }
-          },
-          "params": [
-            {
-              "name": "T",
-              "type": 1
-            }
-          ],
-          "path": [
-            "Option"
-          ]
-        }
-      },
-      {
-        "id": 14,
-        "type": {
-          "def": {
-            "sequence": {
-              "type": 13
-            }
-          }
-        }
-      },
-      {
-        "id": 15,
-        "type": {
-          "def": {
-            "variant": {
-              "variants": [
-                {
-                  "index": 0,
-                  "name": "None"
-                },
-                {
-                  "fields": [
-                    {
-                      "type": 9
-                    }
-                  ],
-                  "index": 1,
-                  "name": "Some"
-                }
-              ]
-            }
-          },
-          "params": [
-            {
-              "name": "T",
+        "args": [
+          {
+            "label": "dimensions",
+            "type": {
+              "displayName": [
+                "Field"
+              ],
               "type": 9
             }
+          },
+          {
+            "label": "buy_in",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 8
+            }
+          },
+          {
+            "label": "forming_rounds",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "rounds",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "score_multiplier",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Create a new game.",
+          "",
+          "- `dimensions`: (width,height) Of the board",
+          "- `buy_in`: The amount of balance each player needs to submit in order to play.",
+          "- `forming_rounds`: Number of blocks that needs to pass until anyone can start the game.",
+          "- `rounds`: The number of blocks a game can be played for.",
+          "- `score_multiplier`: The higher the more score you get per field."
+        ],
+        "label": "new",
+        "payable": false,
+        "selector": "0x9bae9d5e"
+      }
+    ],
+    "docs": [],
+    "events": [
+      {
+        "args": [
+          {
+            "docs": [
+              " The account start called `start_game`."
+            ],
+            "indexed": false,
+            "label": "starter",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 1
+            }
+          }
+        ],
+        "docs": [
+          " Someone started the game by calling `start_game`."
+        ],
+        "label": "GameStarted"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              " The player that attempted the turn."
+            ],
+            "indexed": false,
+            "label": "player",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 1
+            }
+          },
+          {
+            "docs": [
+              " The effect of the turn that was performed by the player."
+            ],
+            "indexed": false,
+            "label": "outcome",
+            "type": {
+              "displayName": [
+                "TurnOutcome"
+              ],
+              "type": 15
+            }
+          }
+        ],
+        "docs": [
+          " A player attempted to make a turn."
+        ],
+        "label": "TurnTaken"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              " The account that ended the game."
+            ],
+            "indexed": false,
+            "label": "ender",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 1
+            }
+          }
+        ],
+        "docs": [
+          " Someone ended the game by calling `end_game`.",
+          "",
+          " This event doesn't contain information about the winner because the contract still",
+          " exists. Interested parties can read this information from the contract by calling",
+          " `state` and `player_scores`."
+        ],
+        "label": "GameEnded"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              " The winning player who is also the one who destroyed the contract."
+            ],
+            "indexed": false,
+            "label": "winner",
+            "type": {
+              "displayName": [
+                "Player"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [
+              " The winning score of the player."
+            ],
+            "indexed": false,
+            "label": "score",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 7
+            }
+          }
+        ],
+        "docs": [
+          " The game ended and the winner destroyed the contract."
+        ],
+        "label": "GameDestroyed"
+      }
+    ],
+    "messages": [
+      {
+        "args": [],
+        "docs": [
+          "When the game is in finished the contract can be deleted by the winner."
+        ],
+        "label": "destroy",
+        "mutates": true,
+        "payable": false,
+        "returnType": null,
+        "selector": "0xc7e248e4"
+      },
+      {
+        "args": [],
+        "docs": [
+          "Anyone can start the game when `earliest_start` is reached."
+        ],
+        "label": "start_game",
+        "mutates": true,
+        "payable": false,
+        "returnType": null,
+        "selector": "0x0dad731d"
+      },
+      {
+        "args": [],
+        "docs": [
+          "When enough time has passed no new turns can be submitted.",
+          "Then everybody can call this to end the game and trigger the payout to",
+          "the winner."
+        ],
+        "label": "end_game",
+        "mutates": true,
+        "payable": false,
+        "returnType": null,
+        "selector": "0xc76d285a"
+      },
+      {
+        "args": [
+          {
+            "label": "id",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 1
+            }
+          },
+          {
+            "label": "name",
+            "type": {
+              "displayName": [
+                "String"
+              ],
+              "type": 6
+            }
+          }
+        ],
+        "docs": [
+          "Add a new player to the game. Only allowed while the game has not started."
+        ],
+        "label": "register_player",
+        "mutates": true,
+        "payable": true,
+        "returnType": null,
+        "selector": "0x44c9d826"
+      },
+      {
+        "args": [
+          {
+            "label": "id",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 1
+            }
+          }
+        ],
+        "docs": [
+          "Each block every player can submit their turn.",
+          "",
+          "Each player can only make one turn per block. If the contract panics or fails",
+          "to return the proper result the turn of forfeited and the gas usage is still recorded."
+        ],
+        "label": "submit_turn",
+        "mutates": true,
+        "payable": false,
+        "returnType": null,
+        "selector": "0xd73c7bba"
+      },
+      {
+        "args": [],
+        "docs": [
+          "The buy in amount to register a player"
+        ],
+        "label": "buy_in_amount",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "Balance"
           ],
-          "path": [
+          "type": 8
+        },
+        "selector": "0x3bd6cf8d"
+      },
+      {
+        "args": [],
+        "docs": [
+          "The current game state."
+        ],
+        "label": "state",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "State"
+          ],
+          "type": 10
+        },
+        "selector": "0x0ced162a"
+      },
+      {
+        "args": [],
+        "docs": [
+          "List of all players sorted by id."
+        ],
+        "label": "players",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "Vec"
+          ],
+          "type": 4
+        },
+        "selector": "0x4c3724ad"
+      },
+      {
+        "args": [],
+        "docs": [
+          "List of of all players (sorted by id) and their current scores."
+        ],
+        "label": "player_scores",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "Vec"
+          ],
+          "type": 11
+        },
+        "selector": "0x2ec966dd"
+      },
+      {
+        "args": [],
+        "docs": [
+          "Returns the dimensions of the board."
+        ],
+        "label": "dimensions",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "Field"
+          ],
+          "type": 9
+        },
+        "selector": "0xf10dee95"
+      },
+      {
+        "args": [
+          {
+            "label": "coord",
+            "type": {
+              "displayName": [
+                "Field"
+              ],
+              "type": 9
+            }
+          }
+        ],
+        "docs": [
+          "Returns the value (owner) of the supplied field."
+        ],
+        "label": "field",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
             "Option"
+          ],
+          "type": 13
+        },
+        "selector": "0x4abe8f1b"
+      },
+      {
+        "args": [],
+        "docs": [
+          "Returns the complete board.",
+          "",
+          "The index into the vector is calculated as `x + y * width`."
+        ],
+        "label": "board",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "Vec"
+          ],
+          "type": 14
+        },
+        "selector": "0x276086cb"
+      }
+    ]
+  },
+  "storage": {
+    "root": {
+      "layout": {
+        "struct": {
+          "fields": [
+            {
+              "layout": {
+                "enum": {
+                  "dispatchKey": "0x00000000",
+                  "name": "State",
+                  "variants": {
+                    "0": {
+                      "fields": [
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x00000000",
+                              "ty": 0
+                            }
+                          },
+                          "name": "earliest_start"
+                        }
+                      ],
+                      "name": "Forming"
+                    },
+                    "1": {
+                      "fields": [
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x00000000",
+                              "ty": 0
+                            }
+                          },
+                          "name": "start_block"
+                        },
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x00000000",
+                              "ty": 0
+                            }
+                          },
+                          "name": "end_block"
+                        }
+                      ],
+                      "name": "Running"
+                    },
+                    "2": {
+                      "fields": [
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x00000000",
+                              "ty": 1
+                            }
+                          },
+                          "name": "winner"
+                        }
+                      ],
+                      "name": "Finished"
+                    }
+                  }
+                }
+              },
+              "name": "state"
+            },
+            {
+              "layout": {
+                "root": {
+                  "layout": {
+                    "leaf": {
+                      "key": "0xb93a8c6e",
+                      "ty": 1
+                    }
+                  },
+                  "root_key": "0xb93a8c6e"
+                }
+              },
+              "name": "board"
+            },
+            {
+              "layout": {
+                "struct": {
+                  "fields": [
+                    {
+                      "layout": {
+                        "leaf": {
+                          "key": "0x00000000",
+                          "ty": 0
+                        }
+                      },
+                      "name": "x"
+                    },
+                    {
+                      "layout": {
+                        "leaf": {
+                          "key": "0x00000000",
+                          "ty": 0
+                        }
+                      },
+                      "name": "y"
+                    }
+                  ],
+                  "name": "Field"
+                }
+              },
+              "name": "dimensions"
+            },
+            {
+              "layout": {
+                "root": {
+                  "layout": {
+                    "leaf": {
+                      "key": "0x900fc968",
+                      "ty": 4
+                    }
+                  },
+                  "root_key": "0x900fc968"
+                }
+              },
+              "name": "players"
+            },
+            {
+              "layout": {
+                "leaf": {
+                  "key": "0x00000000",
+                  "ty": 8
+                }
+              },
+              "name": "buy_in"
+            },
+            {
+              "layout": {
+                "leaf": {
+                  "key": "0x00000000",
+                  "ty": 0
+                }
+              },
+              "name": "rounds"
+            },
+            {
+              "layout": {
+                "leaf": {
+                  "key": "0x00000000",
+                  "ty": 0
+                }
+              },
+              "name": "score_multiplier"
+            }
+          ],
+          "name": "SquinkSplash"
+        }
+      },
+      "root_key": "0x00000000"
+    }
+  },
+  "types": [
+    {
+      "id": 0,
+      "type": {
+        "def": {
+          "primitive": "u32"
+        }
+      }
+    },
+    {
+      "id": 1,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "type": 2,
+                "typeName": "[u8; 32]"
+              }
+            ]
+          }
+        },
+        "path": [
+          "ink_primitives",
+          "types",
+          "AccountId"
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "type": {
+        "def": {
+          "array": {
+            "len": 32,
+            "type": 3
+          }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": {
+        "def": {
+          "primitive": "u8"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": {
+        "def": {
+          "sequence": {
+            "type": 5
+          }
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "id",
+                "type": 1,
+                "typeName": "AccountId"
+              },
+              {
+                "name": "name",
+                "type": 6,
+                "typeName": "String"
+              },
+              {
+                "name": "gas_used",
+                "type": 7,
+                "typeName": "u64"
+              },
+              {
+                "name": "last_turn",
+                "type": 0,
+                "typeName": "u32"
+              }
+            ]
+          }
+        },
+        "path": [
+          "game",
+          "squink_splash",
+          "Player"
+        ]
+      }
+    },
+    {
+      "id": 6,
+      "type": {
+        "def": {
+          "primitive": "str"
+        }
+      }
+    },
+    {
+      "id": 7,
+      "type": {
+        "def": {
+          "primitive": "u64"
+        }
+      }
+    },
+    {
+      "id": 8,
+      "type": {
+        "def": {
+          "primitive": "u128"
+        }
+      }
+    },
+    {
+      "id": 9,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "x",
+                "type": 0,
+                "typeName": "u32"
+              },
+              {
+                "name": "y",
+                "type": 0,
+                "typeName": "u32"
+              }
+            ]
+          }
+        },
+        "path": [
+          "game",
+          "squink_splash",
+          "Field"
+        ]
+      }
+    },
+    {
+      "id": 10,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "name": "earliest_start",
+                    "type": 0,
+                    "typeName": "u32"
+                  }
+                ],
+                "index": 0,
+                "name": "Forming"
+              },
+              {
+                "fields": [
+                  {
+                    "name": "start_block",
+                    "type": 0,
+                    "typeName": "u32"
+                  },
+                  {
+                    "name": "end_block",
+                    "type": 0,
+                    "typeName": "u32"
+                  }
+                ],
+                "index": 1,
+                "name": "Running"
+              },
+              {
+                "fields": [
+                  {
+                    "name": "winner",
+                    "type": 1,
+                    "typeName": "AccountId"
+                  }
+                ],
+                "index": 2,
+                "name": "Finished"
+              }
+            ]
+          }
+        },
+        "path": [
+          "game",
+          "squink_splash",
+          "State"
+        ]
+      }
+    },
+    {
+      "id": 11,
+      "type": {
+        "def": {
+          "sequence": {
+            "type": 12
+          }
+        }
+      }
+    },
+    {
+      "id": 12,
+      "type": {
+        "def": {
+          "tuple": [
+            5,
+            7
           ]
         }
       }
-    ],
-    "version": "4"
-  }
-  
+    },
+    {
+      "id": 13,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 1
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 1
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 14,
+      "type": {
+        "def": {
+          "sequence": {
+            "type": 13
+          }
+        }
+      }
+    },
+    {
+      "id": 15,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "name": "turn",
+                    "type": 9,
+                    "typeName": "Field"
+                  }
+                ],
+                "index": 0,
+                "name": "Success"
+              },
+              {
+                "fields": [
+                  {
+                    "name": "turn",
+                    "type": 9,
+                    "typeName": "Field"
+                  }
+                ],
+                "index": 1,
+                "name": "OutOfBounds"
+              },
+              {
+                "fields": [
+                  {
+                    "name": "turn",
+                    "type": 9,
+                    "typeName": "Field"
+                  },
+                  {
+                    "name": "player",
+                    "type": 1,
+                    "typeName": "AccountId"
+                  }
+                ],
+                "index": 2,
+                "name": "Occupied"
+              },
+              {
+                "index": 3,
+                "name": "BrokenPlayer"
+              }
+            ]
+          }
+        },
+        "path": [
+          "game",
+          "squink_splash",
+          "TurnOutcome"
+        ]
+      }
+    }
+  ],
+  "version": "4"
+}
