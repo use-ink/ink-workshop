@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import BN from 'bn.js';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { GiSpiralShell } from 'react-icons/gi';
 import { RiErrorWarningFill } from 'react-icons/ri';
 import { useUI } from '../../contexts/UIContext';
@@ -13,6 +13,9 @@ import { Modal } from '../Modal';
 import { ToggleSwitchLabel } from '../ToggleSwitchLabel';
 import { PlayerSelect } from './PlayerSelect';
 
+const MIN_BYTE_COUNT = 3;
+const MAX_BYTE_COUNT = 16;
+
 export const ConnectWalletModal: React.FC = () => {
   const { setShowWalletConnect, showWalletConnect, player, setPlayer } = useUI();
   const { fetchAccounts, accounts, setActiveAccount, activeAccount } = useInk();
@@ -23,9 +26,10 @@ export const ConnectWalletModal: React.FC = () => {
   const gameState = useGameState();
   const buyInAmount = useBuyInAmount();
 
+  const playerNameByteSize = useMemo(() => new Blob([playerName]).size, [playerName]);
+
   const hasAccounts = Boolean(accounts?.length);
-  const noSpecialChars = /^[A-Za-z0-9]{1,12}$/;
-  const hasValidPlayerName = noSpecialChars.test(playerName);
+  const hasValidPlayerName = playerNameByteSize >= MIN_BYTE_COUNT && playerNameByteSize <= MAX_BYTE_COUNT;
 
   useEffect(() => {
     showWalletConnect && fetchAccounts();
@@ -111,7 +115,7 @@ export const ConnectWalletModal: React.FC = () => {
                       </span>
                       <span className="flex items-center text-white/80 w-full text-left mt-3 gap-2">
                         <p className="text-xs font-semibold ">NAME</p>
-                        <p className="text-[10px]">(1-12 characters. No spaces, dashes, or underscores)</p>
+                        <p className="text-[10px]">{`(${MIN_BYTE_COUNT}-${MAX_BYTE_COUNT} characters (emojis count for 3 characters))`}</p>
                       </span>
                       <input
                         onChange={(e) => setPlayerName(e.target.value)}

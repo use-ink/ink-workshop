@@ -1,12 +1,12 @@
 {
   "source": {
-    "hash": "0xd8fc500d0026eb3a7b058469a7c1dbdc47608b00f1b57795c4486903dc962b37",
+    "hash": "0x3c293fc4afaa3fed14ab9f507c3ca9cc11e967bc80c7e5fae1b01a557bec4b4d",
     "language": "ink! 4.0.0-alpha.3",
     "compiler": "rustc 1.65.0",
     "build_info": {
-      "build_mode": "Debug",
-      "cargo_contract_version": "2.0.0-alpha.5",
-      "rust_toolchain": "stable-aarch64-apple-darwin",
+      "build_mode": "Release",
+      "cargo_contract_version": "2.0.0-alpha.4",
+      "rust_toolchain": "stable-x86_64-apple-darwin",
       "wasm_opt_settings": {
         "keep_debug_symbols": false,
         "optimization_passes": "Z"
