@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import ABI from '../constants/game/metadata.json';
+import METADATA from '../constants/game/metadata.json';
 import { useContract } from '../lib/useInk/hooks';
 import { useUI } from '../contexts/UIContext';
 import { useBlockSubscription } from '../lib/useInk/hooks/useBlockSubscription';
@@ -15,7 +15,7 @@ export const useGameContract = () => {
   const {
     game: { address },
   } = useUI();
-  return useContract(address || '', ABI);
+  return useContract(address || '', METADATA);
 };
 
 export type Dimensions = {
@@ -118,7 +118,7 @@ export const useGameState = (): GameState | null => {
         setGameState(state);
       }
     });
-  });
+  }, [game?.address]);
 
   return gameState;
 };
@@ -134,7 +134,7 @@ export const useBuyInAmount = (): BN | null => {
         amount && setBuyInAmount(new BN(amount.split(',').join('')));
       }
     });
-  });
+  }, [game?.address]);
 
   return buyInAmount;
 };
@@ -179,7 +179,7 @@ export const usePlayerColors = (): PlayerColors => {
         setPlayerColors(colors);
       }
     });
-  });
+  }, [game?.address]);
 
   return playerColors;
 };
@@ -219,7 +219,7 @@ export const usePlayerScores = (): PlayerScore[] => {
         setScores(sorted);
       }
     });
-  });
+  }, [game?.address]);
 
   return scores;
 };
@@ -257,7 +257,7 @@ export const useBoard = (): BoardPosition[] => {
         }
         setBoard(data);
       });
-  });
+  }, [game?.address]);
 
   return board;
 };

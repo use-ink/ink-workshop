@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import classNames from 'classnames';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Dimensions, BoardPosition, PlayerScore, GameState, GameStatus } from '../../hooks/useGameContract';
+import { Dimensions, BoardPosition, PlayerScore, GameStatus } from '../../hooks/useGameContract';
 import { ScoreItem } from './ScoreItem';
 
 type Props = {
@@ -69,7 +69,7 @@ export const Board: React.FC<Props> = ({ className, board, dimensions, scores, b
     <div className={className}>
       {pixelBoardRef && (
         <ul
-          className="absolute rounded-b-sm rounded-br-2xl p-3 pt-24 flex flex-col w-full items-center justify-start overflow-x-hidden overflow-y-scroll bg-white"
+          className="z-10 absolute rounded-l-sm rounded-r-2xl p-3 flex flex-col w-full items-center justify-start overflow-x-hidden overflow-y-scroll bg-white"
           style={{
             ...scoreBoardPosition,
           }}
