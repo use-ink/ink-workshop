@@ -1,22 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
-import METADATA from '../constants/game/metadata.json';
-import { useContract } from '../lib/useInk/hooks';
-import { useUI } from '../contexts/UIContext';
-import { useBlockSubscription } from '../lib/useInk/hooks/useBlockSubscription';
 import { useInk } from '../lib/useInk';
 import { Status } from '../lib/useInk/utils';
 import BN from 'bn.js';
+import { useGame } from '../contexts/GameContext';
 
 type AccountId = string;
 
 const QUERY_GAS_LIMIT = 0;
 
-export const useGameContract = () => {
-  const {
-    game: { address },
-  } = useUI();
-  return useContract(address || '', METADATA);
-};
+export const useGameContract = () => useGame().game;
 
 export type Dimensions = {
   x: number;
@@ -26,15 +18,16 @@ export type Dimensions = {
 export const useDimensions = (): Dimensions | null => {
   const game = useGameContract();
   const [dimensions, setDimensions] = useState<Dimensions | null>(null);
+  const { header } = useInk();
 
   useEffect(() => {
     game?.query?.dimensions('', {}).then((res) => {
       if (res.result.isOk) {
-        const [x, y] = res.output?.toHuman() as string[];
+        const { x, y } = res.output?.toHuman() as { x: string; y: string };
         setDimensions({ x: parseInt(x), y: parseInt(y) });
       }
     });
-  }, [game]);
+  }, [game?.address, header?.number?.toHuman()]);
 
   return dimensions;
 };
@@ -86,7 +79,7 @@ export const useGameState = (): GameState | null => {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const currentBlock = header?.number.toNumber() || 0;
 
-  useBlockSubscription(() => {
+  useEffect(() => {
     game?.query?.state('', {}).then((res) => {
       if (res.result.isOk) {
         const gs = res.output?.toHuman() as any;
@@ -118,7 +111,7 @@ export const useGameState = (): GameState | null => {
         setGameState(state);
       }
     });
-  }, [game?.address]);
+  }, [game?.address, header?.number.toHuman()]);
 
   return gameState;
 };
@@ -126,15 +119,16 @@ export const useGameState = (): GameState | null => {
 export const useBuyInAmount = (): BN | null => {
   const game = useGameContract();
   const [buyInAmount, setBuyInAmount] = useState<BN | null>(null);
+  const { header } = useInk();
 
-  useBlockSubscription(() => {
+  useEffect(() => {
     game?.query?.buyInAmount('', {}).then((res) => {
       if (res.result.isOk) {
         const amount = res.output?.toHuman()?.toString();
         amount && setBuyInAmount(new BN(amount.split(',').join('')));
       }
     });
-  }, [game?.address]);
+  }, [game?.address, header?.number?.toHuman()]);
 
   return buyInAmount;
 };
@@ -167,8 +161,9 @@ type PlayerColors = {
 export const usePlayerColors = (): PlayerColors => {
   const game = useGameContract();
   const [playerColors, setPlayerColors] = useState<PlayerColors>({});
+  const { header } = useInk();
 
-  useBlockSubscription(() => {
+  useEffect(() => {
     game?.query?.players('', {}).then((res) => {
       if (res.result.isOk) {
         const players = res.output?.toHuman() as Player[];
@@ -179,7 +174,7 @@ export const usePlayerColors = (): PlayerColors => {
         setPlayerColors(colors);
       }
     });
-  }, [game?.address]);
+  }, [game?.address, header?.number.toHuman()]);
 
   return playerColors;
 };
@@ -198,8 +193,9 @@ export const usePlayerScores = (): PlayerScore[] => {
   const game = useGameContract();
   const colors = usePlayerColors();
   const [scores, setScores] = useState<PlayerScore[]>([]);
+  const { header } = useInk();
 
-  useBlockSubscription(() => {
+  useEffect(() => {
     game?.query?.playerScores('', {}).then((res) => {
       if (res.result.isOk) {
         const s = res.output?.toHuman() as PlayerScoreData[];
@@ -219,7 +215,7 @@ export const usePlayerScores = (): PlayerScore[] => {
         setScores(sorted);
       }
     });
-  }, [game?.address]);
+  }, [game?.address, header?.number.toHuman()]);
 
   return scores;
 };
@@ -239,8 +235,9 @@ export const useBoard = (): BoardPosition[] => {
   const dim = useDimensions();
   const colors = usePlayerColors();
   const [board, setBoard] = useState<BoardPosition[]>([]);
+  const { header } = useInk();
 
-  useBlockSubscription(() => {
+  useEffect(() => {
     dim &&
       game &&
       game?.query?.board('', {}).then((res) => {
@@ -257,7 +254,7 @@ export const useBoard = (): BoardPosition[] => {
         }
         setBoard(data);
       });
-  }, [game?.address]);
+  }, [game?.address, dim, header?.number.toHuman()]);
 
   return board;
 };
