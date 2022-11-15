@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@headlessui/react": "^1.7.2",
+    "@lottiefiles/react-lottie-player": "^3.4.7",
     "@polkadot/api": "^9.4.1",
     "@polkadot/api-contract": "^9.4.1",
     "@polkadot/extension-dapp": "^0.44.6",
@@ -20,8 +21,7 @@
     "next": "12.3.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "react-icons": "^4.4.0",
-    "react-spring": "^9.5.5"
+    "react-icons": "^4.4.0"
   },
   "devDependencies": {
     "@types/node": "18.7.18",
