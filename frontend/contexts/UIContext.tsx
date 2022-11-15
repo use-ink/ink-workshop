@@ -9,14 +9,10 @@ type UI = {
   showRules: boolean;
   setShowRules: (show: boolean) => void;
   setShowWalletConnect: (show: boolean) => void;
-  setGameAddress: (address: string | null) => void;
   setRpcURL: (url: string) => void;
   rpcURL: string;
   setPlayer: (address: string | null) => void;
   player: string | null;
-  game: {
-    address: string | null;
-  };
 };
 
 const DEFAULT_UI: UI = {
@@ -29,16 +25,11 @@ const DEFAULT_UI: UI = {
   player: null,
   rpcURL: DEFAULT_RPC_URL,
   setRpcURL: (_: string) => null,
-  setGameAddress: (_: string | null) => null,
-  game: {
-    address: null,
-  },
 };
 
 const useUIValues = (): UI => {
   const [showWalletConnect, setShowWalletConnect] = useState(false);
   const [showRules, setShowRules] = useState(false);
-  const [gameAddress, setGameAddress] = useState<string | null>(null);
   const [player, setPlayer] = useState<string | null>(null);
   const [rpcURL, setRpcURL] = useState<string>(DEFAULT_RPC_URL);
   return {
@@ -49,12 +40,8 @@ const useUIValues = (): UI => {
     showRules,
     setRpcURL,
     rpcURL,
-    setGameAddress,
     player,
     setPlayer,
-    game: {
-      address: gameAddress,
-    },
   };
 };
 

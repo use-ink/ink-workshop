@@ -8,11 +8,17 @@ const InkProvider = dynamic(() => import('../lib/useInk/InkProvider'), {
   ssr: false,
 });
 
+const GameProvider = dynamic(() => import('../contexts/GameContext').then(({ GameProvider }) => GameProvider), {
+  ssr: false,
+});
+
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <InkProvider>
       <UIProvider>
-        <Component {...pageProps} />
+        <GameProvider>
+          <Component {...pageProps} />
+        </GameProvider>
       </UIProvider>
     </InkProvider>
   );
