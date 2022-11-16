@@ -13,6 +13,8 @@ type UI = {
   rpcURL: string;
   setPlayer: (address: string | null) => void;
   player: string | null;
+  showSettings: boolean;
+  setShowSettings: (show: boolean) => void;
 };
 
 const DEFAULT_UI: UI = {
@@ -25,11 +27,14 @@ const DEFAULT_UI: UI = {
   player: null,
   rpcURL: DEFAULT_RPC_URL,
   setRpcURL: (_: string) => null,
+  setShowSettings: (_: boolean) => null,
+  showSettings: false,
 };
 
 const useUIValues = (): UI => {
   const [showWalletConnect, setShowWalletConnect] = useState(false);
   const [showRules, setShowRules] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [player, setPlayer] = useState<string | null>(null);
   const [rpcURL, setRpcURL] = useState<string>(DEFAULT_RPC_URL);
   return {
@@ -42,6 +47,8 @@ const useUIValues = (): UI => {
     rpcURL,
     player,
     setPlayer,
+    showSettings,
+    setShowSettings,
   };
 };
 

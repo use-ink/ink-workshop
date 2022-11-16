@@ -18,12 +18,15 @@
     "bn.js": "^5.2.1",
     "classnames": "^2.3.2",
     "ethers": "^5.7.2",
+    "howler": "^2.2.3",
     "next": "12.3.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "react-icons": "^4.4.0"
+    "react-icons": "^4.4.0",
+    "react-spring": "^9.5.5"
   },
   "devDependencies": {
+    "@types/howler": "^2.2.7",
     "@types/node": "18.7.18",
     "@types/react": "18.0.20",
     "@types/react-dom": "18.0.6",

@@ -1,5 +1,5 @@
 import { PlayerScore } from '../../../hooks/useGameContract';
-import { GiGasPump, GiDatabase, GiCube } from 'react-icons/gi';
+import { GiGasPump, GiCube } from 'react-icons/gi';
 
 export type PlayerScoreUI = {
   player: PlayerScore;

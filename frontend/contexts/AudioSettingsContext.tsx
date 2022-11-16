@@ -1,0 +1,97 @@
+import { Howl } from 'howler';
+import React, { createContext, ReactNode, useEffect, useState } from 'react';
+
+export type GameTrack = {
+  name: string;
+  url: string;
+};
+
+const TRACKS: { [k: string]: GameTrack } = {
+  SQUINK_JAZZ: {
+    name: 'Squink Jazz',
+    url: '/audio/squink-jazz.mp3',
+  },
+  SQUINKS_TUNE: {
+    name: `Squink's Tune`,
+    url: '/audio/squinks-tune.mp3',
+  },
+  SECRET_AGENT: {
+    name: 'Secret Agent',
+    url: '/audio/secret-agent.mp3',
+  },
+  SQUINKS_ADVENTURE: {
+    name: `Squink's Adventure`,
+    url: '/audio/squinks-adventure.mp3',
+  },
+  ANGRY_CRAB: {
+    name: `The Angry Crab`,
+    url: '/audio/the-angry-crab.mp3',
+  },
+};
+
+export const ALL_TRACKS = Object.values(TRACKS);
+
+export const EFFECTS = {
+  SUCCESS: {
+    url: '/audio/success.mp3',
+  },
+  FAILURE: {
+    url: '/audio/failure.mp3',
+  },
+};
+
+type AudioSettings = {
+  gameTrack: GameTrack;
+  setGameTrack: (track: GameTrack) => void;
+  trackPlayer: Howl | undefined;
+  successEffect: Howl | undefined;
+  playTrack: boolean;
+  setPlayTrack: (_: boolean) => void;
+};
+
+const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
+  gameTrack: TRACKS.SECRET_AGENT,
+  setGameTrack: (_: GameTrack) => null,
+  trackPlayer: undefined,
+  successEffect: undefined,
+  playTrack: false,
+  setPlayTrack: (_: boolean) => null,
+};
+
+export const AudioSettingsContext = createContext<AudioSettings>(DEFAULT_AUDIO_SETTINGS);
+
+export const AudioSettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [gameTrack, setGameTrack] = useState<GameTrack>(ALL_TRACKS[0]);
+  const [successEffect, setEffect] = useState<Howl | undefined>(undefined);
+  const [playTrack, setPlayTrack] = useState(false);
+  const [trackPlayer, setTrackPlayer] = useState<Howl | undefined>(undefined);
+
+  useEffect(() => {
+    const gt: Howl = new Howl({
+      src: gameTrack.url,
+      loop: true,
+      volume: 0.2,
+      html5: true,
+    }).on('load', () => setTrackPlayer(gt));
+  }, [gameTrack]);
+
+  useEffect(() => {
+    const success: Howl = new Howl({
+      src: EFFECTS.SUCCESS.url,
+      loop: false,
+      volume: 0.5,
+      html5: true,
+    }).on('load', () => setEffect(success));
+  }, []);
+
+  const value: AudioSettings = {
+    gameTrack,
+    playTrack,
+    setGameTrack,
+    successEffect,
+    trackPlayer,
+    setPlayTrack,
+  };
+
+  return <AudioSettingsContext.Provider value={value}>{children}</AudioSettingsContext.Provider>;
+};

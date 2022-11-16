@@ -1,7 +1,7 @@
 import { Listbox, Transition } from '@headlessui/react';
 import { usePlayerScores } from '../../../hooks/useGameContract';
 import { useUI } from '../../../contexts/UIContext';
-import { RiArrowDownLine, RiArrowDownSFill, RiCheckFill, RiCheckLine } from 'react-icons/ri';
+import { RiArrowDownSFill, RiCheckFill } from 'react-icons/ri';
 import { Fragment } from 'react';
 import classNames from 'classnames';
 

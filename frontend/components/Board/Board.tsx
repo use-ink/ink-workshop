@@ -1,7 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
-import classNames from 'classnames';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Dimensions, BoardPosition, PlayerScore, GameStatus } from '../../hooks/useGameContract';
+import { useEvents } from '../../lib/useInk/hooks/useEvents';
+import { Pixel } from './Pixel';
 import { ScoreItem } from './ScoreItem';
 
 type Props = {
@@ -28,6 +29,7 @@ export const Board: React.FC<Props> = ({ className, board, dimensions, scores, b
   const [pixelBoardPosition, setPixelBoardPosition] = useState<CanvasPosition | null>(null);
   const [scoreBoardPosition, setScoreBoardPosition] = useState<CanvasPosition | null>(null);
   const isSmallBoard = useMemo(() => dimensions && dimensions?.x <= 10 && dimensions?.y <= 10, [dimensions]);
+  useEvents();
   const sirenColor = status
     ? {
         Forming: '#ffc32b',
@@ -83,36 +85,16 @@ export const Board: React.FC<Props> = ({ className, board, dimensions, scores, b
       )}
       {pixelBoardRef && dimensions && (
         <div
-          className="absolute rounded-l-xl rounded-r-md flex flex-wrap items-center justify-center overflow-hidden bg-white"
+          className="absolute rounded-l-xl rounded-r-md flex flex-wrap items-center justify-center overflow-hidden bg-white/70 backdrop-blur-sm"
           style={{
             ...pixelBoardPosition,
             display: 'grid',
             gridTemplateColumns: `repeat(${dimensions.x},minmax(0,1fr))`,
           }}
         >
-          {board.map(({ x, y, owner, color }) => {
-            return (
-              <span
-                key={`(${x}, ${y})`}
-                className={classNames('w-full h-full flex items-center justify-center transition duration-100')}
-                style={{
-                  backgroundColor: color || 'rgba(0,0,0,0.035)',
-                  boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.075)',
-                }}
-              >
-                {!owner && isSmallBoard && (
-                  <p
-                    className={classNames(
-                      'text-xs text-black/20 transition duration-100',
-                      board.length > 100 && 'text-[10px]',
-                    )}
-                  >
-                    ({x},{y})
-                  </p>
-                )}
-              </span>
-            );
-          })}
+          {board.map(({ x, y, owner, color }) => (
+            <Pixel key={`(${x}, ${y})`} x={x} y={y} owner={owner} color={color} isSmallBoard={isSmallBoard} />
+          ))}
         </div>
       )}
 

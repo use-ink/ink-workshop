@@ -12,12 +12,21 @@ const GameProvider = dynamic(() => import('../contexts/GameContext').then(({ Gam
   ssr: false,
 });
 
+const AudioSettingsProvider = dynamic(
+  () => import('../contexts/AudioSettingsContext').then(({ AudioSettingsProvider }) => AudioSettingsProvider),
+  {
+    ssr: false,
+  },
+);
+
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <InkProvider>
       <UIProvider>
         <GameProvider>
-          <Component {...pageProps} />
+          <AudioSettingsProvider>
+            <Component {...pageProps} />
+          </AudioSettingsProvider>
         </GameProvider>
       </UIProvider>
     </InkProvider>

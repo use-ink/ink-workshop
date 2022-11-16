@@ -1,13 +1,26 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useDimensions, useBoard, usePlayerScores, useGameState } from '../../../hooks/useGameContract';
 import { Board } from '../../Board';
 import { ConnectWallet } from '../../ConnectWallet';
+import { useAudioSettings } from '../../../hooks/useAudioSettings';
+import { Settings } from './Settings';
 
 export const GameBoard: React.FC = () => {
   const dim = useDimensions();
   const board = useBoard();
   const scores = usePlayerScores();
   const { status } = useGameState() || {};
+  const { trackPlayer, playTrack } = useAudioSettings();
+
+  useEffect(() => {
+    if (playTrack && trackPlayer) {
+      trackPlayer.play();
+    }
+
+    return () => {
+      trackPlayer && trackPlayer.stop();
+    };
+  }, [trackPlayer, playTrack]);
 
   if (!dim) {
     return (
@@ -27,10 +40,6 @@ export const GameBoard: React.FC = () => {
       </div>
 
       <div className="hidden lg:block">
-        <div className="fixed right-3 bottom-3 max-w-sm z-10">
-          <ConnectWallet />
-        </div>
-
         <Board
           boardWidth="80%"
           board={board}
@@ -39,6 +48,14 @@ export const GameBoard: React.FC = () => {
           className="w-full h-full"
           status={status}
         />
+
+        <div className="fixed right-3 bottom-3 max-w-sm z-10">
+          <ConnectWallet />
+        </div>
+
+        <div className="fixed left-3 bottom-3 z-10">
+          <Settings />
+        </div>
       </div>
     </>
   );
