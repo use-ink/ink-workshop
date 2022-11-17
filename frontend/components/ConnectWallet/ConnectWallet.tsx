@@ -1,5 +1,4 @@
 import { useUI } from '../../contexts/UIContext';
-import { useInk } from '../../lib/useInk';
 import { Button } from '../Button';
 import classNames from 'classnames';
 import { truncateHash } from '../../utils';
@@ -8,7 +7,8 @@ import { RiRefreshLine } from 'react-icons/ri';
 import { SimpleWidget } from '../SimpleWidget';
 import { useMemo } from 'react';
 import { usePlayerScores, useSubmitTurnFunc } from '../../hooks/useGameContract';
-import { hasAny, isBroadcasting, isPendingSignature } from '../../lib/useInk/utils/contractFunctionUtils';
+import { hasAny, isBroadcasting, isInBlock, isPendingSignature } from '../../lib/useInk/utils';
+import { useExtension } from '../../lib/useInk/hooks';
 
 type Props = {
   className?: string;
@@ -17,7 +17,7 @@ type Props = {
 export const ConnectWallet: React.FC<Props> = ({ className }) => {
   const { setShowWalletConnect, player } = useUI();
   const scores = usePlayerScores();
-  const { activeAccount } = useInk();
+  const { activeAccount } = useExtension();
   const submitTurn = useSubmitTurnFunc();
 
   const playerName = useMemo(() => {
@@ -28,6 +28,7 @@ export const ConnectWallet: React.FC<Props> = ({ className }) => {
   const buttonTitle = () => {
     if (isPendingSignature(submitTurn)) return 'Awaiting signature...';
     if (isBroadcasting(submitTurn)) return 'Broadcasting...';
+    if (isInBlock(submitTurn)) return 'Waiting on finalization...';
     return 'Submit Turn';
   };
 
@@ -64,7 +65,7 @@ export const ConnectWallet: React.FC<Props> = ({ className }) => {
         <div className="flex items-center justify-end gap-2 w-full relative z-10">
           <Button
             className="w-full bg-players-2 hover:bg-players-2/80 border-2 border-brand-300 drop-shadow-md disabled:bg-players-2/60 disabled:text-gray-300"
-            disabled={hasAny(submitTurn, 'pending', 'broadcasted')}
+            disabled={hasAny(submitTurn, 'pending', 'broadcasted', 'in-block')}
             onClick={() => player && submitTurn.send(player)}
           >
             {buttonTitle()}

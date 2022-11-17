@@ -6,22 +6,40 @@ import { ToggleSwitchLabel } from '../../../ToggleSwitchLabel';
 import { TrackSelect } from './TrackSelect';
 
 export const Settings: React.FC = () => {
-  const { showSettings, setShowSettings } = useUI();
+  const { showSettings, setShowSettings, showGrid, setShowGrid, showCoordinates, setShowCoordinates } = useUI();
   const { setPlayTrack, playTrack } = useAudioSettings();
 
   return (
     <>
       <Modal open={showSettings} handleClose={() => setShowSettings(false)}>
-        <div className="w-full px-8 py-6">
-          <h3 className="text-lg text-white">Game Audio</h3>
-          <ToggleSwitchLabel
-            className="mt-3"
-            handleClick={() => setPlayTrack(!playTrack)}
-            isOn={playTrack}
-            label="Play game track"
-          />
-          <div className="mt-6">
-            <TrackSelect />
+        <div className="w-full px-8 py-12">
+          <div className="w-full">
+            <h3 className="text-lg text-white">Game Audio</h3>
+            <ToggleSwitchLabel
+              className="mt-3"
+              handleClick={() => setPlayTrack(!playTrack)}
+              isOn={playTrack}
+              label="Play game track"
+            />
+            <div className="mt-6">
+              <TrackSelect />
+            </div>
+          </div>
+
+          <div className="w-full mt-8">
+            <h3 className="text-lg text-white">Visual Settings</h3>
+            <ToggleSwitchLabel
+              className="mt-3"
+              handleClick={() => setShowGrid(!showGrid)}
+              isOn={showGrid}
+              label="Show pixel grid"
+            />
+            <ToggleSwitchLabel
+              className="mt-3"
+              handleClick={() => setShowCoordinates(!showCoordinates)}
+              isOn={showCoordinates}
+              label="Show pixel coordinates"
+            />
           </div>
         </div>
       </Modal>

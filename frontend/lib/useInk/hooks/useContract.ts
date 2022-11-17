@@ -1,6 +1,6 @@
 import { Abi, ContractPromise } from '@polkadot/api-contract';
 import { useEffect, useState } from 'react';
-import { useInk } from '../InkProvider';
+import { useApi } from './useApi';
 
 export type ContractAbi = string | Record<string, unknown> | Abi;
 
@@ -9,7 +9,7 @@ export function useContract<T extends ContractPromise = ContractPromise>(
   ABI: ContractAbi,
 ): T | undefined {
   const [contract, setContract] = useState<T | undefined>();
-  const { api } = useInk();
+  const { api } = useApi();
 
   useEffect(() => {
     try {

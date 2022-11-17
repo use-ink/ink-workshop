@@ -1,5 +1,6 @@
 import dynamic from 'next/dynamic';
 import { LottieEntity } from '../LottieEntity';
+import { Notifications } from './Notifications';
 import { Rules } from './Rules';
 
 const ConnectWalletModal = dynamic(() => import('../ConnectWalletModal').then((mod) => mod.ConnectWalletModal), {
@@ -22,6 +23,7 @@ export const Layout: React.FC<Props> = ({ children }) => {
       <div>{children}</div>
       <Rules />
       <ConnectWalletModal />
+      <Notifications />
     </div>
   );
 };

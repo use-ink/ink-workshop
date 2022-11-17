@@ -1,2 +1,2 @@
-export * from './contractFunctionUtils';
 export * from './parseUnits';
+export * from './contractFunctionUtils';

@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Dimensions, BoardPosition, PlayerScore, GameStatus } from '../../hooks/useGameContract';
-import { useEvents } from '../../lib/useInk/hooks/useEvents';
+import { TurnOutcome, useGameEvents, useTurnTakenData, useTurnTakenEvents } from '../../hooks/useGameEvents';
 import { Pixel } from './Pixel';
 import { ScoreItem } from './ScoreItem';
 
@@ -29,7 +29,17 @@ export const Board: React.FC<Props> = ({ className, board, dimensions, scores, b
   const [pixelBoardPosition, setPixelBoardPosition] = useState<CanvasPosition | null>(null);
   const [scoreBoardPosition, setScoreBoardPosition] = useState<CanvasPosition | null>(null);
   const isSmallBoard = useMemo(() => dimensions && dimensions?.x <= 10 && dimensions?.y <= 10, [dimensions]);
-  useEvents();
+  const events = useTurnTakenData();
+
+  const players = useMemo(() => {
+    const p: { [id: string]: string } = {};
+    for (let i = 0; i < scores.length; i++) {
+      const { id, name } = scores[i] || {};
+      p[id] = name;
+    }
+    return p;
+  }, [scores]);
+
   const sirenColor = status
     ? {
         Forming: '#ffc32b',
@@ -71,14 +81,18 @@ export const Board: React.FC<Props> = ({ className, board, dimensions, scores, b
     <div className={className}>
       {pixelBoardRef && (
         <ul
-          className="z-10 absolute rounded-l-sm rounded-r-2xl p-3 flex flex-col w-full items-center justify-start overflow-x-hidden overflow-y-scroll bg-white"
+          className="z-10 bg-squink-800 absolute p-1 rounded-l-sm rounded-r-2xl flex flex-col w-full items-center justify-start overflow-x-hidden overflow-y-scroll"
           style={{
             ...scoreBoardPosition,
           }}
         >
-          {scores.map((p) => (
-            <li key={p.id} className="w-full py-1 border-b border-b-black/5 last:border-b-0">
-              <ScoreItem player={p} />
+          {scores.map((p, index) => (
+            <li
+              key={p.id}
+              className="w-full rounded-xl p-2 mt-1 first:mt-0 transition duration-150"
+              style={{ backgroundColor: p.color }}
+            >
+              <ScoreItem player={p} rank={index + 1} />
             </li>
           ))}
         </ul>
@@ -93,7 +107,16 @@ export const Board: React.FC<Props> = ({ className, board, dimensions, scores, b
           }}
         >
           {board.map(({ x, y, owner, color }) => (
-            <Pixel key={`(${x}, ${y})`} x={x} y={y} owner={owner} color={color} isSmallBoard={isSmallBoard} />
+            <Pixel
+              players={players}
+              key={`(${x}, ${y})`}
+              events={events[`(${x},${y})`]}
+              x={x}
+              y={y}
+              owner={owner}
+              color={color}
+              isSmallBoard={isSmallBoard}
+            />
           ))}
         </div>
       )}

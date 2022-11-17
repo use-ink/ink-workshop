@@ -1,16 +1,6 @@
-import { ApiPromise } from '@polkadot/api';
-import { useEffect, useState } from 'react';
-import { useProvider } from './useProvider';
+import { useContext } from 'react';
+import { APIContext } from '../providers/api/context';
 
-export const useApi = (providerUrl: string): ApiPromise | undefined => {
-  const [api, setApi] = useState<ApiPromise | undefined>();
-  const provider = useProvider(providerUrl);
+export type { API } from '../providers/api/model';
 
-  useEffect(() => {
-    ApiPromise.create({ provider }).then((api) => {
-      setApi(api);
-    });
-  }, [providerUrl, provider]);
-
-  return api;
-};
+export const useApi = () => useContext(APIContext);

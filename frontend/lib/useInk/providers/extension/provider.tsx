@@ -1,25 +1,15 @@
-import { web3Accounts, web3Enable, web3FromAddress } from '@polkadot/extension-dapp';
+import { ReactNode, useEffect, useState } from 'react';
 import { InjectedAccountWithMeta, InjectedExtension } from '@polkadot/extension-inject/types';
-import { useEffect, useState } from 'react';
+import { ExtensionContext } from './context';
+import { web3Accounts, web3Enable, web3FromAddress } from '@polkadot/extension-dapp';
 
-export type Extension = {
-  accounts: InjectedAccountWithMeta[] | null;
-  setActiveAccount: (account: InjectedAccountWithMeta | null) => void;
-  activeAccount?: InjectedAccountWithMeta | null;
-  activeSigner?: InjectedExtension | null;
-  isConnected: boolean;
-  fetchAccounts: () => void;
-};
+interface Props {
+  children: ReactNode;
+}
 
-export const EXTENSION_DEFAULTS: Extension = {
-  accounts: null,
-  setActiveAccount: (_: InjectedAccountWithMeta | null) => null,
-  activeAccount: null,
-  fetchAccounts: () => null,
-  isConnected: false,
-};
-
-export const useExtension = (web3OriginName?: string): Extension => {
+// @internal
+export const ExtensionProvider: React.FC<Props> = ({ children }) => {
+  const [web3OriginName, setWeb3OriginName] = useState<string | null>(null);
   const [accounts, setAccounts] = useState<InjectedAccountWithMeta[]>([]);
   const [activeAccount, setActiveAccount] = useState<InjectedAccountWithMeta | null>(null);
   const [activeSigner, setActiveSigner] = useState<InjectedExtension | null>(null);
@@ -42,12 +32,14 @@ export const useExtension = (web3OriginName?: string): Extension => {
     }
   };
 
-  return {
+  const value = {
     accounts,
-    setActiveAccount,
     activeAccount,
     activeSigner,
-    isConnected: Boolean(activeAccount),
     fetchAccounts,
+    setActiveAccount,
+    setWeb3OriginName,
   };
+
+  return <ExtensionContext.Provider value={value}>{children}</ExtensionContext.Provider>;
 };

@@ -1,6 +1,6 @@
 import { GiCube } from 'react-icons/gi';
 import { useGameState } from '../../hooks/useGameContract';
-import { useInk } from '../../lib/useInk';
+import { useBlockHeader } from '../../lib/useInk/hooks';
 import { SimpleWidget } from '../SimpleWidget';
 import { FinishedStatus } from './FinishedStatus';
 import { FormingStatus } from './FormingStatus';
@@ -20,7 +20,7 @@ type Status = RunningStatus;
 
 export const GameStatus: React.FC = () => {
   const gameState = useGameState();
-  const { header } = useInk();
+  const { blockNumber } = useBlockHeader();
 
   return (
     <SimpleWidget>
@@ -32,7 +32,7 @@ export const GameStatus: React.FC = () => {
         <span className="mr-1">
           <GiCube size={12} />
         </span>
-        <h6 className="font-normal rounded-full">{header?.number?.toHuman()?.toString()}</h6>
+        <h6 className="font-normal rounded-full">{blockNumber}</h6>
       </span>
     </SimpleWidget>
   );

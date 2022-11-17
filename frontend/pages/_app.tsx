@@ -3,6 +3,7 @@ import type { AppProps } from 'next/app';
 import React from 'react';
 import dynamic from 'next/dynamic';
 import UIProvider from '../contexts/UIContext';
+import { AudioSettingsProvider } from '../contexts/AudioSettingsContext';
 
 const InkProvider = dynamic(() => import('../lib/useInk/InkProvider'), {
   ssr: false,
@@ -12,22 +13,15 @@ const GameProvider = dynamic(() => import('../contexts/GameContext').then(({ Gam
   ssr: false,
 });
 
-const AudioSettingsProvider = dynamic(
-  () => import('../contexts/AudioSettingsContext').then(({ AudioSettingsProvider }) => AudioSettingsProvider),
-  {
-    ssr: false,
-  },
-);
-
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <InkProvider>
       <UIProvider>
-        <GameProvider>
-          <AudioSettingsProvider>
+        <AudioSettingsProvider>
+          <GameProvider>
             <Component {...pageProps} />
-          </AudioSettingsProvider>
-        </GameProvider>
+          </GameProvider>
+        </AudioSettingsProvider>
       </UIProvider>
     </InkProvider>
   );

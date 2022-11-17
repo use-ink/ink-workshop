@@ -36,7 +36,10 @@ export const EFFECTS = {
     url: '/audio/success.mp3',
   },
   FAILURE: {
-    url: '/audio/failure.mp3',
+    url: '/audio/failure-fx.mp3',
+  },
+  COIN: {
+    url: '/audio/coin.mp3',
   },
 };
 
@@ -45,6 +48,8 @@ type AudioSettings = {
   setGameTrack: (track: GameTrack) => void;
   trackPlayer: Howl | undefined;
   successEffect: Howl | undefined;
+  finalizedEffect: Howl | undefined;
+  failureEffect: Howl | undefined;
   playTrack: boolean;
   setPlayTrack: (_: boolean) => void;
 };
@@ -54,6 +59,8 @@ const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
   setGameTrack: (_: GameTrack) => null,
   trackPlayer: undefined,
   successEffect: undefined,
+  finalizedEffect: undefined,
+  failureEffect: undefined,
   playTrack: false,
   setPlayTrack: (_: boolean) => null,
 };
@@ -63,6 +70,8 @@ export const AudioSettingsContext = createContext<AudioSettings>(DEFAULT_AUDIO_S
 export const AudioSettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [gameTrack, setGameTrack] = useState<GameTrack>(ALL_TRACKS[0]);
   const [successEffect, setEffect] = useState<Howl | undefined>(undefined);
+  const [failureEffect, setFailureEffect] = useState<Howl | undefined>(undefined);
+  const [finalizedEffect, setFinalizedEffect] = useState<Howl | undefined>(undefined);
   const [playTrack, setPlayTrack] = useState(false);
   const [trackPlayer, setTrackPlayer] = useState<Howl | undefined>(undefined);
 
@@ -82,6 +91,20 @@ export const AudioSettingsProvider: React.FC<{ children: ReactNode }> = ({ child
       volume: 0.5,
       html5: true,
     }).on('load', () => setEffect(success));
+
+    const finalizedSoundPlayer: Howl = new Howl({
+      src: EFFECTS.COIN.url,
+      loop: false,
+      volume: 0.3,
+      html5: true,
+    }).on('load', () => setFinalizedEffect(finalizedSoundPlayer));
+
+    const failureSoundPlayer: Howl = new Howl({
+      src: EFFECTS.FAILURE.url,
+      loop: false,
+      volume: 0.3,
+      html5: true,
+    }).on('load', () => setFailureEffect(failureSoundPlayer));
   }, []);
 
   const value: AudioSettings = {
@@ -89,6 +112,8 @@ export const AudioSettingsProvider: React.FC<{ children: ReactNode }> = ({ child
     playTrack,
     setGameTrack,
     successEffect,
+    finalizedEffect,
+    failureEffect,
     trackPlayer,
     setPlayTrack,
   };
