@@ -15,7 +15,7 @@ export function useContract<T extends ContractPromise = ContractPromise>(
     try {
       api && setContract(new ContractPromise(api, ABI, address) as T);
     } catch (err) {
-      console.error("Couldn't connect to wallet: ", err);
+      console.error("Couldn't create contract instance: ", err);
     }
   }, [ABI, address, api]);
 
