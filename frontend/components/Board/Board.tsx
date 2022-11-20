@@ -81,7 +81,7 @@ export const Board: React.FC<Props> = ({ className, board, dimensions, scores, b
     <div className={className}>
       {pixelBoardRef && (
         <ul
-          className="z-10 bg-squink-800 absolute p-1 rounded-l-sm rounded-r-2xl flex flex-col w-full items-center justify-start overflow-x-hidden overflow-y-scroll"
+          className="z-10 bg-squink-800/80 backdrop-blur-sm absolute p-1 rounded-l-sm rounded-r-2xl flex flex-col w-full items-center justify-start overflow-x-hidden overflow-y-scroll"
           style={{
             ...scoreBoardPosition,
           }}
