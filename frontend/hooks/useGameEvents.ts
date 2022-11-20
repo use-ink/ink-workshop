@@ -28,6 +28,8 @@ type Field = {
   y: string;
 };
 
+const field: Field = { x: '1', y: '123' };
+
 type SuccessfulTurn = {
   name: 'Success';
   player: string;
