@@ -5,7 +5,7 @@ import { GiSpiralShell } from 'react-icons/gi';
 import { RiErrorWarningFill } from 'react-icons/ri';
 import { useUI } from '../../contexts/UIContext';
 import { useBuyInAmount, useGameState, useRegisterPlayerFunc } from '../../hooks/useGameContract';
-import { useInk } from '../../lib/useInk';
+import { useExtension } from '../../lib/useInk/hooks';
 import { hasAny } from '../../lib/useInk/utils';
 import { truncateHash } from '../../utils';
 import { Button } from '../Button';
@@ -18,7 +18,7 @@ const MAX_BYTE_COUNT = 16;
 
 export const ConnectWalletModal: React.FC = () => {
   const { setShowWalletConnect, showWalletConnect, player, setPlayer } = useUI();
-  const { fetchAccounts, accounts, setActiveAccount, activeAccount } = useInk();
+  const { fetchAccounts, accounts, setActiveAccount, activeAccount } = useExtension();
   const [playerAddress, setPlayerAddress] = useState<string>(player || '');
   const [playerName, setPlayerName] = useState('');
   const [alreadyRegistered, setAlreadyRegistered] = useState(false);
@@ -115,7 +115,7 @@ export const ConnectWalletModal: React.FC = () => {
                       </span>
                       <span className="flex items-center text-white/80 w-full text-left mt-3 gap-2">
                         <p className="text-xs font-semibold ">NAME</p>
-                        <p className="text-[10px]">{`(${MIN_BYTE_COUNT}-${MAX_BYTE_COUNT} characters (emojis count for 3 characters))`}</p>
+                        <p className="text-[10px]">{`${MIN_BYTE_COUNT}-${MAX_BYTE_COUNT} characters (emojis count for 3 characters)`}</p>
                       </span>
                       <input
                         onChange={(e) => setPlayerName(e.target.value)}

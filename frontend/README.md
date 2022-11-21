@@ -19,6 +19,7 @@ An example game can be found using this address. Enter it into the input on the 
 ### Completed Game
 
 ```5CWnF6YqFXLaMQ1MddNQ76MfLyEK9mvL2nEECvpd3bRTGbWM```
+```5GG9r6pVFpFbd2ita4FKSN15jYgofBgG8BRKY78SHqbMRh1g```
 
 If you would like to deploy your own game here are the steps:
 

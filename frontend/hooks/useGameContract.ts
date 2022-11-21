@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useInk } from '../lib/useInk';
 import { Status } from '../lib/useInk/utils';
 import BN from 'bn.js';
 import { useGame } from '../contexts/GameContext';
+import { useBlockHeader, useExtension, useNotifications } from '../lib/useInk/hooks';
+import { useAudioSettings } from './useAudioSettings';
 
 type AccountId = string;
 
@@ -15,10 +16,27 @@ export type Dimensions = {
   y: number;
 };
 
+const pickOne = (messages: any[]): string => messages[new Date().getTime() % messages.length];
+
+const BROADCASTED_MESSAGES = [`Broadcasted!`];
+
+const ADDED_TO_BLOCK_MESSAGES = [`Added to block`];
+
+const FINALIZED_MESSAGES = [
+  `That one is finalized!`,
+  `That one is in the bag!`,
+  `They should call you Picasso.`,
+  `Nothin' fishy about that one.`,
+  `And done.`,
+  `Finito.`,
+  `Cha-ching!`,
+  'Nice job!',
+];
+
 export const useDimensions = (): Dimensions | null => {
   const game = useGameContract();
   const [dimensions, setDimensions] = useState<Dimensions | null>(null);
-  const { header } = useInk();
+  const { header } = useBlockHeader();
 
   useEffect(() => {
     game?.query?.dimensions('', {}).then((res) => {
@@ -55,8 +73,8 @@ export type GameStatus = 'Forming' | 'Running' | 'Finished';
 
 export type GameState = Forming | Running | Finished;
 
-const toRunningStatus = (gameState: any, header: number | undefined): Running => {
-  const currentBlock = header || 0;
+const toRunningStatus = (gameState: any, blockNumber: number | undefined): Running => {
+  const currentBlock = blockNumber || 0;
 
   const startBlock = parseInt(gameState?.Running.startBlock.split(',').join('')) || 0;
   const endBlock = parseInt(gameState?.Running.endBlock.split(',').join('')) || 0;
@@ -75,9 +93,9 @@ const toRunningStatus = (gameState: any, header: number | undefined): Running =>
 
 export const useGameState = (): GameState | null => {
   const game = useGameContract();
-  const { header } = useInk();
+  const { blockNumber } = useBlockHeader();
+  const currentBlock = blockNumber || 0;
   const [gameState, setGameState] = useState<GameState | null>(null);
-  const currentBlock = header?.number.toNumber() || 0;
 
   useEffect(() => {
     game?.query?.state('', {}).then((res) => {
@@ -111,7 +129,7 @@ export const useGameState = (): GameState | null => {
         setGameState(state);
       }
     });
-  }, [game?.address, header?.number.toHuman()]);
+  }, [game?.address, blockNumber]);
 
   return gameState;
 };
@@ -119,7 +137,7 @@ export const useGameState = (): GameState | null => {
 export const useBuyInAmount = (): BN | null => {
   const game = useGameContract();
   const [buyInAmount, setBuyInAmount] = useState<BN | null>(null);
-  const { header } = useInk();
+  const { blockNumber } = useBlockHeader();
 
   useEffect(() => {
     game?.query?.buyInAmount('', {}).then((res) => {
@@ -128,7 +146,7 @@ export const useBuyInAmount = (): BN | null => {
         amount && setBuyInAmount(new BN(amount.split(',').join('')));
       }
     });
-  }, [game?.address, header?.number?.toHuman()]);
+  }, [game?.address, blockNumber]);
 
   return buyInAmount;
 };
@@ -161,7 +179,7 @@ type PlayerColors = {
 export const usePlayerColors = (): PlayerColors => {
   const game = useGameContract();
   const [playerColors, setPlayerColors] = useState<PlayerColors>({});
-  const { header } = useInk();
+  const { header } = useBlockHeader();
 
   useEffect(() => {
     game?.query?.players('', {}).then((res) => {
@@ -193,7 +211,7 @@ export const usePlayerScores = (): PlayerScore[] => {
   const game = useGameContract();
   const colors = usePlayerColors();
   const [scores, setScores] = useState<PlayerScore[]>([]);
-  const { header } = useInk();
+  const { header } = useBlockHeader();
 
   useEffect(() => {
     game?.query?.playerScores('', {}).then((res) => {
@@ -235,7 +253,7 @@ export const useBoard = (): BoardPosition[] => {
   const dim = useDimensions();
   const colors = usePlayerColors();
   const [board, setBoard] = useState<BoardPosition[]>([]);
-  const { header } = useInk();
+  const { blockNumber } = useBlockHeader();
 
   useEffect(() => {
     dim &&
@@ -254,7 +272,7 @@ export const useBoard = (): BoardPosition[] => {
         }
         setBoard(data);
       });
-  }, [game?.address, dim, header?.number.toHuman()]);
+  }, [game?.address, dim, blockNumber]);
 
   return board;
 };
@@ -268,9 +286,11 @@ export type Response = {
 
 export const useSubmitTurnFunc = (): Response => {
   const game = useGameContract();
-  const { activeAccount, activeSigner } = useInk();
+  const { addNotification } = useNotifications();
+  const { activeAccount, activeSigner } = useExtension();
   const [status, setStatus] = useState<Status>('none');
   const [error, setError] = useState<string | null>(null);
+  const { finalizedEffect } = useAudioSettings();
 
   const send = useMemo(
     () => (player: AccountId) => {
@@ -281,22 +301,69 @@ export const useSubmitTurnFunc = (): Response => {
 
       game.query
         .submitTurn(activeAccount.address, { gasLimit: QUERY_GAS_LIMIT }, player)
-        .then(({ gasRequired }) => {
+        .then((response) => {
           game.tx
-            .submitTurn({ gasLimit: gasRequired }, player)
+            .submitTurn({ gasLimit: response.gasRequired }, player)
             .signAndSend(activeAccount.address, { signer: activeSigner.signer }, (result) => {
-              if (result.status.isBroadcast) setStatus('broadcasted');
-              if (result.status.isInBlock) setStatus('in-block');
-              if (result.status.isFinalized) setStatus('finalized');
+              if (result.status.isBroadcast) {
+                setStatus('broadcasted');
+
+                addNotification({
+                  notification: {
+                    type: 'broadcasted',
+                    response: undefined,
+                    message: pickOne(BROADCASTED_MESSAGES),
+                  },
+                });
+              }
+
+              if (result.status.isInBlock) {
+                setStatus('in-block');
+
+                addNotification({
+                  notification: {
+                    type: 'added-to-block',
+                    response: result,
+                    message: pickOne(ADDED_TO_BLOCK_MESSAGES),
+                  },
+                });
+              }
+
+              if (result.status.isFinalized) {
+                setStatus('finalized');
+                finalizedEffect?.play();
+
+                addNotification({
+                  notification: {
+                    type: 'finalized',
+                    response: result,
+                    message: pickOne(FINALIZED_MESSAGES),
+                  },
+                });
+              }
             })
             .catch((e) => {
               setStatus('none');
               console.error('error', JSON.stringify(e));
+
+              addNotification({
+                notification: {
+                  type: 'errored',
+                  message: Object.values(e).length ? JSON.stringify(e) : 'Boom!',
+                },
+              });
             });
         })
         .catch((e) => {
           setError(JSON.stringify(e));
           console.error('error', JSON.stringify(e));
+
+          addNotification({
+            notification: {
+              type: 'errored',
+              message: e?.message() || 'Something when wrong',
+            },
+          });
         });
     },
     [activeAccount, activeSigner, game],
@@ -315,7 +382,7 @@ export const useSubmitTurnFunc = (): Response => {
 
 export const useRegisterPlayerFunc = (): Response => {
   const game = useGameContract();
-  const { activeAccount, activeSigner } = useInk();
+  const { activeAccount, activeSigner } = useExtension();
   const [status, setStatus] = useState<Status>('none');
   const [error, setError] = useState<string | null>(null);
 

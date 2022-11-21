@@ -1,19 +1,20 @@
 import { PlayerScore } from '../../../hooks/useGameContract';
-import { GiGasPump, GiDatabase, GiCube } from 'react-icons/gi';
+import { GiGasPump, GiCube } from 'react-icons/gi';
 
 export type PlayerScoreUI = {
   player: PlayerScore;
+  rank: number;
 };
 
 type Props = PlayerScoreUI;
 
-export const ScoreItem: React.FC<Props> = ({ player }) => {
+export const ScoreItem: React.FC<Props> = ({ player, rank }) => {
   return (
     <div className="flex flex-col">
       <span className="flex items-center justify-between">
         <span className="flex items-center">
-          <span className="w-6 h-6 rounded-full border border-brand-500/30" style={{ backgroundColor: player.color }} />
-          <h6 className="text-xs font-regular ml-3">{player.name}</h6>
+          <h5 className="font-bold text-md">#{rank}</h5>
+          <h6 className="text-xs font-regular ml-2">{player.name}</h6>
         </span>
         <p className="text-xs text-end">{player.score}</p>
       </span>

@@ -16,7 +16,7 @@ export const Nav = () => {
   return (
     <header className="z-11">
       <nav className={classes}>
-        <div className="py-2 px-4 lg:px-12 md:px-8 w-full">
+        <div className="py-2 px-3 w-full">
           <div className="relative flex justify-end items-center ">
             <div className="inset-y-0 flex items-start justify-between w-full">
               <li className="mr-3">

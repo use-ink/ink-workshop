@@ -1,5 +1,5 @@
 import { Running } from '../../../hooks/useGameContract';
-import { useInk } from '../../../lib/useInk';
+import { useBlockHeader } from '../../../lib/useInk/hooks';
 
 type Props = {
   running: Running;
@@ -7,8 +7,8 @@ type Props = {
 
 export const RunningStatus: React.FC<Props> = ({ running }) => {
   const categoryClass = 'mr-1';
-  const { currentBlock } = useInk();
-  const roundsComplete = currentBlock && currentBlock > running.endBlock;
+  const { blockNumber } = useBlockHeader();
+  const roundsComplete = blockNumber && blockNumber > running.endBlock;
 
   return (
     <>

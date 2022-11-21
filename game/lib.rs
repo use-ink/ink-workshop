@@ -19,7 +19,6 @@ mod squink_splash {
 
     /// Maximum number of bytes in a players name.
     const ALLOWED_NAME_SIZES: RangeInclusive<usize> = 3..=16;
-
     #[ink(storage)]
     pub struct SquinkSplash {
         /// In which game phase is this contract.
