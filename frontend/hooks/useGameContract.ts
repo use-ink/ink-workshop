@@ -29,6 +29,8 @@ const FINALIZED_MESSAGES = [
   `Nothin' fishy about that one.`,
   `And done.`,
   `Finito.`,
+  `No going back!`,
+  `Fin.`,
   `Cha-ching!`,
   'Nice job!',
 ];
