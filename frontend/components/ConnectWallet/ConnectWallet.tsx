@@ -7,7 +7,7 @@ import { RiRefreshLine } from 'react-icons/ri';
 import { SimpleWidget } from '../SimpleWidget';
 import { useMemo } from 'react';
 import { usePlayerScores, useSubmitTurnFunc } from '../../hooks/useGameContract';
-import { hasAny, isBroadcasting, isInBlock, isPendingSignature } from '../../lib/useInk/utils';
+import { isBroadcasting, isInBlock, isPendingSignature, shouldDisable } from '../../lib/useInk/utils';
 import { useExtension } from '../../lib/useInk/hooks';
 
 type Props = {
@@ -65,8 +65,8 @@ export const ConnectWallet: React.FC<Props> = ({ className }) => {
         <div className="flex items-center justify-end gap-2 w-full relative z-10">
           <Button
             className="w-full bg-players-2 hover:bg-players-2/80 border-2 border-brand-300 drop-shadow-md disabled:bg-players-2/60 disabled:text-gray-300"
-            disabled={hasAny(submitTurn, 'pending', 'broadcasted', 'in-block')}
-            onClick={() => player && submitTurn.send(player)}
+            disabled={shouldDisable(submitTurn)}
+            onClick={() => player && submitTurn.send([player], {})}
           >
             {buttonTitle()}
           </Button>

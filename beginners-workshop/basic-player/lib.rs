@@ -2,10 +2,7 @@
 
 #[ink::contract]
 mod player {
-    use game::{
-        Field,
-        SquinkSplashRef,
-    };
+    use game::{Field, SquinkSplashRef};
     use ink::env::call::FromAccountId;
 
     #[ink(storage)]
@@ -51,10 +48,7 @@ mod player {
                     return turn;
                 }
             }
-            Field {
-                x: 0,
-                y: 0,
-            }
+            Field { x: 0, y: 0 }
         }
     }
 }

@@ -6,7 +6,7 @@ import { RiErrorWarningFill } from 'react-icons/ri';
 import { useUI } from '../../contexts/UIContext';
 import { useBuyInAmount, useGameState, useRegisterPlayerFunc } from '../../hooks/useGameContract';
 import { useExtension } from '../../lib/useInk/hooks';
-import { hasAny } from '../../lib/useInk/utils';
+import { shouldDisable } from '../../lib/useInk/utils';
 import { truncateHash } from '../../utils';
 import { Button } from '../Button';
 import { Modal } from '../Modal';
@@ -36,17 +36,17 @@ export const ConnectWalletModal: React.FC = () => {
   }, [showWalletConnect]);
 
   useEffect(() => {
-    if (registerFunc.status === 'finalized') {
+    if (registerFunc.status === 'Finalized') {
       setPlayer(playerAddress);
       setShowWalletConnect(false);
     }
   }, [registerFunc.status]);
 
   const registerPlayerButtonTitle = () => {
-    if ('pre-flight' === registerFunc.status) return 'Calculating gas...';
-    if ('broadcasted' === registerFunc.status) return 'Broadcasting...';
-    if ('pending' === registerFunc.status) return 'Awaiting signature...';
-    if ('in-block' === registerFunc.status) return 'In block...';
+    if ('PreFlight' === registerFunc.status) return 'Calculating gas...';
+    if ('Broadcast' === registerFunc.status) return 'Broadcasting...';
+    if ('PendingSignature' === registerFunc.status) return 'Awaiting signature...';
+    if ('InBlock' === registerFunc.status) return 'In block...';
     return 'Register!';
   };
 
@@ -121,7 +121,7 @@ export const ConnectWalletModal: React.FC = () => {
                         onChange={(e) => setPlayerName(e.target.value)}
                         className="disabled:hover:cursor-not-allowed disabled:bg-white/60 rounded-2xl bg-players-6 mt-1 flex items-center justify-center text-center min-h-12 w-full py-4 px-6 focus:outline-none focus:ring-2 focus:ring-players-9 text-brand-500"
                         placeholder="Your name..."
-                        disabled={hasAny(registerFunc, 'pending', 'broadcasted', 'in-block')}
+                        disabled={shouldDisable(registerFunc)}
                         autoFocus={false}
                         value={playerName}
                       />
@@ -134,7 +134,7 @@ export const ConnectWalletModal: React.FC = () => {
                         onChange={(e) => setPlayerAddress(e.target.value)}
                         className="disabled:hover:cursor-not-allowed disabled:bg-white/60 rounded-2xl bg-players-6 mt-1 flex items-center justify-center text-center min-h-12 w-full py-4 px-6 focus:outline-none focus:ring-2 focus:ring-players-9 text-brand-500"
                         placeholder="Contract address..."
-                        disabled={hasAny(registerFunc, 'pending', 'broadcasted', 'in-block')}
+                        disabled={shouldDisable(registerFunc)}
                         autoFocus={false}
                         value={playerAddress}
                       />
@@ -147,10 +147,10 @@ export const ConnectWalletModal: React.FC = () => {
                           playerAddress.length != 48 ||
                           !activeAccount ||
                           !hasValidPlayerName ||
-                          hasAny(registerFunc, 'pre-flight', 'pending', 'broadcasted', 'in-block')
+                          shouldDisable(registerFunc)
                         }
                         onClick={() => {
-                          registerFunc.send(playerAddress, playerName, buyInAmount);
+                          registerFunc.send([playerAddress, playerName], { value: buyInAmount ?? undefined });
                         }}
                       >
                         {registerPlayerButtonTitle()}

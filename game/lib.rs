@@ -1,6 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-pub use squink_splash::{SquinkSplash, SquinkSplashRef, Field};
+pub use squink_splash::{Field, SquinkSplash, SquinkSplashRef};
 
 #[ink::contract]
 mod squink_splash {

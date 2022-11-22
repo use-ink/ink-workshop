@@ -20,7 +20,7 @@ export const RunningStatus: React.FC<Props> = ({ running }) => {
       </h6>
 
       <h6 className="my-2">
-        <span className={categoryClass}>Round:</span>
+        <span className={categoryClass}>Block:</span>
         <span className="font-normal bg-brand-500 text-white rounded-full px-2 py-[2px]">
           {`${running.currentRound}/${running.totalRounds}`}
         </span>

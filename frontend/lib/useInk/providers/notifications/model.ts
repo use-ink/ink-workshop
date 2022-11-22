@@ -1,12 +1,12 @@
 import { Codec } from '@polkadot/types-codec/types';
-import { ExtrinsicStatus } from '../../models/extrinsics/model';
 import type { ISubmittableResult } from '@polkadot/types/types';
+import { NotificationType } from '../../types';
 
 // @public
 export type NotificationPayload = {
   createdAt: number;
-  type: ExtrinsicStatus | 'wallet-connected';
-  response?: Codec | ISubmittableResult;
+  type: NotificationType;
+  result?: Codec | ISubmittableResult;
   message: string;
 };
 

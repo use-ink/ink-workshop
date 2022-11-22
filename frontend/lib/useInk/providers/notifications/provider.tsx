@@ -5,6 +5,7 @@ import { useIsMounted } from '../../hooks/useIsMounted';
 import { nanoid } from 'nanoid';
 import { notificationReducer } from './reducer';
 import { useExtension } from '../../hooks/useExtension';
+import { useConfig } from '../../hooks';
 
 interface Props {
   children: ReactNode;
@@ -14,6 +15,7 @@ interface Props {
 export const NotificationsProvider = ({ children }: Props) => {
   const [notifications, dispatch] = useReducer(notificationReducer, DEFAULT_NOTIFICATIONS);
   const isMounted = useIsMounted();
+  const config = useConfig();
   const { activeAccount } = useExtension();
 
   const addNotification = useCallback(
@@ -29,11 +31,11 @@ export const NotificationsProvider = ({ children }: Props) => {
   );
 
   useEffect(() => {
-    if (activeAccount) {
+    if (activeAccount && !config.notifications?.off) {
       addNotification({
         notification: {
-          message: activeAccount.meta.name || activeAccount.address,
-          type: 'wallet-connected',
+          message: `${activeAccount.meta.name || activeAccount.address} Connected`,
+          type: 'WalletConnected',
         },
       });
     }

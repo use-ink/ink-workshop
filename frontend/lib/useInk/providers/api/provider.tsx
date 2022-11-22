@@ -1,14 +1,14 @@
 import { APIContext } from './context';
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import { ReactNode, useEffect, useMemo, useState } from 'react';
-import { DEFAULT_RPC_URL } from '../../constants';
+import { useConfig } from '../../hooks';
 
 interface Props {
   children: ReactNode;
 }
 
 export const APIProvider: React.FC<Props> = ({ children }) => {
-  const providerUrl = DEFAULT_RPC_URL; // TODO: get from config
+  const { providerUrl } = useConfig();
   const provider = useMemo(() => new WsProvider(providerUrl), [providerUrl]);
   const [api, setApi] = useState<ApiPromise | undefined>();
 

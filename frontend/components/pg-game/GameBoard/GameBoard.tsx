@@ -1,16 +1,18 @@
 import React, { useEffect } from 'react';
-import { useDimensions, useBoard, usePlayerScores, useGameState } from '../../../hooks/useGameContract';
+import { useDimensions, useBoard, useGameState } from '../../../hooks/useGameContract';
 import { Board } from '../../Board';
 import { ConnectWallet } from '../../ConnectWallet';
 import { useAudioSettings } from '../../../hooks/useAudioSettings';
 import { Settings } from './Settings';
+import { PlayerTurnSoundEffect } from '../../Board/PlayerTurnSoundEffect';
+import { useGame } from '../../../contexts/GameContext';
 
 export const GameBoard: React.FC = () => {
   const dim = useDimensions();
   const board = useBoard();
-  const scores = usePlayerScores();
   const { status } = useGameState() || {};
   const { trackPlayer, playTrack } = useAudioSettings();
+  const { playerTurnEvents } = useGame();
 
   useEffect(() => {
     if (playTrack && trackPlayer) {
@@ -40,14 +42,11 @@ export const GameBoard: React.FC = () => {
       </div>
 
       <div className="hidden lg:block">
-        <Board
-          boardWidth="80%"
-          board={board}
-          dimensions={dim}
-          scores={scores}
-          className="w-full h-full"
-          status={status}
-        />
+        {playerTurnEvents.map((turn) => (
+          <PlayerTurnSoundEffect key={turn.id} turn={turn} />
+        ))}
+
+        <Board boardWidth="80%" board={board} dimensions={dim} className="w-full h-full" status={status} />
 
         <div className="fixed right-3 bottom-3 max-w-sm z-10">
           <ConnectWallet />
