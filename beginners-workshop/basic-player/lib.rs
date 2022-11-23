@@ -2,13 +2,16 @@
 
 #[ink::contract]
 mod player {
-    use game::SquinkSplashRef;
+    use game::{
+        Field,
+        SquinkSplashRef,
+    };
     use ink::env::call::FromAccountId;
 
     #[ink(storage)]
     pub struct Player {
         game: SquinkSplashRef,
-        dimensions: (u32, u32),
+        dimensions: Field,
         seed: u32,
     }
 
@@ -37,13 +40,16 @@ mod player {
         /// a defined selector of `0`.
         #[ink(message, selector = 0)]
         pub fn your_turn(&mut self) -> (u32, u32) {
-            let size = self.dimensions.0 * self.dimensions.1;
+            let size = self.dimensions.x * self.dimensions.y;
             for i in 0..size {
                 let idx = (i + self.seed) % size;
-                let turn = (idx % self.dimensions.0, idx / self.dimensions.0);
-                if self.game.field(turn.0, turn.1).is_none() {
+                let turn = Field {
+                    x: idx % self.dimensions.x,
+                    y: idx / self.dimensions.y,
+                };
+                if self.game.field(turn).is_none() {
                     self.seed = idx;
-                    return turn
+                    return (turn.x, turn.y)
                 }
             }
             (0, 0)

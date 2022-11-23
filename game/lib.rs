@@ -1,6 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-pub use squink_splash::{SquinkSplash, SquinkSplashRef};
+pub use squink_splash::{SquinkSplash, SquinkSplashRef, Field};
 
 #[ink::contract]
 mod squink_splash {
@@ -97,9 +97,9 @@ mod squink_splash {
     )]
     pub struct Field {
         /// The width component.
-        x: u32,
+        pub x: u32,
         /// The height component.
-        y: u32,
+        pub y: u32,
     }
 
     /// The different effects resulting from a player making a turn.
