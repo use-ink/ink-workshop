@@ -19,7 +19,7 @@ export const ScoreItem: React.FC<Props> = ({ player, rank }) => {
 
         <span className="flex items-center">
           <p className="text-xs text-end">{player.score}</p>
-          <img src="/star-fish.svg" className="w-6 ml-1" />
+          <img src="/star-fish.svg" className="w-4 ml-1" />
         </span>
       </span>
 

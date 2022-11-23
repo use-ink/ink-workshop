@@ -16,11 +16,28 @@ export type Dimensions = {
   y: number;
 };
 
-const pickOne = (messages: any[]): string => messages[new Date().getTime() % messages.length];
+function pickOne<T>(messages: T[]): T {
+  return messages[new Date().getTime() % messages.length];
+}
 
 const BROADCASTED_MESSAGES = [`Broadcasted!`];
 
 const ADDED_TO_BLOCK_MESSAGES = [`Added to block`];
+
+type Joke = {
+  question: string;
+  answer: string;
+};
+const JOKES: Joke[] = [
+  {
+    question: 'How do you make a squid laugh?',
+    answer: 'You tickle 10 legs. We only have 8, so the first 2 are test tickles.',
+  },
+  {
+    question: 'Why did the lobster refuse to give DOT to charity?',
+    answer: `Because he's shelfish.`,
+  },
+];
 
 const FINALIZED_MESSAGES = [
   `That one is finalized!`,
@@ -342,6 +359,31 @@ export const useSubmitTurnFunc = (): Response => {
                     message: pickOne(FINALIZED_MESSAGES),
                   },
                 });
+
+                const shouldTellJoke = new Date().getTime() % 5 === 0;
+                if (shouldTellJoke) {
+                  const joke = pickOne(JOKES);
+
+                  setTimeout(() => {
+                    addNotification({
+                      notification: {
+                        type: 'finalized',
+                        response: result,
+                        message: joke.question,
+                      },
+                    });
+
+                    setTimeout(() => {
+                      addNotification({
+                        notification: {
+                          type: 'finalized',
+                          response: result,
+                          message: joke.answer,
+                        },
+                      });
+                    }, 5000);
+                  }, 5500);
+                }
               }
             })
             .catch((e) => {
