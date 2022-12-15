@@ -39,20 +39,22 @@ mod player {
         /// The function can be named as you like, but it always needs to have
         /// a defined selector of `0`.
         #[ink(message, selector = 0)]
-        pub fn your_turn(&mut self) -> (u32, u32) {
+        pub fn your_turn(&mut self) -> Field {
             let size = self.dimensions.x * self.dimensions.y;
             for i in 0..size {
                 let idx = (i + self.seed) % size;
                 let turn = Field {
                     x: idx % self.dimensions.x,
-                    y: idx / self.dimensions.y,
+                    y: idx / self.dimensions.x,
                 };
                 if self.game.field(turn).is_none() {
-                    self.seed = idx;
-                    return (turn.x, turn.y)
+                    return turn;
                 }
             }
-            (0, 0)
+            Field {
+                x: 0,
+                y: 0,
+            }
         }
     }
 }

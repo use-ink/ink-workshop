@@ -496,7 +496,7 @@ mod squink_splash {
         }
 
         fn idx(&self, coord: &Field) -> u32 {
-            coord.x + coord.y * self.dimensions.y
+            coord.x + coord.y * self.dimensions.x
         }
 
         fn is_valid_coord(&self, coord: &Field) -> bool {
