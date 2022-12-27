@@ -16,7 +16,11 @@ export const ScoreItem: React.FC<Props> = ({ player, rank }) => {
           <h5 className="font-bold text-md">#{rank}</h5>
           <h6 className="text-xs font-regular ml-2">{player.name}</h6>
         </span>
-        <p className="text-xs text-end">{player.score}</p>
+
+        <span className="flex items-center">
+          <p className="text-xs text-end">{player.score}</p>
+          <img src="/star-fish.svg" className="w-4 ml-1" />
+        </span>
       </span>
 
       <span className="flex lg:flex-row flex-col lg:items-center items-end justify-end text-end gap-3 text-brand-500/40">

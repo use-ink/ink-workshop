@@ -15,13 +15,6 @@ type Props = {
   players: { [id: string]: string };
 };
 
-const NAME_MAP = {
-  Success: 'Score!',
-  Occupied: 'Collision!',
-  OutOfBounds: 'OutOfBounds!',
-  BrokenPlayer: 'Broken Player!',
-};
-
 const IMAGE_MAP = {
   Success: '/star-fish.svg',
   Occupied: '/spider-crab.svg',
@@ -35,10 +28,10 @@ export const Pixel: React.FC<Props> = ({ isSmallBoard, owner, color, x, y, event
   const [skipPlayOnLoad] = useState(Boolean(owner));
   const [pulse, setPulse] = useState(owner ? 1 : 0);
   const props = useSpring({ x: pulse, config: config.default });
-  const gameEvents = events || [];
+  const gameEvents: TurnEvent[] = events || [];
 
   useEffect(() => {
-    if (gameEvents.find((e) => e.name === 'Occupied')) {
+    if (gameEvents.find(({ name }) => name === 'Occupied')) {
       failureEffect?.play();
     }
   }, [gameEvents]);
@@ -75,7 +68,7 @@ export const Pixel: React.FC<Props> = ({ isSmallBoard, owner, color, x, y, event
       ))}
       {isSmallBoard && showCoordinates && (
         <p className="text-xs text-black/20" style={{ color: color ? color : '' }}>
-          ({x},{y})
+          {x}, {y}
         </p>
       )}
     </animated.span>

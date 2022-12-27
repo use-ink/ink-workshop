@@ -1,30 +1,19 @@
-export type ExtrinsicStatus =
-  | 'none'
-  | 'signature-requested'
-  | 'pre-flight-started'
-  | 'pre-flight-completed'
-  | 'broadcasted'
-  | 'added-to-block'
-  | 'finalized'
-  | 'errored';
+import { Status } from '../../types';
 
 export type Response = {
-  status: ExtrinsicStatus;
+  status: Status;
 };
 
-export const isNone = (func: { status: ExtrinsicStatus }): boolean => func.status === 'none';
+export const isNone = (func: { status: Status }): boolean => func.status === 'None';
 
-export const isPreFlight = (func: { status: ExtrinsicStatus }): boolean => func.status === 'pre-flight-started';
+export const isPreFlight = (func: { status: Status }): boolean => func.status === 'PreFlight';
 
-export const isPendingSignature = (func: { status: ExtrinsicStatus }): boolean => func.status === 'signature-requested';
+export const isPendingSignature = (func: { status: Status }): boolean => func.status === 'PendingSignature';
 
-export const isBroadcasting = (func: { status: ExtrinsicStatus }): boolean => func.status === 'broadcasted';
+export const isBroadcasting = (func: { status: Status }): boolean => func.status === 'Broadcast';
 
-export const isInBlock = (func: { status: ExtrinsicStatus }): boolean => func.status === 'added-to-block';
+export const isInBlock = (func: { status: Status }): boolean => func.status === 'InBlock';
 
-export const hasAny = (func: { status: ExtrinsicStatus }, ...statuses: ExtrinsicStatus[]): boolean =>
-  statuses.includes(func.status);
+export const hasAny = (func: { status: Status }, ...statuses: Status[]): boolean => statuses.includes(func.status);
 
-export const isFinalized = (func: { status: ExtrinsicStatus }): boolean => func.status === 'finalized';
-
-export const errored = (func: { status: ExtrinsicStatus }): boolean => func.status === 'errored';
+export const isFinalized = (func: { status: Status }): boolean => func.status === 'Finalized';

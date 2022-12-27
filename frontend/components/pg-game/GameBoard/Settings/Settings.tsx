@@ -6,7 +6,16 @@ import { ToggleSwitchLabel } from '../../../ToggleSwitchLabel';
 import { TrackSelect } from './TrackSelect';
 
 export const Settings: React.FC = () => {
-  const { showSettings, setShowSettings, showGrid, setShowGrid, showCoordinates, setShowCoordinates } = useUI();
+  const {
+    darkMode,
+    setDarkMode,
+    showSettings,
+    setShowSettings,
+    showGrid,
+    setShowGrid,
+    showCoordinates,
+    setShowCoordinates,
+  } = useUI();
   const { setPlayTrack, playTrack } = useAudioSettings();
 
   return (
@@ -28,6 +37,12 @@ export const Settings: React.FC = () => {
 
           <div className="w-full mt-8">
             <h3 className="text-lg text-white">Visual Settings</h3>
+            <ToggleSwitchLabel
+              className="mt-3"
+              handleClick={() => setDarkMode(!darkMode)}
+              isOn={darkMode}
+              label="Dark Mode"
+            />
             <ToggleSwitchLabel
               className="mt-3"
               handleClick={() => setShowGrid(!showGrid)}

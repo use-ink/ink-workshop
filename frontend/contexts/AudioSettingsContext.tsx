@@ -15,13 +15,25 @@ const TRACKS: { [k: string]: GameTrack } = {
     name: `Squink's Tune`,
     url: '/audio/squinks-tune.mp3',
   },
+  THE_SUBMARINE: {
+    name: `The Submarine`,
+    url: '/audio/the-submarine.mp3',
+  },
   SECRET_AGENT: {
-    name: 'Secret Agent',
+    name: 'Double O Squink',
     url: '/audio/secret-agent.mp3',
+  },
+  MIGRATION_OF_THE_JELLYFISH: {
+    name: `Migration of the Jellyfish`,
+    url: '/audio/migration-of-the-jellyfish.mp3',
   },
   SQUINKS_ADVENTURE: {
     name: `Squink's Adventure`,
     url: '/audio/squinks-adventure.mp3',
+  },
+  MYSTERIES_OF_THE_DEEP: {
+    name: `Mysteries of the Deep`,
+    url: '/audio/mysteries-of-the-deep.mp3',
   },
   ANGRY_CRAB: {
     name: `The Angry Crab`,
@@ -41,6 +53,9 @@ export const EFFECTS = {
   COIN: {
     url: '/audio/coin.mp3',
   },
+  SEND: {
+    url: '/audio/whip.mp3',
+  },
 };
 
 type AudioSettings = {
@@ -50,6 +65,7 @@ type AudioSettings = {
   successEffect: Howl | undefined;
   finalizedEffect: Howl | undefined;
   failureEffect: Howl | undefined;
+  sendEffect: Howl | undefined;
   playTrack: boolean;
   setPlayTrack: (_: boolean) => void;
 };
@@ -61,6 +77,7 @@ const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
   successEffect: undefined,
   finalizedEffect: undefined,
   failureEffect: undefined,
+  sendEffect: undefined,
   playTrack: false,
   setPlayTrack: (_: boolean) => null,
 };
@@ -72,6 +89,7 @@ export const AudioSettingsProvider: React.FC<{ children: ReactNode }> = ({ child
   const [successEffect, setEffect] = useState<Howl | undefined>(undefined);
   const [failureEffect, setFailureEffect] = useState<Howl | undefined>(undefined);
   const [finalizedEffect, setFinalizedEffect] = useState<Howl | undefined>(undefined);
+  const [sendEffect, setSendEffect] = useState<Howl | undefined>(undefined);
   const [playTrack, setPlayTrack] = useState(false);
   const [trackPlayer, setTrackPlayer] = useState<Howl | undefined>(undefined);
 
@@ -105,6 +123,13 @@ export const AudioSettingsProvider: React.FC<{ children: ReactNode }> = ({ child
       volume: 0.3,
       html5: true,
     }).on('load', () => setFailureEffect(failureSoundPlayer));
+
+    const sendSoundPlayer: Howl = new Howl({
+      src: EFFECTS.SEND.url,
+      loop: false,
+      volume: 0.4,
+      html5: true,
+    }).on('load', () => setSendEffect(sendSoundPlayer));
   }, []);
 
   const value: AudioSettings = {
@@ -114,6 +139,7 @@ export const AudioSettingsProvider: React.FC<{ children: ReactNode }> = ({ child
     successEffect,
     finalizedEffect,
     failureEffect,
+    sendEffect,
     trackPlayer,
     setPlayTrack,
   };

@@ -19,6 +19,13 @@ const BG_COLORS = {
   info: 'bg-players-4',
 };
 
+const BORDER_COLORS = {
+  success: 'border-b-players-3 border-l-players-3',
+  error: ' border-b-players-2 border-l-players-2',
+  warning: 'border-b-players-8 border-l-players-8',
+  info: 'border-b-players-4 border-l-players-4',
+};
+
 export const Snackbar: React.FC<Props> = ({ show, message, type, Icon }) => {
   return (
     <Transition
@@ -31,9 +38,17 @@ export const Snackbar: React.FC<Props> = ({ show, message, type, Icon }) => {
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
     >
-      <div className={classNames('rounded-lg px-4 py-2 mt-1 drop-shadow-md float-right', BG_COLORS[type])}>
-        {Icon && <Icon />}
-        <span className={classNames('text-sm font-medium text-white text-right', Icon && 'ml-2')}>{message}</span>
+      <div className="flex items-end justify-end mt-1 drop-shadow-md">
+        <div className={classNames('rounded-lg rounded-br-none px-4 py-2', BG_COLORS[type])}>
+          {Icon && <Icon />}
+          <span className={classNames('text-sm font-medium text-white text-right', Icon && 'ml-2')}>{message}</span>
+        </div>
+        <div
+          className={classNames(
+            'border-t-[8px] border-r-[8px] border-r-transparent border-b-[8px] border-t-transparent border-l-[8px]',
+            BORDER_COLORS[type],
+          )}
+        />
       </div>
     </Transition>
   );

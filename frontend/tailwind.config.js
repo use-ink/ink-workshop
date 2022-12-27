@@ -17,10 +17,12 @@ module.exports = {
           10: '#bba4c2',
         },
         brand: {
+          100: '#e1dcfb',
           200: '#7388ff',
           300: '#3b53fe',
           500: '#151ec3',
           600: '#1119a5',
+          800: '#19144f',
         },
         squink: {
           500: '#8747cc',
@@ -34,9 +36,6 @@ module.exports = {
         Headings: ['Fredoka One', 'cursive'],
         fred: ['Fredoka One', 'cursive'],
         mont: ['Montserrat', 'sans-serif'],
-      },
-      backgroundImage: {
-        sea: "url('/sea-bg.svg')",
       },
     },
   },

@@ -15,8 +15,8 @@ export const ExtensionProvider: React.FC<Props> = ({ children }) => {
   const [activeSigner, setActiveSigner] = useState<InjectedExtension | null>(null);
 
   useEffect(() => {
-    activeAccount && web3FromAddress(activeAccount?.address || '').then((v) => setActiveSigner(v));
-  }, [activeAccount]);
+    web3FromAddress(activeAccount?.address || '').then((v) => setActiveSigner(v));
+  }, [activeAccount?.address]);
 
   const fetchAccounts = async () => {
     try {
@@ -25,7 +25,7 @@ export const ExtensionProvider: React.FC<Props> = ({ children }) => {
       await web3Accounts().then((list) => {
         setAccounts(list);
         const first = list.length && list[0];
-        first && setActiveAccount(first);
+        first && !activeAccount && setActiveAccount(first);
       });
     } catch (err) {
       console.error('Extension setup failed', err);

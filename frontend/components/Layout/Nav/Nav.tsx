@@ -22,7 +22,7 @@ export const Nav = () => {
               <li className="mr-3">
                 <img
                   role="button"
-                  src="/fish-2.svg"
+                  src="/star-fish.svg"
                   alt="fish"
                   className="w-16 hover:cursor-pointer hover:opacity-80 transition-opacity duration-100 drop-shadow-md"
                   onClick={() => router.push('/')}
