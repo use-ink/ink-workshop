@@ -18,16 +18,17 @@ import {
   Running,
 } from './types';
 import { ContractTxFunc } from '../../lib/useInk/types';
-import { BROADCASTED_MESSAGES, PLAYER_COLORS } from './data';
+import { PLAYER_COLORS } from './data';
 import { isBroadcasting, isFinalized, stringNumberToBN } from '../../lib/useInk/utils';
 import { useUI } from '../../contexts/UIContext';
 import { useAudioSettings } from '../useAudioSettings';
-
-export const useGameContract = () => useGame().game;
+import { useTranslation } from 'react-i18next';
 
 function pickOne<T>(messages: T[]): T {
   return messages[new Date().getTime() % messages.length];
 }
+
+export const useGameContract = () => useGame().game;
 
 export const useDimensions = (): Dimensions | null => {
   const game = useGameContract();
@@ -203,6 +204,7 @@ export const useBoard = (): BoardPosition[] => {
 
 export const useSubmitTurnFunc = (): ContractTxFunc => {
   const game = useGameContract();
+  const { t } = useTranslation('common');
   const { addNotification } = useNotifications();
   const { sendEffect } = useAudioSettings();
   const submitTurnFunc = useContractTx(game, 'submitTurn', { notificationsOff: true });
@@ -215,7 +217,7 @@ export const useSubmitTurnFunc = (): ContractTxFunc => {
         notification: {
           type: 'Broadcast',
           result: submitTurnFunc.result,
-          message: pickOne(BROADCASTED_MESSAGES),
+          message: t('broadcast'),
         },
       });
       return;
@@ -237,5 +239,14 @@ export const useSubmitTurnFunc = (): ContractTxFunc => {
 
 export const useRegisterPlayerFunc = () => {
   const game = useGameContract();
-  return useContractTx(game, 'registerPlayer');
+  const { t } = useTranslation('common');
+
+  return useContractTx(game, 'registerPlayer', {
+    notifications: {
+      finalizedMessage: () => t('blockFinalized'),
+      inBlockMessage: () => t('inBlock'),
+      broadcastMessage: () => t('broadcast'),
+      unknownErrorMessage: () => t('somethingWentWrong'),
+    },
+  });
 };

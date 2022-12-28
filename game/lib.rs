@@ -1,38 +1,17 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-pub use squink_splash::{
-    Field,
-    SquinkSplash,
-    SquinkSplashRef,
-};
+pub use squink_splash::{Field, SquinkSplash, SquinkSplashRef};
 
 #[ink::contract]
 mod squink_splash {
-    use core::ops::{
-        Mul,
-        RangeInclusive,
-    };
+    use core::ops::{Mul, RangeInclusive};
     use ink::{
         env::{
-            call::{
-                build_call,
-                Call,
-                ExecutionInput,
-                Selector,
-            },
-            debug_println,
-            CallFlags,
-            DefaultEnvironment,
+            call::{build_call, Call, ExecutionInput, Selector},
+            debug_println, CallFlags, DefaultEnvironment,
         },
-        prelude::{
-            collections::BTreeMap,
-            string::String,
-            vec::Vec,
-        },
-        storage::{
-            Lazy,
-            Mapping,
-        },
+        prelude::{collections::BTreeMap, string::String, vec::Vec},
+        storage::{Lazy, Mapping},
         LangError,
     };
 

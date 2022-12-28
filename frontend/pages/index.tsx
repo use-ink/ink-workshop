@@ -1,44 +1,58 @@
-import type { NextPage } from 'next';
+import type { GetStaticProps, NextPage } from 'next';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { Layout } from '../components/Layout';
 import { useUI } from '../contexts/UIContext';
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+
+export const getStaticProps: GetStaticProps = async ({ locale }) => {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale || 'en', ['common'])),
+    },
+  };
+};
 
 const Home: NextPage = () => {
   const router = useRouter();
   const [address, setAddress] = useState('');
   const { setShowRules } = useUI();
+  const { t } = useTranslation('common');
 
   return (
     <Layout>
       <Head>
-        <title>Squink Splash! - A coding game using ink!</title>
-        <meta name="description" content="Compete to win each pixel on the board by writing smart contracts in ink!" />
+        <title>{t('pageTitle') || 'ink! Splash'}</title>
+        <meta
+          name="description"
+          content={t('pageDescription') || 'Compete to win each pixel on the board by writing smart contracts in ink!'}
+        />
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <section className="h-screen w-full flex items-center justify-center p-6">
         <div className="bg-players-4 rounded-2xl px-8 pt-12 pb-10 text-center max-w-2xl w-full drop-shadow-xl">
-          <h6 className="text-xl font-semibold">Welcome to Squink Splash!</h6>
-          <p className="text-sm mt-3">Enter a game contract address to get started.</p>
+          <h6 className="text-xl font-semibold">{t('title')}</h6>
+          <p className="text-sm mt-3">{t('description')}</p>
           <input
             onChange={(e) => setAddress(e.target.value)}
             className="rounded-2xl bg-players-6 mt-12 flex items-center justify-center text-center min-h-12 w-full py-4 px-6 focus:outline-none focus:ring-4 focus:ring-players-9"
-            placeholder="Game address..."
+            placeholder={t('gameAddressInput') || ''}
             value={address}
           />
           <button
             className="font-fred w-full mt-6 rounded-2xl py-4 px-6 bg-players-8 hover:bg-players-8/80 drop-shadow-md transition duration-200 focus:outline-none focus:ring-4 focus:ring-players-9"
             onClick={() => address && router.push(`/game/${address}`)}
           >
-            Play a game!
+            {t('gameDescButton')}
           </button>
 
           <button
             className="text-white font-fred w-full mt-3 rounded-2xl py-4 px-6 bg-brand-500 hover:bg-brand-500/80 drop-shadow-md transition duration-200 focus:outline-none focus:ring-4 focus:ring-players-9"
             onClick={() => setShowRules(true)}
           >
-            Learn how to play
+            {t('learnDescButton')}
           </button>
         </div>
       </section>
