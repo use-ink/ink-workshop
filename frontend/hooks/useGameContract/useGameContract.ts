@@ -93,7 +93,7 @@ export const useGameState = (): GameState | null => {
           winner: result.value.result?.[phase].winner,
         });
     }
-  }, [phase]);
+  }, [phase, currentBlock]);
 
   return gameState;
 };
