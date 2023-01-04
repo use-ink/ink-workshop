@@ -1,17 +1,39 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-pub use squink_splash::{Field, SquinkSplash, SquinkSplashRef};
+pub use squink_splash::{
+    Field,
+    SquinkSplash,
+    SquinkSplashRef,
+};
 
 #[ink::contract]
 mod squink_splash {
-    use core::ops::{Mul, RangeInclusive};
+    use core::ops::{
+        Mul,
+        RangeInclusive,
+    };
     use ink::{
         env::{
-            call::{build_call, Call, ExecutionInput, Selector},
-            CallFlags, DefaultEnvironment,
+            call::{
+                build_call,
+                Call,
+                ExecutionInput,
+                Selector,
+            },
+            debug_println,
+            CallFlags,
+            DefaultEnvironment,
         },
-        prelude::{collections::BTreeMap, string::String, vec::Vec},
-        storage::{Lazy, Mapping},
+        prelude::{
+            collections::BTreeMap,
+            string::String,
+            vec::Vec,
+        },
+        storage::{
+            Lazy,
+            Mapping,
+        },
+        LangError,
     };
 
     /// The amount of players that are allowed to register for a single game.
@@ -90,10 +112,10 @@ mod squink_splash {
     }
 
     /// Describing either a single point in the field or its dimensions.
-    #[derive(scale::Decode, scale::Encode, Clone, Copy)]
+    #[derive(scale::Decode, scale::Encode, Clone, Copy, Debug)]
     #[cfg_attr(
         feature = "std",
-        derive(Debug, scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
     )]
     pub struct Field {
         /// The width component.
@@ -359,7 +381,7 @@ mod squink_splash {
                 .call_type(Call::new().callee(player.id))
                 .exec_input(ExecutionInput::new(Selector::from([0x00; 4])))
                 .call_flags(CallFlags::default().set_allow_reentry(true))
-                .returns::<Field>();
+                .returns::<Result<Field, LangError>>();
 
             let gas_before = self.env().gas_left();
             let turn = call.fire();
@@ -367,8 +389,8 @@ mod squink_splash {
 
             // We don't bubble up the error cause we still want to record the gas usage
             // and disallow another try. This should be enough punishment for a defunct contract.
-            let outcome = match turn.as_ref() {
-                Ok(&turn) => {
+            let outcome = match turn {
+                Ok(Ok(turn)) => {
                     if !self.is_valid_coord(&turn) {
                         TurnOutcome::OutOfBounds { turn }
                     } else {
@@ -380,8 +402,8 @@ mod squink_splash {
                         }
                     }
                 }
-                Err(err) => {
-                    ink::env::debug_println!("Contract failed to make a turn: {:?}", err);
+                err => {
+                    debug_println!("Contract failed to make a turn: {:?}", err);
                     TurnOutcome::BrokenPlayer
                 }
             };
