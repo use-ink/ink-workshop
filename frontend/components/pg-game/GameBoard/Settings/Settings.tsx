@@ -15,6 +15,8 @@ export const Settings: React.FC = () => {
     setShowGrid,
     showCoordinates,
     setShowCoordinates,
+    showLogs,
+    setShowLogs,
   } = useUI();
   const { setPlayTrack, playTrack } = useAudioSettings();
 
@@ -54,6 +56,12 @@ export const Settings: React.FC = () => {
               handleClick={() => setShowCoordinates(!showCoordinates)}
               isOn={showCoordinates}
               label="Show pixel coordinates"
+            />
+            <ToggleSwitchLabel
+              className="mt-3"
+              handleClick={() => setShowLogs(!showLogs)}
+              isOn={showLogs}
+              label="Show game logs"
             />
           </div>
         </div>

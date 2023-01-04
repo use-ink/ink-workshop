@@ -6,6 +6,7 @@ import { ExtensionProvider } from './providers/extension/provider';
 import { APIProvider } from './providers/api/provider';
 import { BlockHeaderProvider } from './providers/blockHeader/provider';
 import { ContractEventsProvider } from './providers/contractEvents/provider';
+import { LogsProvider } from './providers/logs/provider';
 
 type InkConfig = {
   config?: Config;
@@ -15,15 +16,17 @@ type InkConfig = {
 const InkProvider: React.FC<InkConfig> = ({ children, config }) => {
   return (
     <ConfigProvider config={config}>
-      <ExtensionProvider>
-        <APIProvider>
-          <BlockHeaderProvider>
-            <ContractEventsProvider>
-              <NotificationsProvider>{children}</NotificationsProvider>
-            </ContractEventsProvider>
-          </BlockHeaderProvider>
-        </APIProvider>
-      </ExtensionProvider>
+      <LogsProvider>
+        <ExtensionProvider>
+          <APIProvider>
+            <BlockHeaderProvider>
+              <ContractEventsProvider>
+                <NotificationsProvider>{children}</NotificationsProvider>
+              </ContractEventsProvider>
+            </BlockHeaderProvider>
+          </APIProvider>
+        </ExtensionProvider>
+      </LogsProvider>
     </ConfigProvider>
   );
 };

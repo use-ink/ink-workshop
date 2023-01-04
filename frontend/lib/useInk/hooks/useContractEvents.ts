@@ -4,14 +4,16 @@ import { useContext, useEffect } from 'react';
 import { HALF_A_SECOND } from '../constants';
 import { ContractEventsContext } from '../providers/contractEvents/context';
 import { ContractEvent } from '../providers/contractEvents/model';
+import { LogsContext } from '../providers/logs/context';
 import { getExpiredItem } from '../utils/getExpiredItem';
 import { useApi } from './useApi';
 import { useBlockHeader } from './useBlockHeader';
 import { useConfig } from './useConfig';
 import { useInterval } from './useInterval';
 
-export const useContractEvents = (address: string, abi: Abi): ContractEvent[] => {
+export const useContractEvents = (address: string, abi: Abi, withLogs?: boolean): ContractEvent[] => {
   const { events, addContractEvent, removeContractEvent } = useContext(ContractEventsContext);
+  const { addLog } = useContext(LogsContext);
   const { api } = useApi();
   const { blockNumber, header } = useBlockHeader();
   const config = useConfig();
@@ -32,13 +34,16 @@ export const useContractEvents = (address: string, abi: Abi): ContractEvent[] =>
                 try {
                   const decodedEvent = abi.decodeEvent(contractEvent as Bytes);
 
-                  addContractEvent({
+                  const eventItem = {
                     address,
                     event: {
                       name: decodedEvent.event.identifier,
                       args: decodedEvent.args.map((v) => v.toHuman()),
                     },
-                  });
+                  };
+
+                  addContractEvent(eventItem);
+                  if (withLogs) addLog(JSON.stringify(eventItem));
                 } catch (e) {
                   console.error(e);
                 }
