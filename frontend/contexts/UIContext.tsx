@@ -7,6 +7,8 @@ type UI = {
   setShowRules: (_: boolean) => void;
   showGrid: boolean;
   setShowGrid: (_: boolean) => void;
+  showLogs: boolean;
+  setShowLogs: (_: boolean) => void;
   darkMode: boolean;
   setDarkMode: (_: boolean) => void;
   showCoordinates: boolean;
@@ -24,6 +26,8 @@ const DEFAULT_UI: UI = {
   showRules: false,
   showGrid: true,
   setShowGrid: (_: boolean) => null,
+  showLogs: false,
+  setShowLogs: (_: boolean) => null,
   showCoordinates: true,
   setDarkMode: (_: boolean) => null,
   darkMode: false,
@@ -40,6 +44,7 @@ const useUIValues = (): UI => {
   const [showWalletConnect, setShowWalletConnect] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
+  const [showLogs, setShowLogs] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [showCoordinates, setShowCoordinates] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -58,6 +63,8 @@ const useUIValues = (): UI => {
     setShowSettings,
     showGrid,
     setShowGrid,
+    showLogs,
+    setShowLogs,
     showCoordinates,
     setShowCoordinates,
   };

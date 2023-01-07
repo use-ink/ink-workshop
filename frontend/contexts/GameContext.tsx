@@ -29,7 +29,7 @@ const DEFAULT_GAME: Game = {
 const useGameValues = (): Game => {
   const [gameAddress, setGameAddress] = useState<string | undefined>();
   const game = useContract(gameAddress || '', METADATA);
-  const events = useContractEvents(gameAddress || '', ABI);
+  const events = useContractEvents(gameAddress || '', ABI, true);
 
   const [turnData, playerTurnEvents] = useMemo(() => {
     let results: TurnData = {};

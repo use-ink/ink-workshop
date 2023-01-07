@@ -9,6 +9,10 @@ const ConnectWalletModal = dynamic(() => import('../ConnectWalletModal').then((m
   ssr: false,
 });
 
+const GameLogs = dynamic(() => import('./GameLogs').then((mod) => mod.GameLogs), {
+  ssr: false,
+});
+
 const Nav = dynamic(() => import('./Nav').then((mod) => mod.Nav), {
   ssr: false,
 });
@@ -26,6 +30,7 @@ export const Layout: React.FC<Props> = ({ children }) => {
         darkMode ? 'bg-brand-800' : 'bg-brand-100',
       )}
     >
+      <GameLogs />
       <LottieEntity
         src={darkMode ? '/dark-sea-creatures.json' : '/sea-creatures.json'}
         className="absolute left-[0] right-[0] bottom-[0]"
