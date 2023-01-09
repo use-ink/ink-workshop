@@ -6,6 +6,7 @@ import { useAudioSettings } from '../../../hooks/useAudioSettings';
 import { Settings } from './Settings';
 import { PlayerTurnSoundEffect } from '../../Board/PlayerTurnSoundEffect';
 import { useGame } from '../../../contexts/GameContext';
+import { useTranslation } from 'next-i18next';
 
 export const GameBoard: React.FC = () => {
   const dim = useDimensions();
@@ -13,6 +14,7 @@ export const GameBoard: React.FC = () => {
   const { status } = useGameState() || {};
   const { trackPlayer, playTrack } = useAudioSettings();
   const { playerTurnEvents } = useGame();
+  const { t } = useTranslation('common');
 
   useEffect(() => {
     if (playTrack && trackPlayer) {
@@ -27,10 +29,8 @@ export const GameBoard: React.FC = () => {
   if (!dim) {
     return (
       <div className="flex items-center justify-center flex-col h-full">
-        <h1 className="text-xl">Contract Not Found</h1>
-        <p className="text-md max-w-sm text-center">
-          Make sure the chain is running and the contract address is correct.
-        </p>
+        <h1 className="text-xl">{t('contractNotFound')}</h1>
+        <p className="text-md max-w-sm text-center mt-4">{t('contractCheckDesc')}</p>
       </div>
     );
   }
@@ -38,7 +38,7 @@ export const GameBoard: React.FC = () => {
   return (
     <>
       <div className="w-full h-screen lg:hidden flex items-center text-center justify-center flex-col">
-        <h1>Please use a larger screen...</h1>
+        <h1>{t('largerScreenDesc')}</h1>
       </div>
 
       <div className="hidden lg:block">

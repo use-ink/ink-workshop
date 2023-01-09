@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useGame } from '../../../contexts/GameContext';
 import { usePlayers } from '../../../hooks/useGameContract';
 import { TurnEvent } from '../../../hooks/useGameEvents';
+import { useLanguageSettings } from '../../../hooks/useLanguageSettings';
 import { useNotifications } from '../../../lib/useInk/hooks/useNotifications';
 import { Status } from '../../../lib/useInk/types';
 import { Snackbar, SnackbarType } from '../../Snackbar';
@@ -30,19 +32,30 @@ export const Notifications = () => {
   const { notifications } = useNotifications();
   const { playerTurnEvents } = useGame();
   const names = usePlayers();
+  const eventTranslation = useTranslation('events');
+  const {
+    languageTrack: { locale },
+  } = useLanguageSettings();
+  const { t } = eventTranslation;
+  const resouces =
+    useMemo(() => eventTranslation.i18n.getResourceBundle(locale, 'events'), [locale, eventTranslation]) || {};
 
   const toEventMessage = (event: TurnEvent): string => {
-    const playerName = names[event.player] ? names[event.player] : '';
+    const player = names[event.player] ? names[event.player] : '';
 
     switch (event.name) {
       case 'Success':
-        return `${playerName} scored!`;
+        const successIndex = Math.floor(Math.random() * (Object.values(resouces?.playerScored).length - 1));
+        return t(`playerScored.${successIndex}`, { player });
       case 'BrokenPlayer':
-        return `${playerName} has a broken contract!`;
+        const brokenIndex = Math.floor(Math.random() * (Object.values(resouces?.brokenPlayer).length - 1));
+        return t(`brokenPlayer.${brokenIndex}`, { player });
       case 'Occupied':
-        return `${playerName} collided with (${event.turn.x}, ${event.turn.y})!`;
+        const occupiedIndex = Math.floor(Math.random() * (Object.values(resouces?.playerCollision).length - 1));
+        return t(`playerCollision.${occupiedIndex}`, { player, x: event.turn.x, y: event.turn.y });
       case 'OutOfBounds':
-        return `${playerName} is out of bounds! (${event.turn.x}, ${event.turn.y})!`;
+        const outOfBoundsIndex = Math.floor(Math.random() * (Object.values(resouces?.playerOutOfBounds).length - 1));
+        return t(`playerOutOfBounds.${outOfBoundsIndex}`, { player, x: event.turn.x, y: event.turn.y });
       default:
         return '';
     }
@@ -50,11 +63,11 @@ export const Notifications = () => {
 
   return (
     <ul className="fixed right-[150px] bottom-24 z-10">
-      {playerTurnEvents.map((e) => (
-        <li key={e.id} className="mt-1">
+      {playerTurnEvents.map((turnEvent) => (
+        <li key={turnEvent.id} className="mt-1">
           <Snackbar
-            message={toEventMessage(e)}
-            type={e.name === 'Success' ? NOTIFICATION_TYPES.Finalized : NOTIFICATION_TYPES.Errored}
+            message={toEventMessage(turnEvent)}
+            type={turnEvent.name === 'Success' ? NOTIFICATION_TYPES.Finalized : NOTIFICATION_TYPES.Errored}
             show
           />
         </li>

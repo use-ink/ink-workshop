@@ -4,6 +4,8 @@ import { useAudioSettings } from '../../../../hooks/useAudioSettings';
 import { Modal } from '../../../Modal';
 import { ToggleSwitchLabel } from '../../../ToggleSwitchLabel';
 import { TrackSelect } from './TrackSelect';
+import { useTranslation } from 'react-i18next';
+import { LanguageSelect } from './LanguageSelect';
 
 export const Settings: React.FC = () => {
   const {
@@ -19,18 +21,23 @@ export const Settings: React.FC = () => {
     setShowLogs,
   } = useUI();
   const { setPlayTrack, playTrack } = useAudioSettings();
+  const { t } = useTranslation('common');
 
   return (
     <>
       <Modal open={showSettings} handleClose={() => setShowSettings(false)}>
         <div className="w-full px-8 py-12">
           <div className="w-full">
-            <h3 className="text-lg text-white">Game Audio</h3>
+            <h3 className="text-lg text-white my-3">{t('chooseLanguage')}</h3>
+            <LanguageSelect />
+          </div>
+          <div className="w-full mt-8">
+            <h3 className="text-lg text-white">{t('gameAudio')}</h3>
             <ToggleSwitchLabel
               className="mt-3"
               handleClick={() => setPlayTrack(!playTrack)}
               isOn={playTrack}
-              label="Play game track"
+              label={t('playGameTrack')}
             />
             <div className="mt-6">
               <TrackSelect />
@@ -38,30 +45,30 @@ export const Settings: React.FC = () => {
           </div>
 
           <div className="w-full mt-8">
-            <h3 className="text-lg text-white">Visual Settings</h3>
+            <h3 className="text-lg text-white">{t('visualSettings')}</h3>
             <ToggleSwitchLabel
               className="mt-3"
               handleClick={() => setDarkMode(!darkMode)}
               isOn={darkMode}
-              label="Dark Mode"
+              label={t('darkMode')}
             />
             <ToggleSwitchLabel
               className="mt-3"
               handleClick={() => setShowGrid(!showGrid)}
               isOn={showGrid}
-              label="Show pixel grid"
+              label={t('showPixelGrid')}
             />
             <ToggleSwitchLabel
               className="mt-3"
               handleClick={() => setShowCoordinates(!showCoordinates)}
               isOn={showCoordinates}
-              label="Show pixel coordinates"
+              label={t('showPixelCoordinates')}
             />
             <ToggleSwitchLabel
               className="mt-3"
               handleClick={() => setShowLogs(!showLogs)}
               isOn={showLogs}
-              label="Show game logs"
+              label={t('showGameLogs')}
             />
           </div>
         </div>

@@ -13,7 +13,7 @@ export const ScoreItem: React.FC<Props> = ({ player, rank }) => {
     <div className="flex flex-col">
       <span className="flex items-center justify-between">
         <span className="flex items-center">
-          <h5 className="font-bold text-md">#{rank}</h5>
+          <h5 className="font-bold text-md">{rank ? `#${rank}` : '--'}</h5>
           <h6 className="text-xs font-regular ml-2">{player.name}</h6>
         </span>
 

@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import BN from 'bn.js';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { GiSpiralShell } from 'react-icons/gi';
 import { RiErrorWarningFill } from 'react-icons/ri';
 import { useUI } from '../../contexts/UIContext';
@@ -25,6 +26,7 @@ export const ConnectWalletModal: React.FC = () => {
   const registerFunc = useRegisterPlayerFunc();
   const gameState = useGameState();
   const buyInAmount = useBuyInAmount();
+  const { t } = useTranslation('common');
 
   const playerNameByteSize = useMemo(() => new Blob([playerName]).size, [playerName]);
 
@@ -43,11 +45,11 @@ export const ConnectWalletModal: React.FC = () => {
   }, [registerFunc.status]);
 
   const registerPlayerButtonTitle = () => {
-    if ('PreFlight' === registerFunc.status) return 'Calculating gas...';
-    if ('Broadcast' === registerFunc.status) return 'Broadcasting...';
-    if ('PendingSignature' === registerFunc.status) return 'Awaiting signature...';
-    if ('InBlock' === registerFunc.status) return 'In block...';
-    return 'Register!';
+    if ('PreFlight' === registerFunc.status) return t('calculatingGas');
+    if ('Broadcast' === registerFunc.status) return t('broadcasting');
+    if ('PendingSignature' === registerFunc.status) return t('pendingSignature');
+    if ('InBlock' === registerFunc.status) return t('inBlock');
+    return t('register');
   };
 
   return (
@@ -55,14 +57,14 @@ export const ConnectWalletModal: React.FC = () => {
       <div className="bg-brand-600 text-white max-w-4xl w-full">
         <div className="p-6 px-12">
           <div>
-            <h3 className="text-center">1. Choose a wallet address</h3>
+            <h3 className="text-center">{t('chooseWalletAddress')}</h3>
             <div className="mt-3">
               {!hasAccounts && (
                 <span className="flex items-center justify-center max-w-md mx-auto gap-2 mb-6">
                   <span>
                     <RiErrorWarningFill size={28} />
                   </span>
-                  <p className="text-white/80 text-start">Please connect your wallet to this site.</p>
+                  <p className="text-white/80 text-start">{t('pleaseConnectWallet')}</p>
                 </span>
               )}
               {hasAccounts &&
@@ -94,12 +96,12 @@ export const ConnectWalletModal: React.FC = () => {
             <div className="mt-6">
               {!alreadyRegistered ? (
                 <div>
-                  <h3 className="text-center">2. Register a Player</h3>
+                  <h3 className="text-center">{t('registerPlayer')}</h3>
                   <ToggleSwitchLabel
                     className="mt-3"
                     handleClick={() => setAlreadyRegistered(!alreadyRegistered)}
                     isOn={alreadyRegistered}
-                    label="I've already registered"
+                    label={t('alreadyRegistered')}
                   />
 
                   {gameState?.status === 'Forming' ? (
@@ -107,39 +109,43 @@ export const ConnectWalletModal: React.FC = () => {
                       <span className="flex items-center justify-start gap-2 mt-1 text-white/80">
                         <GiSpiralShell size={28} />
                         <p className="font-semibold text-xs">
-                          BUY IN:{' '}
+                          {t('buyIn')}:{' '}
                           <span className="ml-1 bg-white/20 rounded-full py-[2px] px-2">
                             {buyInAmount !== null && `${buyInAmount.div(new BN(1e12)).toString()} ROC`}
                           </span>
                         </p>
                       </span>
                       <span className="flex items-center text-white/80 w-full text-left mt-3 gap-2">
-                        <p className="text-xs font-semibold ">NAME</p>
-                        <p className="text-[10px]">{`${MIN_BYTE_COUNT}-${MAX_BYTE_COUNT} characters (emojis count for 3 characters)`}</p>
+                        <p className="text-xs font-semibold ">{t('name')}</p>
+                        <p className="text-[10px]">
+                          {t('nameRequirements', { min: MIN_BYTE_COUNT, max: MAX_BYTE_COUNT })}
+                        </p>
                       </span>
                       <input
                         onChange={(e) => setPlayerName(e.target.value)}
                         className="disabled:hover:cursor-not-allowed disabled:bg-white/60 rounded-2xl bg-players-6 mt-1 flex items-center justify-center text-center min-h-12 w-full py-4 px-6 focus:outline-none focus:ring-2 focus:ring-players-9 text-brand-500"
-                        placeholder="Your name..."
+                        placeholder={t('yourName') || 'Your name...'}
                         disabled={shouldDisable(registerFunc)}
                         autoFocus={false}
                         value={playerName}
                       />
                       {playerName.length > 0 && !hasValidPlayerName && (
-                        <p className="text-xs mt-2 text-players-2">Invalid player name</p>
+                        <p className="text-xs mt-2 text-players-2">{t('invalidName')}</p>
                       )}
 
-                      <p className="text-xs font-semibold text-white/80 w-full text-left mt-3">ADDRESS</p>
+                      <p className="text-xs font-semibold text-white/80 w-full text-left mt-3 uppercase">
+                        {t('address')}
+                      </p>
                       <input
                         onChange={(e) => setPlayerAddress(e.target.value)}
                         className="disabled:hover:cursor-not-allowed disabled:bg-white/60 rounded-2xl bg-players-6 mt-1 flex items-center justify-center text-center min-h-12 w-full py-4 px-6 focus:outline-none focus:ring-2 focus:ring-players-9 text-brand-500"
-                        placeholder="Contract address..."
+                        placeholder={t('contractAddress') || 'Contract address'}
                         disabled={shouldDisable(registerFunc)}
                         autoFocus={false}
                         value={playerAddress}
                       />
                       {playerAddress.length > 0 && playerAddress.length !== 48 && (
-                        <p className="text-xs mt-2 text-players-2">Invalid address</p>
+                        <p className="text-xs mt-2 text-players-2">{t('invalidAddress')}</p>
                       )}
                       <button
                         className="font-fred w-full mt-6 rounded-2xl py-4 px-6 bg-players-2 hover:bg-players-2/80 disabled:hover:cursor-not-allowed disabled:bg-players-2/50 drop-shadow-md transition duration-200 focus:outline-none focus:ring-2 focus:ring-players-9"
@@ -157,17 +163,17 @@ export const ConnectWalletModal: React.FC = () => {
                       </button>
                     </>
                   ) : (
-                    <p className="mt-3 text-center">You must register before the game starts</p>
+                    <p className="mt-3 text-center">{t('registerBeforeGameStart')}</p>
                   )}
                 </div>
               ) : (
                 <div>
-                  <h3 className="text-center">2. Select a Player</h3>
+                  <h3 className="text-center">{t('selectPlayer')}</h3>
                   <ToggleSwitchLabel
                     className="mt-3"
                     handleClick={() => setAlreadyRegistered(!alreadyRegistered)}
                     isOn={alreadyRegistered}
-                    label="I've already registered"
+                    label={t('alreadyRegistered')}
                   />
                   <PlayerSelect className="mt-3" />
                   <button
@@ -177,7 +183,7 @@ export const ConnectWalletModal: React.FC = () => {
                       setShowWalletConnect(false);
                     }}
                   >
-                    I&apos;m ready!
+                    {t('imReady')}
                   </button>
                 </div>
               )}

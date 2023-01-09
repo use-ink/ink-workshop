@@ -4,6 +4,8 @@ import React from 'react';
 import dynamic from 'next/dynamic';
 import UIProvider from '../contexts/UIContext';
 import { AudioSettingsProvider } from '../contexts/AudioSettingsContext';
+import { LanguageSettingsProvider } from '../contexts/LanguageContext';
+import { appWithTranslation } from 'next-i18next';
 
 const InkProvider = dynamic(() => import('../lib/useInk/InkProvider'), {
   ssr: false,
@@ -19,7 +21,9 @@ function MyApp({ Component, pageProps }: AppProps) {
       <UIProvider>
         <AudioSettingsProvider>
           <GameProvider>
-            <Component {...pageProps} />
+            <LanguageSettingsProvider>
+              <Component {...pageProps} />
+            </LanguageSettingsProvider>
           </GameProvider>
         </AudioSettingsProvider>
       </UIProvider>
@@ -27,4 +31,4 @@ function MyApp({ Component, pageProps }: AppProps) {
   );
 }
 
-export default MyApp;
+export default appWithTranslation(MyApp);
