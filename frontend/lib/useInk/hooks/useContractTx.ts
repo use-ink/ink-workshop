@@ -7,7 +7,7 @@ import { useExtension } from './useExtension';
 import { useNotifications } from './useNotifications';
 
 type ContractTxOptions = {
-  notificationsOff: boolean;
+  notificationsOff?: boolean;
   notifications?: {
     broadcastMessage?: (result: ContractExecResultResult) => string;
     finalizedMessage?: (result: ContractExecResultResult) => string;
