@@ -24,10 +24,6 @@ import { useUI } from '../../contexts/UIContext';
 import { useAudioSettings } from '../useAudioSettings';
 import { useTranslation } from 'react-i18next';
 
-function pickOne<T>(messages: T[]): T {
-  return messages[new Date().getTime() % messages.length];
-}
-
 export const useGameContract = () => useGame().game;
 
 export const useDimensions = (): Dimensions | null => {
@@ -94,7 +90,7 @@ export const useGameState = (): GameState | null => {
           winner: result.value.result?.[phase].winner,
         });
     }
-  }, [phase, currentBlock]);
+  }, [result, phase, currentBlock]);
 
   return gameState;
 };
@@ -143,7 +139,7 @@ export const usePlayerScores = (): PlayerScore[] => {
             return 1;
           }
         })
-        .map((data, i) => ({
+        .map((data) => ({
           ...data[0],
           score: data[1],
           color: colors[data[0].id],
@@ -151,7 +147,7 @@ export const usePlayerScores = (): PlayerScore[] => {
     }
 
     return [];
-  }, [result]);
+  }, [colors, result]);
 };
 
 export const usePlayers = (): PlayerList => {
@@ -174,7 +170,7 @@ export const usePlayerName = (): string => {
   return useMemo(() => {
     const p = scores.find((score) => score.id === player);
     return p ? p.name : '';
-  }, [scores]);
+  }, [player, scores]);
 };
 
 export const useBoard = (): BoardPosition[] => {
@@ -199,7 +195,7 @@ export const useBoard = (): BoardPosition[] => {
       return data;
     }
     return [];
-  }, [dim, result, result?.ok, colors]);
+  }, [dim, result, colors]);
 };
 
 export const useSubmitTurnFunc = (): ContractTxFunc => {
@@ -232,7 +228,7 @@ export const useSubmitTurnFunc = (): ContractTxFunc => {
         },
       });
     }
-  }, [submitTurnFunc.status]);
+  }, [addNotification, sendEffect, submitTurnFunc, submitTurnFunc.status, t]);
 
   return submitTurnFunc;
 };

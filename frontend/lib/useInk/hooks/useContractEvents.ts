@@ -52,7 +52,7 @@ export const useContractEvents = (address: string, abi: Abi, withLogs?: boolean)
           });
         });
       });
-  }, [api, blockNumber]);
+  }, [abi, addContractEvent, addLog, address, api, blockNumber, header?.hash, withLogs]);
 
   useInterval(() => {
     const expiredEvents = getExpiredItem<ContractEvent>(eventsForAddress, config.notifications?.expiration);

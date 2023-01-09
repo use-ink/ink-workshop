@@ -29,5 +29,5 @@ export function useContractCallDecoded<T>(
         result: result.value,
       },
     };
-  }, [rawResult]);
+  }, [contract, rawResult]);
 }
