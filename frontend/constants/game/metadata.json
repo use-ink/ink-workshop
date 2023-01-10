@@ -1,11 +1,11 @@
 {
   "source": {
-    "hash": "0xbf812d5b91d913ddd7dc8d3410a69852151146fa9093c3dd65e858fd3bf2b134",
+    "hash": "0xd0daf5a8f768a6680e346bfcc0661af8fc7cda2ee01e2550b0f72f47ba8746a8",
     "language": "ink! 4.0.0-beta",
-    "compiler": "rustc 1.65.0",
+    "compiler": "rustc 1.66.0",
     "build_info": {
       "build_mode": "Debug",
-      "cargo_contract_version": "2.0.0-beta",
+      "cargo_contract_version": "2.0.0-beta.1",
       "rust_toolchain": "stable-aarch64-apple-darwin",
       "wasm_opt_settings": {
         "keep_debug_symbols": false,
@@ -61,12 +61,12 @@
             }
           },
           {
-            "label": "score_multiplier",
+            "label": "gas_per_round",
             "type": {
               "displayName": [
-                "u32"
+                "u64"
               ],
-              "type": 0
+              "type": 7
             }
           }
         ],
@@ -77,7 +77,8 @@
           "- `buy_in`: The amount of balance each player needs to submit in order to play.",
           "- `forming_rounds`: Number of blocks that needs to pass until anyone can start the game.",
           "- `rounds`: The number of blocks a game can be played for.",
-          "- `score_multiplier`: The higher the more score you get per field."
+          "- `score_multiplier`: The higher the more score you get per field.",
+          "- `gas_per_round`: The amount of gas each player can use. Unused gas is carried over to the next round."
         ],
         "label": "new",
         "payable": false,
@@ -139,7 +140,7 @@
               "displayName": [
                 "TurnOutcome"
               ],
-              "type": 25
+              "type": 26
             }
           }
         ],
@@ -421,6 +422,23 @@
         "selector": "0xf10dee95"
       },
       {
+        "args": [],
+        "docs": [
+          " Returns the gas limit configured for this game."
+        ],
+        "label": "gas_limit",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 21
+        },
+        "selector": "0x58f2a0ae"
+      },
+      {
         "args": [
           {
             "label": "coord",
@@ -443,7 +461,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 21
+          "type": 22
         },
         "selector": "0x4abe8f1b"
       },
@@ -462,7 +480,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 23
+          "type": 24
         },
         "selector": "0x276086cb"
       }
@@ -613,10 +631,10 @@
               "layout": {
                 "leaf": {
                   "key": "0x00000000",
-                  "ty": 0
+                  "ty": 7
                 }
               },
-              "name": "score_multiplier"
+              "name": "gas_limit"
             }
           ],
           "name": "SquinkSplash"
@@ -1132,7 +1150,7 @@
               {
                 "fields": [
                   {
-                    "type": 22
+                    "type": 7
                   }
                 ],
                 "index": 0,
@@ -1153,7 +1171,7 @@
         "params": [
           {
             "name": "T",
-            "type": 22
+            "type": 7
           },
           {
             "name": "E",
@@ -1167,6 +1185,48 @@
     },
     {
       "id": 22,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 23
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 12
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 23
+          },
+          {
+            "name": "E",
+            "type": 12
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 23,
       "type": {
         "def": {
           "variant": {
@@ -1199,7 +1259,7 @@
       }
     },
     {
-      "id": 23,
+      "id": 24,
       "type": {
         "def": {
           "variant": {
@@ -1207,7 +1267,7 @@
               {
                 "fields": [
                   {
-                    "type": 24
+                    "type": 25
                   }
                 ],
                 "index": 0,
@@ -1228,7 +1288,7 @@
         "params": [
           {
             "name": "T",
-            "type": 24
+            "type": 25
           },
           {
             "name": "E",
@@ -1241,17 +1301,17 @@
       }
     },
     {
-      "id": 24,
+      "id": 25,
       "type": {
         "def": {
           "sequence": {
-            "type": 22
+            "type": 23
           }
         }
       }
     },
     {
-      "id": 25,
+      "id": 26,
       "type": {
         "def": {
           "variant": {

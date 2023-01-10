@@ -1,17 +1,35 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-pub use squink_splash::{Field, SquinkSplash, SquinkSplashRef};
+pub use squink_splash::{
+    Field,
+    SquinkSplash,
+    SquinkSplashRef,
+};
 
 #[ink::contract]
 mod squink_splash {
-    use core::ops::{Mul, RangeInclusive};
+    use core::ops::RangeInclusive;
     use ink::{
         env::{
-            call::{build_call, Call, ExecutionInput, Selector},
-            debug_println, CallFlags, DefaultEnvironment,
+            call::{
+                build_call,
+                Call,
+                ExecutionInput,
+                Selector,
+            },
+            debug_println,
+            CallFlags,
+            DefaultEnvironment,
         },
-        prelude::{collections::BTreeMap, string::String, vec::Vec},
-        storage::{Lazy, Mapping},
+        prelude::{
+            collections::BTreeMap,
+            string::String,
+            vec::Vec,
+        },
+        storage::{
+            Lazy,
+            Mapping,
+        },
         LangError,
     };
 
@@ -20,6 +38,7 @@ mod squink_splash {
 
     /// Maximum number of bytes in a players name.
     const ALLOWED_NAME_SIZES: RangeInclusive<usize> = 3..=16;
+
     #[ink(storage)]
     pub struct SquinkSplash {
         /// In which game phase is this contract.
@@ -34,8 +53,8 @@ mod squink_splash {
         buy_in: Balance,
         /// The amount of blocks that this game is played for once it started.
         rounds: u32,
-        /// How much score is a field worth in multiplies of average gas used by all players.
-        score_multiplier: u32,
+        /// The overall gas each player can use over the course of the whole game.
+        gas_limit: u64,
     }
 
     /// The game can be in different states over its lifetime.
@@ -177,13 +196,14 @@ mod squink_splash {
         /// - `forming_rounds`: Number of blocks that needs to pass until anyone can start the game.
         /// - `rounds`: The number of blocks a game can be played for.
         /// - `score_multiplier`: The higher the more score you get per field.
+        /// - `gas_per_round`: The amount of gas each player can use. Unused gas is carried over to the next round.
         #[ink(constructor)]
         pub fn new(
             dimensions: Field,
             buy_in: Balance,
             forming_rounds: u32,
             rounds: u32,
-            score_multiplier: u32,
+            gas_per_round: u64,
         ) -> Self {
             let mut ret = Self {
                 state: State::Forming {
@@ -194,7 +214,7 @@ mod squink_splash {
                 players: Default::default(),
                 buy_in,
                 rounds,
-                score_multiplier,
+                gas_limit: gas_per_round * u64::from(rounds),
             };
             ret.players.set(&Vec::new());
             ret
@@ -355,9 +375,16 @@ mod squink_splash {
                 panic!("Player not registered.")
             };
 
+            // We need to panic early on `0` because zero means "use all gas".
+            let gas_left = self.gas_limit.saturating_sub(player.gas_used);
+            if gas_left == 0 {
+                panic!("No gas left to make further turns.")
+            }
+
             // We need to call with reentrancy enabled to allow those contracts to query us.
             let call = build_call::<DefaultEnvironment>()
                 .call_type(Call::new().callee(player.id))
+                .gas_limit(gas_left)
                 .exec_input(ExecutionInput::new(Selector::from([0x00; 4])))
                 .call_flags(CallFlags::default().set_allow_reentry(true))
                 .returns::<Result<Field, LangError>>();
@@ -427,6 +454,12 @@ mod squink_splash {
             self.dimensions
         }
 
+        /// Returns the gas limit configured for this game.
+        #[ink(message)]
+        pub fn gas_limit(&self) -> u64 {
+            self.gas_limit
+        }
+
         /// Returns the value (owner) of the supplied field.
         #[ink(message)]
         pub fn field(&self, coord: Field) -> Option<AccountId> {
@@ -450,28 +483,14 @@ mod squink_splash {
             let board = self.board();
             let mut scores = BTreeMap::<AccountId, u64>::new();
 
-            let avg_gas_per_player = players
-                .iter()
-                .map(|p| p.gas_used)
-                .sum::<u64>()
-                .checked_div(players.len() as u64)
-                .unwrap_or(0);
-
-            // The score depends on the average gas used by all players per round.
-            let score_per_field: u64 = avg_gas_per_player
-                .mul(u64::from(self.score_multiplier))
-                .checked_div(u64::from(self.rounds_played()))
-                .unwrap_or(0);
-
             for owner in board.into_iter().flatten() {
                 let entry = scores.entry(owner).or_default();
-                *entry = entry.saturating_add(score_per_field);
+                *entry = *entry + 1;
             }
 
             players.into_iter().map(move |p| {
-                let bonus_gas = avg_gas_per_player.saturating_sub(p.gas_used);
-                let score = scores.get(&p.id).unwrap_or(&0).saturating_add(bonus_gas);
-                (p, score)
+                let score = scores.get(&p.id).unwrap_or(&0);
+                (p, *score)
             })
         }
 
@@ -502,16 +521,6 @@ mod squink_splash {
 
         fn is_valid_coord(&self, coord: &Field) -> bool {
             self.idx(coord) < self.dimensions.x * self.dimensions.y
-        }
-
-        fn rounds_played(&self) -> u32 {
-            match self.state {
-                State::Forming { .. } => 0,
-                State::Running { start_block, .. } => {
-                    self.rounds.min(self.env().block_number() - start_block)
-                }
-                State::Finished { .. } => self.rounds,
-            }
         }
     }
 }
