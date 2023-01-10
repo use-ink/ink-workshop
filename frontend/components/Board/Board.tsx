@@ -88,10 +88,10 @@ export const Board: React.FC<Props> = ({ className, board, dimensions, boardWidt
             {scores.map((p, index) => (
               <li
                 key={p.id}
-                className="w-full rounded-xl p-2 mt-1 first:mt-0 transition duration-150"
+                className="w-full rounded-xl first:rounded-tl-sm p-2 mt-1 first:mt-0 transition duration-150"
                 style={{ backgroundColor: p.color }}
               >
-                <ScoreItem player={p} rank={index + 1} />
+                <ScoreItem player={p} rank={status && status !== 'Forming' ? index + 1 : 0} />
               </li>
             ))}
           </ul>

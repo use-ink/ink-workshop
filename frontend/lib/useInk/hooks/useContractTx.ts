@@ -1,15 +1,18 @@
 import { ContractPromise } from '@polkadot/api-contract';
 import { useMemo, useState } from 'react';
-import { ContractOptions, ContractTxFunc, ISubmittableResult, Status } from '../types';
+import { ContractExecResultResult, ContractOptions, ContractTxFunc, ISubmittableResult, Status } from '../types';
 import { callContract, toContractAbiMessage, toRegistryErrorDecoded } from '../utils';
 import { useConfig } from './useConfig';
 import { useExtension } from './useExtension';
 import { useNotifications } from './useNotifications';
 
 type ContractTxOptions = {
-  notificationsOff: boolean;
+  notificationsOff?: boolean;
   notifications?: {
-    broadcast?: boolean;
+    broadcastMessage?: (result: ContractExecResultResult) => string;
+    finalizedMessage?: (result: ContractExecResultResult) => string;
+    inBlockMessage?: (result: ContractExecResultResult) => string;
+    unknownErrorMessage?: (e?: unknown) => string;
   };
 };
 
@@ -25,6 +28,7 @@ export function useContractTx(
   const [status, setStatus] = useState<Status>('None');
   const [result, setResult] = useState<ISubmittableResult>();
   const [error, setError] = useState<string | null>(null);
+  const { broadcastMessage, inBlockMessage, finalizedMessage, unknownErrorMessage } = options?.notifications || {};
 
   const send: (args: unknown[], o?: ContractOptions) => void = useMemo(
     () => (args, options) => {
@@ -75,7 +79,7 @@ export function useContractTx(
                   addNotification({
                     notification: {
                       type: 'Broadcast',
-                      message: 'Broadcasted',
+                      message: broadcastMessage ? broadcastMessage(result) : 'Broadcast',
                     },
                   });
               }
@@ -87,7 +91,7 @@ export function useContractTx(
                   addNotification({
                     notification: {
                       type: 'InBlock',
-                      message: 'In Block',
+                      message: inBlockMessage ? inBlockMessage(result) : 'In Block',
                     },
                   });
               }
@@ -99,7 +103,7 @@ export function useContractTx(
                   addNotification({
                     notification: {
                       type: 'Finalized',
-                      message: 'Finalized',
+                      message: finalizedMessage ? finalizedMessage(result) : 'Finalized',
                     },
                   });
               }
@@ -107,7 +111,8 @@ export function useContractTx(
             .catch((e) => {
               setStatus('None');
               const err = JSON.stringify(e);
-              const message = err === '{}' ? 'Something went wrong' : err;
+              const message =
+                err === '{}' ? (unknownErrorMessage ? unknownErrorMessage(e) : 'Something went wrong') : err;
               setError(message);
               console.error('tx error', message);
 
@@ -123,7 +128,8 @@ export function useContractTx(
         .catch((e) => {
           setStatus('None');
           const err = JSON.stringify(e);
-          const message = err === '{}' ? 'Something went wrong!' : err;
+
+          const message = err === '{}' ? (unknownErrorMessage ? unknownErrorMessage(e) : 'Something went wrong') : err;
           setError(message);
 
           console.log('raw-error', e);

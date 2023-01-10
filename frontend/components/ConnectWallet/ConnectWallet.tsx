@@ -9,6 +9,7 @@ import { useMemo } from 'react';
 import { usePlayerScores, useSubmitTurnFunc } from '../../hooks/useGameContract';
 import { isBroadcasting, isInBlock, isPendingSignature, shouldDisable } from '../../lib/useInk/utils';
 import { useExtension } from '../../lib/useInk/hooks';
+import { useTranslation } from 'next-i18next';
 
 type Props = {
   className?: string;
@@ -19,6 +20,7 @@ export const ConnectWallet: React.FC<Props> = ({ className }) => {
   const scores = usePlayerScores();
   const { activeAccount } = useExtension();
   const submitTurn = useSubmitTurnFunc();
+  const { t } = useTranslation('common');
 
   const playerName = useMemo(() => {
     const p = scores.find((s) => s.id === player);
@@ -26,10 +28,10 @@ export const ConnectWallet: React.FC<Props> = ({ className }) => {
   }, [scores, player]);
 
   const buttonTitle = () => {
-    if (isPendingSignature(submitTurn)) return 'Awaiting signature...';
-    if (isBroadcasting(submitTurn)) return 'Broadcasting...';
-    if (isInBlock(submitTurn)) return 'Waiting on finalization...';
-    return 'Submit Turn';
+    if (isPendingSignature(submitTurn)) return t('pendingSignature');
+    if (isBroadcasting(submitTurn)) return t('broadcasting');
+    if (isInBlock(submitTurn)) return t('inBlock');
+    return t('submitTurn');
   };
 
   if (!activeAccount || !player) {
@@ -38,7 +40,7 @@ export const ConnectWallet: React.FC<Props> = ({ className }) => {
         className={classNames('rounded-md text-sm uppercase duration-25 transition px-6 py-4 text-center', className)}
         onClick={() => setShowWalletConnect(true)}
       >
-        Join Game
+        {t('joinGame')}
       </Button>
     );
   }
