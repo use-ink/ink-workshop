@@ -13,5 +13,5 @@ export const LogsProvider = ({ children }: Props) => {
     setLogs([log, ...logs]);
   };
 
-  return <LogsContext.Provider value={{ addLog, logs }} children={children} />;
+  return <LogsContext.Provider value={{ addLog, logs }}>{children}</LogsContext.Provider>;
 };

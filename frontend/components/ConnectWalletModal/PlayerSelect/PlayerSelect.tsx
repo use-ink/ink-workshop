@@ -4,7 +4,6 @@ import { useUI } from '../../../contexts/UIContext';
 import { RiArrowDownSFill, RiCheckFill } from 'react-icons/ri';
 import { Fragment } from 'react';
 import classNames from 'classnames';
-import { t } from 'i18next';
 import { useTranslation } from 'react-i18next';
 
 type Props = {
@@ -31,7 +30,7 @@ export const PlayerSelect: React.FC<Props> = ({ className }) => {
               <p className="mt-3 text-md text-white/70">Loading...</p>
             ) : (
               <Listbox.Options className=" mt-2 max-h-60 w-full overflow-auto rounded-md bg-white text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                {players.map((player, playerIndex) => (
+                {players.map((player) => (
                   <Listbox.Option
                     key={player.id}
                     className={({ active }) =>

@@ -23,11 +23,11 @@ export function useContractCall(
   useEffect(() => {
     abiMsgResult &&
       abiMsgResult.ok &&
-      contract &&
+      contract?.address &&
       callContract(contract, abiMsgResult.value, activeAccount?.address, args, options).then((r) => {
         setCallResult(r);
       });
-  }, [contract?.address, blockNumber, activeAccount?.address, abiMsgResult]);
+  }, [contract?.address, blockNumber, activeAccount?.address, abiMsgResult, args, options, contract]);
 
   if (!abiMsgResult || !callResult) return null;
   if (!abiMsgResult.ok) return abiMsgResult;

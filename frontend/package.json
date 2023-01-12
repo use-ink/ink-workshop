@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint . --ext ts --ext tsx --ext js"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.2",
@@ -34,6 +34,7 @@
     "@types/node": "18.7.18",
     "@types/react": "18.0.20",
     "@types/react-dom": "18.0.6",
+    "@typescript-eslint/eslint-plugin": "^5.48.1",
     "autoprefixer": "^10.4.11",
     "eslint": "8.23.1",
     "eslint-config-next": "12.3.1",

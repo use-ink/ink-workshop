@@ -15,7 +15,7 @@ export const ExtensionProvider: React.FC<Props> = ({ children }) => {
   const [activeSigner, setActiveSigner] = useState<InjectedExtension | null>(null);
 
   useEffect(() => {
-    activeAccount && web3FromAddress(activeAccount?.address || '').then((v) => setActiveSigner(v));
+    web3FromAddress(activeAccount?.address || '').then((v) => setActiveSigner(v));
   }, [activeAccount?.address]);
 
   const fetchAccounts = async () => {
