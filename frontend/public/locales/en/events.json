@@ -1,7 +1,7 @@
 {
     "playerScored": { 
         "0": "Cha-ching! ({{player}})",
-        "1": "They should call {{player}} \"Picaso\".",
+        "1": "They should call {{player}} \"Picasso\".",
         "2": "Boom shocka lacka! ({{player}})",
         "3": "Nice one! ({{player}})",
         "4": "That one is in the bag! ({{player}})",
@@ -70,7 +70,7 @@
        "4": "Hey there, Picasso.",
        "5": "Its the thought that counts...",
        "6": "Off topic, but have you seen any sharks?",
-       "7": "Crab > calimari. Am I right?",
+       "7": "Crab > calamari. Am I right?",
        "8": "Incoming!",
        "9": "FTW!",
        "10": "Hail Mary!",
