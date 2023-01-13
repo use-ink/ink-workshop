@@ -32,7 +32,7 @@ const useGameValues = (): Game => {
   const events = useContractEvents(gameAddress || '', ABI, true);
 
   const [turnData, playerTurnEvents] = useMemo(() => {
-    const results: TurnData = {};
+    let results: TurnData = {};
     const playerTurns: TurnEvent[] = [];
 
     try {
@@ -43,34 +43,36 @@ const useGameValues = (): Game => {
         const eventPlayer = event.args[0] as any as string;
 
         const base = { player: eventPlayer, id: event.id };
-        const turn = (Object.values(event.args[1] as object)[0] as { turn?: Field })?.turn || { x: '', y: '' };
+        const turn = (Object.values(event.args[1] as {})[0] as { turn?: Field })?.turn || { x: '', y: '' };
         const coordinates = `(${turn.x},${turn.y})`;
 
         if (!results[coordinates]) results[coordinates] = [];
 
-        const outcomeType = Object.keys(event.args[1] as object)[0];
-        if ('Success' === outcomeType) {
-          const successEvent: TurnEvent = { ...base, name: 'Success', turn };
-          playerTurns.push(successEvent);
-          results[coordinates].push(successEvent);
-        }
+        const outcomeType = Object.keys(event.args[1] as {})[0];
+        switch (outcomeType) {
+          case 'Success':
+            let successEvent: TurnEvent = { ...base, name: 'Success', turn };
+            playerTurns.push(successEvent);
+            results[coordinates].push(successEvent);
+            break;
 
-        if ('Occupied' === outcomeType) {
-          const occupiedEvent: TurnEvent = { ...base, name: 'Occupied', turn };
-          playerTurns.push(occupiedEvent);
-          results[coordinates].push(occupiedEvent);
-        }
+          case 'Occupied':
+            const occupiedEvent: TurnEvent = { ...base, name: 'Occupied', turn };
+            playerTurns.push(occupiedEvent);
+            results[coordinates].push(occupiedEvent);
+            break;
 
-        if ('OutOfBounds' === outcomeType) {
-          const outOfBoundesEvent: TurnEvent = { ...base, name: 'OutOfBounds', turn };
-          playerTurns.push(outOfBoundesEvent);
-          results[coordinates].push(outOfBoundesEvent);
-        }
+          case 'OutOfBounds':
+            const outOfBoundesEvent: TurnEvent = { ...base, name: 'OutOfBounds', turn };
+            playerTurns.push(outOfBoundesEvent);
+            results[coordinates].push(outOfBoundesEvent);
+            break;
 
-        if ('BrokenPlayer' === outcomeType) {
-          const brokenPlayerEvent: TurnEvent = { ...base, name: 'BrokenPlayer' };
-          playerTurns.push(brokenPlayerEvent);
-          results[coordinates].push();
+          case 'BrokenPlayer':
+            const brokenPlayerEvent: TurnEvent = { ...base, name: 'BrokenPlayer' };
+            playerTurns.push(brokenPlayerEvent);
+            results[coordinates].push();
+            break;
         }
       }
     } catch (e) {

@@ -5,8 +5,7 @@ import { EventName } from './types';
 
 export const useGameEvents = (eventName?: EventName): ContractEvent[] => {
   const { events } = useGame();
-  return useMemo(() => {
-    if (!eventName) return events;
-    return events.filter((e) => e.name === eventName);
-  }, [events, eventName]);
+  if (!eventName) return events;
+
+  return useMemo(() => events.filter((e) => e.name === eventName), [events, eventName]);
 };

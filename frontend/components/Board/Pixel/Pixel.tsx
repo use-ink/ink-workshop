@@ -1,6 +1,5 @@
-/* eslint-disable @next/next/no-img-element */
 import classNames from 'classnames';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { animated, config, useSpring } from 'react-spring';
 import { useUI } from '../../../contexts/UIContext';
 import { useAudioSettings } from '../../../hooks/useAudioSettings';
@@ -29,20 +28,20 @@ export const Pixel: React.FC<Props> = ({ isSmallBoard, owner, color, x, y, event
   const [skipPlayOnLoad] = useState(Boolean(owner));
   const [pulse, setPulse] = useState(owner ? 1 : 0);
   const props = useSpring({ x: pulse, config: config.default });
-  const gameEvents: TurnEvent[] = useMemo(() => events || [], [events]);
+  const gameEvents: TurnEvent[] = events || [];
 
   useEffect(() => {
     if (gameEvents.find(({ name }) => name === 'Occupied')) {
       failureEffect?.play();
     }
-  }, [failureEffect, gameEvents]);
+  }, [gameEvents]);
 
   useEffect(() => {
     if (owner) {
       setPulse(1);
       !skipPlayOnLoad && successEffect?.play();
     }
-  }, [owner, skipPlayOnLoad, successEffect]);
+  }, [owner]);
 
   return (
     <animated.span
@@ -62,7 +61,7 @@ export const Pixel: React.FC<Props> = ({ isSmallBoard, owner, color, x, y, event
       {gameEvents.map((e) => (
         <div key={e.id} className="w-full mx-auto h-full">
           <span className="w-full h-full fixed flex flex-col items-center justify-center">
-            <img alt="!!!" src={IMAGE_MAP[e.name]} className="w-1/3" />
+            <img src={IMAGE_MAP[e.name]} className="w-1/3" />
             <p className="text-xs">{players[e.player]}</p>
           </span>
         </div>

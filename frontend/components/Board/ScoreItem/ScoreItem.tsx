@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 import { PlayerScore } from '../../../hooks/useGameContract';
 import { GiGasPump, GiCube } from 'react-icons/gi';
 
@@ -20,7 +19,7 @@ export const ScoreItem: React.FC<Props> = ({ player, rank }) => {
 
         <span className="flex items-center">
           <p className="text-xs text-end">{player.score}</p>
-          <img alt="star fish" src="/star-fish.svg" className="w-4 ml-1" />
+          <img src="/star-fish.svg" className="w-4 ml-1" />
         </span>
       </span>
 
