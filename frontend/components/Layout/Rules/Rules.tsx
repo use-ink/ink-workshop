@@ -60,8 +60,7 @@ export const Rules = () => {
               The game will start after all of the players have joined and the game master has started the game. It will
               last for <i>N</i> number of rounds (blocks).{' '}
               <b>
-                It is your responsibility to execute the &quot;Submit turn&quot; transaction on the game contract for
-                every round.
+                It is your responsibility to execute the "Submit turn" transaction on the game contract for every round.
               </b>
             </p>
           </li>

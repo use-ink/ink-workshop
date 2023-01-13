@@ -27,7 +27,7 @@ export const TrackSelect: React.FC<Props> = ({ className }) => {
               <p className="mt-3 text-md text-white/70">Loading...</p>
             ) : (
               <Listbox.Options className=" mt-2 max-h-60 w-full overflow-auto rounded-md bg-white text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                {ALL_TRACKS.map((track) => (
+                {ALL_TRACKS.map((track, trackIndex) => (
                   <Listbox.Option
                     key={track.name}
                     className={({ active }) =>

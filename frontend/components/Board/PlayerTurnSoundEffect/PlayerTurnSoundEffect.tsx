@@ -17,7 +17,7 @@ export const PlayerTurnSoundEffect: React.FC<Props> = ({ turn }) => {
     if (turn.name === 'Success' && player === turn.player) {
       setTimeout(() => finalizedEffect?.play(), 500);
     }
-  }, [turn, failureEffect, finalizedEffect, player]);
+  }, [turn, failureEffect, finalizedEffect]);
 
   return null;
 };

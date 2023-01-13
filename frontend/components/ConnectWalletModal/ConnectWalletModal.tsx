@@ -35,14 +35,14 @@ export const ConnectWalletModal: React.FC = () => {
 
   useEffect(() => {
     showWalletConnect && fetchAccounts();
-  }, [fetchAccounts, showWalletConnect]);
+  }, [showWalletConnect]);
 
   useEffect(() => {
     if (registerFunc.status === 'Finalized') {
       setPlayer(playerAddress);
       setShowWalletConnect(false);
     }
-  }, [playerAddress, registerFunc.status, setPlayer, setShowWalletConnect]);
+  }, [registerFunc.status]);
 
   const registerPlayerButtonTitle = () => {
     if ('PreFlight' === registerFunc.status) return t('calculatingGas');

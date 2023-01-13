@@ -24,7 +24,7 @@ export const ContractEventsProvider = ({ children }: Props) => {
         });
       }
     },
-    [isMounted],
+    [dispatch],
   );
 
   const removeContractEvent = useCallback(
@@ -37,12 +37,10 @@ export const ContractEventsProvider = ({ children }: Props) => {
         });
       }
     },
-    [isMounted],
+    [dispatch],
   );
 
   return (
-    <ContractEventsContext.Provider value={{ addContractEvent, events, removeContractEvent }}>
-      {children}
-    </ContractEventsContext.Provider>
+    <ContractEventsContext.Provider value={{ addContractEvent, events, removeContractEvent }} children={children} />
   );
 };

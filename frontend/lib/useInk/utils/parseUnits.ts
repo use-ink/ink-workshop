@@ -1,6 +1,7 @@
 import { ethers } from 'ethers';
 import BN from 'bn.js';
 
+const DECIMALS_DOT = 10;
 const DECIMALS_ROC = 12;
 
 export const parseUnits = (value: string, decimals = DECIMALS_ROC): BN => {

@@ -2,7 +2,7 @@ import { ContractPromise } from '@polkadot/api-contract';
 import BN from 'bn.js';
 import { AbiMessage, AccountId, ContractExecResult, ContractOptions } from '../../types';
 
-export async function callContract(
+export async function callContract<T>(
   contract: ContractPromise,
   abiMessage: AbiMessage,
   caller: AccountId | undefined,

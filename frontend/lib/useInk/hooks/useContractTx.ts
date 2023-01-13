@@ -132,6 +132,9 @@ export function useContractTx(
           const message = err === '{}' ? (unknownErrorMessage ? unknownErrorMessage(e) : 'Something went wrong') : err;
           setError(message);
 
+          console.log('raw-error', e);
+          console.error('pre-flight error:', message);
+
           withNotifications &&
             addNotification({
               notification: {
@@ -141,19 +144,7 @@ export function useContractTx(
             });
         });
     },
-    [
-      activeAccount,
-      activeSigner,
-      addNotification,
-      broadcastMessage,
-      contract,
-      error,
-      finalizedMessage,
-      inBlockMessage,
-      message,
-      unknownErrorMessage,
-      withNotifications,
-    ],
+    [activeAccount, activeSigner, contract],
   );
 
   return {

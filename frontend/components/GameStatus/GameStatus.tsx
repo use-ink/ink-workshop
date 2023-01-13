@@ -16,6 +16,8 @@ type RunningStatus = {
   startingIn: number;
 };
 
+type Status = RunningStatus;
+
 export const GameStatus: React.FC = () => {
   const gameState = useGameState();
   const { blockNumber } = useBlockHeader();

@@ -27,7 +27,7 @@ export const NotificationsProvider = ({ children }: Props) => {
         });
       }
     },
-    [isMounted],
+    [dispatch],
   );
 
   useEffect(() => {
@@ -39,7 +39,7 @@ export const NotificationsProvider = ({ children }: Props) => {
         },
       });
     }
-  }, [activeAccount, activeAccount?.address, addNotification, config.notifications?.off]);
+  }, [activeAccount?.address]);
 
   const removeNotification = useCallback(
     ({ notificationId }: RemoveNotificationPayload) => {
@@ -50,12 +50,10 @@ export const NotificationsProvider = ({ children }: Props) => {
         });
       }
     },
-    [isMounted],
+    [dispatch],
   );
 
   return (
-    <NotificationsContext.Provider value={{ addNotification, notifications, removeNotification }}>
-      {children}
-    </NotificationsContext.Provider>
+    <NotificationsContext.Provider value={{ addNotification, notifications, removeNotification }} children={children} />
   );
 };

@@ -43,27 +43,22 @@ export const Notifications = () => {
   const toEventMessage = (event: TurnEvent): string => {
     const player = names[event.player] ? names[event.player] : '';
 
-    if ('Success' === event.name) {
-      const successIndex = Math.floor(Math.random() * (Object.values(resouces?.playerScored).length - 1));
-      return t(`playerScored.${successIndex}`, { player });
+    switch (event.name) {
+      case 'Success':
+        const successIndex = Math.floor(Math.random() * (Object.values(resouces?.playerScored).length - 1));
+        return t(`playerScored.${successIndex}`, { player });
+      case 'BrokenPlayer':
+        const brokenIndex = Math.floor(Math.random() * (Object.values(resouces?.brokenPlayer).length - 1));
+        return t(`brokenPlayer.${brokenIndex}`, { player });
+      case 'Occupied':
+        const occupiedIndex = Math.floor(Math.random() * (Object.values(resouces?.playerCollision).length - 1));
+        return t(`playerCollision.${occupiedIndex}`, { player, x: event.turn.x, y: event.turn.y });
+      case 'OutOfBounds':
+        const outOfBoundsIndex = Math.floor(Math.random() * (Object.values(resouces?.playerOutOfBounds).length - 1));
+        return t(`playerOutOfBounds.${outOfBoundsIndex}`, { player, x: event.turn.x, y: event.turn.y });
+      default:
+        return '';
     }
-
-    if ('BrokenPlayer' === event.name) {
-      const brokenIndex = Math.floor(Math.random() * (Object.values(resouces?.brokenPlayer).length - 1));
-      return t(`brokenPlayer.${brokenIndex}`, { player });
-    }
-
-    if ('Occupied' === event.name) {
-      const occupiedIndex = Math.floor(Math.random() * (Object.values(resouces?.playerCollision).length - 1));
-      return t(`playerCollision.${occupiedIndex}`, { player, x: event.turn.x, y: event.turn.y });
-    }
-
-    if ('OutOfBounds' === event.name) {
-      const outOfBoundsIndex = Math.floor(Math.random() * (Object.values(resouces?.playerOutOfBounds).length - 1));
-      return t(`playerOutOfBounds.${outOfBoundsIndex}`, { player, x: event.turn.x, y: event.turn.y });
-    }
-
-    return '';
   };
 
   return (
