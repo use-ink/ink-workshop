@@ -23,6 +23,7 @@ import { isBroadcasting, isFinalized, stringNumberToBN } from '../../lib/useInk/
 import { useUI } from '../../contexts/UIContext';
 import { useAudioSettings } from '../useAudioSettings';
 import { useTranslation } from 'react-i18next';
+import { useLanguageSettings } from '../useLanguageSettings';
 
 function pickOne<T>(messages: T[]): T {
   return messages[new Date().getTime() % messages.length];
@@ -204,20 +205,30 @@ export const useBoard = (): BoardPosition[] => {
 
 export const useSubmitTurnFunc = (): ContractTxFunc => {
   const game = useGameContract();
-  const { t } = useTranslation('common');
+  const commonTranslation = useTranslation('common');
+  const eventTranslation = useTranslation('events');
   const { addNotification } = useNotifications();
   const { sendEffect } = useAudioSettings();
   const submitTurnFunc = useContractTx(game, 'submitTurn', { notificationsOff: true });
+  const {
+    languageTrack: { locale },
+  } = useLanguageSettings();
+
+  const resouces =
+    useMemo(() => eventTranslation.i18n.getResourceBundle(locale, 'events'), [locale, eventTranslation]) || {};
 
   useEffect(() => {
     if (isBroadcasting(submitTurnFunc)) {
       sendEffect?.play();
 
+      const successIndex = Math.floor(Math.random() * (Object.values(resouces?.turnSubmitted).length - 1));
+      const message = eventTranslation.t(`turnSubmitted.${successIndex}`);
+
       addNotification({
         notification: {
           type: 'Broadcast',
           result: submitTurnFunc.result,
-          message: t('broadcast'),
+          message,
         },
       });
       return;
@@ -228,7 +239,7 @@ export const useSubmitTurnFunc = (): ContractTxFunc => {
         notification: {
           type: 'Finalized',
           result: submitTurnFunc.result,
-          message: 'Block Finalized!',
+          message: commonTranslation.t('blockFinalized'),
         },
       });
     }
