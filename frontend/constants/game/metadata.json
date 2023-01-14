@@ -1,12 +1,12 @@
 {
   "source": {
-    "hash": "0xd0daf5a8f768a6680e346bfcc0661af8fc7cda2ee01e2550b0f72f47ba8746a8",
+    "hash": "0xf08953cea86e879dd8fc1834f680ebc9a5ee378dcec820c390b61b2d5c20e387",
     "language": "ink! 4.0.0-beta",
-    "compiler": "rustc 1.66.0",
+    "compiler": "rustc 1.66.1",
     "build_info": {
-      "build_mode": "Debug",
-      "cargo_contract_version": "2.0.0-beta.1",
-      "rust_toolchain": "stable-aarch64-apple-darwin",
+      "build_mode": "Release",
+      "cargo_contract_version": "2.0.0-beta",
+      "rust_toolchain": "stable-x86_64-apple-darwin",
       "wasm_opt_settings": {
         "keep_debug_symbols": false,
         "optimization_passes": "Z"
@@ -16,9 +16,7 @@
   "contract": {
     "name": "squink_splash",
     "version": "0.1.0",
-    "authors": [
-      "Parity Technologies <admin@parity.io>"
-    ]
+    "authors": ["Parity Technologies <admin@parity.io>"]
   },
   "spec": {
     "constructors": [
@@ -27,45 +25,35 @@
           {
             "label": "dimensions",
             "type": {
-              "displayName": [
-                "Field"
-              ],
+              "displayName": ["Field"],
               "type": 9
             }
           },
           {
             "label": "buy_in",
             "type": {
-              "displayName": [
-                "Balance"
-              ],
+              "displayName": ["Balance"],
               "type": 8
             }
           },
           {
             "label": "forming_rounds",
             "type": {
-              "displayName": [
-                "u32"
-              ],
+              "displayName": ["u32"],
               "type": 0
             }
           },
           {
             "label": "rounds",
             "type": {
-              "displayName": [
-                "u32"
-              ],
+              "displayName": ["u32"],
               "type": 0
             }
           },
           {
             "label": "gas_per_round",
             "type": {
-              "displayName": [
-                "u64"
-              ],
+              "displayName": ["u64"],
               "type": 7
             }
           }
@@ -83,10 +71,7 @@
         "label": "new",
         "payable": false,
         "returnType": {
-          "displayName": [
-            "ink_primitives",
-            "ConstructorResult"
-          ],
+          "displayName": ["ink_primitives", "ConstructorResult"],
           "type": 10
         },
         "selector": "0x9bae9d5e"
@@ -97,70 +82,50 @@
       {
         "args": [
           {
-            "docs": [
-              " The account start called `start_game`."
-            ],
+            "docs": [" The account start called `start_game`."],
             "indexed": false,
             "label": "starter",
             "type": {
-              "displayName": [
-                "AccountId"
-              ],
+              "displayName": ["AccountId"],
               "type": 1
             }
           }
         ],
-        "docs": [
-          " Someone started the game by calling `start_game`."
-        ],
+        "docs": [" Someone started the game by calling `start_game`."],
         "label": "GameStarted"
       },
       {
         "args": [
           {
-            "docs": [
-              " The player that attempted the turn."
-            ],
+            "docs": [" The player that attempted the turn."],
             "indexed": false,
             "label": "player",
             "type": {
-              "displayName": [
-                "AccountId"
-              ],
+              "displayName": ["AccountId"],
               "type": 1
             }
           },
           {
-            "docs": [
-              " The effect of the turn that was performed by the player."
-            ],
+            "docs": [" The effect of the turn that was performed by the player."],
             "indexed": false,
             "label": "outcome",
             "type": {
-              "displayName": [
-                "TurnOutcome"
-              ],
+              "displayName": ["TurnOutcome"],
               "type": 26
             }
           }
         ],
-        "docs": [
-          " A player attempted to make a turn."
-        ],
+        "docs": [" A player attempted to make a turn."],
         "label": "TurnTaken"
       },
       {
         "args": [
           {
-            "docs": [
-              " The account that ended the game."
-            ],
+            "docs": [" The account that ended the game."],
             "indexed": false,
             "label": "ender",
             "type": {
-              "displayName": [
-                "AccountId"
-              ],
+              "displayName": ["AccountId"],
               "type": 1
             }
           }
@@ -177,76 +142,53 @@
       {
         "args": [
           {
-            "docs": [
-              " The winning player who is also the one who destroyed the contract."
-            ],
+            "docs": [" The winning player who is also the one who destroyed the contract."],
             "indexed": false,
             "label": "winner",
             "type": {
-              "displayName": [
-                "Player"
-              ],
+              "displayName": ["Player"],
               "type": 5
             }
           },
           {
-            "docs": [
-              " The winning score of the player."
-            ],
+            "docs": [" The winning score of the player."],
             "indexed": false,
             "label": "score",
             "type": {
-              "displayName": [
-                "u64"
-              ],
+              "displayName": ["u64"],
               "type": 7
             }
           }
         ],
-        "docs": [
-          " The game ended and the winner destroyed the contract."
-        ],
+        "docs": [" The game ended and the winner destroyed the contract."],
         "label": "GameDestroyed"
       }
     ],
     "lang_error": {
-      "displayName": [
-        "ink",
-        "LangError"
-      ],
+      "displayName": ["ink", "LangError"],
       "type": 12
     },
     "messages": [
       {
         "args": [],
-        "docs": [
-          " When the game is in finished the contract can be deleted by the winner."
-        ],
+        "docs": [" When the game is in finished the contract can be deleted by the winner."],
         "label": "destroy",
         "mutates": true,
         "payable": false,
         "returnType": {
-          "displayName": [
-            "ink",
-            "MessageResult"
-          ],
+          "displayName": ["ink", "MessageResult"],
           "type": 10
         },
         "selector": "0xc7e248e4"
       },
       {
         "args": [],
-        "docs": [
-          " Anyone can start the game when `earliest_start` is reached."
-        ],
+        "docs": [" Anyone can start the game when `earliest_start` is reached."],
         "label": "start_game",
         "mutates": true,
         "payable": false,
         "returnType": {
-          "displayName": [
-            "ink",
-            "MessageResult"
-          ],
+          "displayName": ["ink", "MessageResult"],
           "type": 10
         },
         "selector": "0x0dad731d"
@@ -262,10 +204,7 @@
         "mutates": true,
         "payable": false,
         "returnType": {
-          "displayName": [
-            "ink",
-            "MessageResult"
-          ],
+          "displayName": ["ink", "MessageResult"],
           "type": 10
         },
         "selector": "0xc76d285a"
@@ -275,33 +214,24 @@
           {
             "label": "id",
             "type": {
-              "displayName": [
-                "AccountId"
-              ],
+              "displayName": ["AccountId"],
               "type": 1
             }
           },
           {
             "label": "name",
             "type": {
-              "displayName": [
-                "String"
-              ],
+              "displayName": ["String"],
               "type": 6
             }
           }
         ],
-        "docs": [
-          " Add a new player to the game. Only allowed while the game has not started."
-        ],
+        "docs": [" Add a new player to the game. Only allowed while the game has not started."],
         "label": "register_player",
         "mutates": true,
         "payable": true,
         "returnType": {
-          "displayName": [
-            "ink",
-            "MessageResult"
-          ],
+          "displayName": ["ink", "MessageResult"],
           "type": 10
         },
         "selector": "0x44c9d826"
@@ -311,9 +241,7 @@
           {
             "label": "id",
             "type": {
-              "displayName": [
-                "AccountId"
-              ],
+              "displayName": ["AccountId"],
               "type": 1
             }
           }
@@ -328,112 +256,79 @@
         "mutates": true,
         "payable": false,
         "returnType": {
-          "displayName": [
-            "ink",
-            "MessageResult"
-          ],
+          "displayName": ["ink", "MessageResult"],
           "type": 10
         },
         "selector": "0xd73c7bba"
       },
       {
         "args": [],
-        "docs": [
-          " The buy in amount to register a player"
-        ],
+        "docs": [" The buy in amount to register a player"],
         "label": "buy_in_amount",
         "mutates": false,
         "payable": false,
         "returnType": {
-          "displayName": [
-            "ink",
-            "MessageResult"
-          ],
+          "displayName": ["ink", "MessageResult"],
           "type": 13
         },
         "selector": "0x3bd6cf8d"
       },
       {
         "args": [],
-        "docs": [
-          " The current game state."
-        ],
+        "docs": [" The current game state."],
         "label": "state",
         "mutates": false,
         "payable": false,
         "returnType": {
-          "displayName": [
-            "ink",
-            "MessageResult"
-          ],
+          "displayName": ["ink", "MessageResult"],
           "type": 14
         },
         "selector": "0x0ced162a"
       },
       {
         "args": [],
-        "docs": [
-          " List of all players sorted by id."
-        ],
+        "docs": [" List of all players sorted by id."],
         "label": "players",
         "mutates": false,
         "payable": false,
         "returnType": {
-          "displayName": [
-            "ink",
-            "MessageResult"
-          ],
+          "displayName": ["ink", "MessageResult"],
           "type": 16
         },
         "selector": "0x4c3724ad"
       },
       {
         "args": [],
-        "docs": [
-          " List of of all players (sorted by id) and their current scores."
-        ],
+        "docs": [" List of of all players (sorted by id) and their current scores."],
         "label": "player_scores",
         "mutates": false,
         "payable": false,
         "returnType": {
-          "displayName": [
-            "ink",
-            "MessageResult"
-          ],
+          "displayName": ["ink", "MessageResult"],
           "type": 17
         },
         "selector": "0x2ec966dd"
       },
       {
         "args": [],
-        "docs": [
-          " Returns the dimensions of the board."
-        ],
+        "docs": [" Returns the dimensions of the board."],
         "label": "dimensions",
         "mutates": false,
         "payable": false,
         "returnType": {
-          "displayName": [
-            "ink",
-            "MessageResult"
-          ],
+          "displayName": ["ink", "MessageResult"],
           "type": 20
         },
         "selector": "0xf10dee95"
       },
       {
         "args": [],
-        "docs": [
-          " Returns the gas limit configured for this game."
-        ],
+        "docs": [" Returns the gas limit configured for this game."],
         "label": "gas_limit",
         "mutates": false,
         "payable": false,
         "returnType": {
-          "displayName": [
-            "ink",
-            "MessageResult"
-          ],
+          "displayName": ["ink", "MessageResult"],
           "type": 21
         },
         "selector": "0x58f2a0ae"
@@ -443,43 +338,29 @@
           {
             "label": "coord",
             "type": {
-              "displayName": [
-                "Field"
-              ],
+              "displayName": ["Field"],
               "type": 9
             }
           }
         ],
-        "docs": [
-          " Returns the value (owner) of the supplied field."
-        ],
+        "docs": [" Returns the value (owner) of the supplied field."],
         "label": "field",
         "mutates": false,
         "payable": false,
         "returnType": {
-          "displayName": [
-            "ink",
-            "MessageResult"
-          ],
+          "displayName": ["ink", "MessageResult"],
           "type": 22
         },
         "selector": "0x4abe8f1b"
       },
       {
         "args": [],
-        "docs": [
-          " Returns the complete board.",
-          "",
-          " The index into the vector is calculated as `x + y * width`."
-        ],
+        "docs": [" Returns the complete board.", "", " The index into the vector is calculated as `x + y * width`."],
         "label": "board",
         "mutates": false,
         "payable": false,
         "returnType": {
-          "displayName": [
-            "ink",
-            "MessageResult"
-          ],
+          "displayName": ["ink", "MessageResult"],
           "type": 24
         },
         "selector": "0x276086cb"
@@ -665,11 +546,7 @@
             ]
           }
         },
-        "path": [
-          "ink_primitives",
-          "types",
-          "AccountId"
-        ]
+        "path": ["ink_primitives", "types", "AccountId"]
       }
     },
     {
@@ -730,11 +607,7 @@
             ]
           }
         },
-        "path": [
-          "game",
-          "squink_splash",
-          "Player"
-        ]
+        "path": ["game", "squink_splash", "Player"]
       }
     },
     {
@@ -780,11 +653,7 @@
             ]
           }
         },
-        "path": [
-          "game",
-          "squink_splash",
-          "Field"
-        ]
+        "path": ["game", "squink_splash", "Field"]
       }
     },
     {
@@ -824,9 +693,7 @@
             "type": 12
           }
         ],
-        "path": [
-          "Result"
-        ]
+        "path": ["Result"]
       }
     },
     {
@@ -850,10 +717,7 @@
             ]
           }
         },
-        "path": [
-          "ink_primitives",
-          "LangError"
-        ]
+        "path": ["ink_primitives", "LangError"]
       }
     },
     {
@@ -893,9 +757,7 @@
             "type": 12
           }
         ],
-        "path": [
-          "Result"
-        ]
+        "path": ["Result"]
       }
     },
     {
@@ -935,9 +797,7 @@
             "type": 12
           }
         ],
-        "path": [
-          "Result"
-        ]
+        "path": ["Result"]
       }
     },
     {
@@ -987,11 +847,7 @@
             ]
           }
         },
-        "path": [
-          "game",
-          "squink_splash",
-          "State"
-        ]
+        "path": ["game", "squink_splash", "State"]
       }
     },
     {
@@ -1031,9 +887,7 @@
             "type": 12
           }
         ],
-        "path": [
-          "Result"
-        ]
+        "path": ["Result"]
       }
     },
     {
@@ -1073,9 +927,7 @@
             "type": 12
           }
         ],
-        "path": [
-          "Result"
-        ]
+        "path": ["Result"]
       }
     },
     {
@@ -1092,10 +944,7 @@
       "id": 19,
       "type": {
         "def": {
-          "tuple": [
-            5,
-            7
-          ]
+          "tuple": [5, 7]
         }
       }
     },
@@ -1136,9 +985,7 @@
             "type": 12
           }
         ],
-        "path": [
-          "Result"
-        ]
+        "path": ["Result"]
       }
     },
     {
@@ -1178,9 +1025,7 @@
             "type": 12
           }
         ],
-        "path": [
-          "Result"
-        ]
+        "path": ["Result"]
       }
     },
     {
@@ -1220,9 +1065,7 @@
             "type": 12
           }
         ],
-        "path": [
-          "Result"
-        ]
+        "path": ["Result"]
       }
     },
     {
@@ -1253,9 +1096,7 @@
             "type": 1
           }
         ],
-        "path": [
-          "Option"
-        ]
+        "path": ["Option"]
       }
     },
     {
@@ -1295,9 +1136,7 @@
             "type": 12
           }
         ],
-        "path": [
-          "Result"
-        ]
+        "path": ["Result"]
       }
     },
     {
@@ -1361,11 +1200,7 @@
             ]
           }
         },
-        "path": [
-          "game",
-          "squink_splash",
-          "TurnOutcome"
-        ]
+        "path": ["game", "squink_splash", "TurnOutcome"]
       }
     }
   ],
