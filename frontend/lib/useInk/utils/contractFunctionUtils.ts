@@ -21,4 +21,6 @@ export const isFinalized = (func: { status: Status }): boolean => func.status ==
 export const isErrored = (func: { status: Status }): boolean => func.status === 'Errored';
 
 export const shouldDisable = (func: { status: Status }): boolean =>
-  hasAny(func, 'PreFlight', 'PendingSignature', 'Broadcast', 'InBlock');
+  hasAny(func, 'PreFlight', 'PendingSignature', 'Broadcast');
+
+export const shouldDisableStrict = (func: { status: Status }): boolean => shouldDisable(func) || isInBlock(func);
