@@ -1,0 +1,34 @@
+{
+    "completion": {
+        "desc1": "Le jeu est terminé quand tous les tours sont finis. Un.e des participant.es doit effectuer la transaction", 
+        "desc2": "pour déclarer le/la gagnant.e et gagner les fonds.",
+        "title": "Comment terminer le jeu"
+    },
+    "formingStage": {
+        "camelCase": "camelCase",
+        "desc": "La période d'enregistrement est la période où les joueu.r.se.s peuvent rejoindre le jeu en remplissant le formulaire avec l'adresse de jeu du contract. Lors de l'inscription, vous devez déposer les fonds requis et créer un nom de joueu.r.se. Les caractères comme les espaces, tirets -/_ et autres caractères spéciaux ne sont pas autorisés. Vous devez utiliser du",
+        "pascalCase": "PascalCase",
+        "or": "ou",
+        "title": "La période d'enregistrement"
+    },
+    "gamePlay": "Comment jouer",
+    "gameStart": {
+        "bold":"C'est à vous d'executer la transaction 'Soumettre votre tour' à chaque tour.", 
+        "desc1": "Le jeu va commencer une fois que tous les joueu.r.se.s ont rejoint le jeu et que le maître du jeu a commencé le jeu. Le jeu va durer",
+        "desc2": "nombres de tours (blocs).",
+        "n":"N", 
+        "title": "Comment commencer le jeu"
+    },
+    "instructions": "Instructions",
+    "objective": "Objectifs",
+    "playersNumber": "2-25",
+    "playTime": "20 minutes",
+    "rules": {
+        "desc1": "Le but du jeu est de colorier le plus de cases possibles sur le plateau. En écrivant ton smart contract tu vas pouvoir être en compétition avec les autres joueu.r.se.s,",
+        "desc2": "Tu peux gagner des points en fonction du nombre de cases que tu colories et combien de",
+        "desc3": "tu utilises",
+        "gas": "gas",
+        "title": "Les règles  du jeu"
+    },
+    "setUp": "Configuration"
+}

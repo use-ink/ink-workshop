@@ -1,0 +1,34 @@
+{
+    "completion": {
+        "desc1": "The game is over when all rounds have elapsed. Someone must call the", 
+        "desc2": "transaction for the game to declare the winner and award the funds.",
+        "title": "Completion"
+    },
+    "formingStage": {
+        "camelCase": "camelCase",
+        "desc": "The Forming Stage is a period of time where players can join the game by registering their Player with the Game contract. When you register you must deposit the required funds and create a player name. Spaces, underscores, and strange characters are not allowed. You should use",
+        "pascalCase": "PascalCase",
+        "or": "or",
+        "title": "The Forming Stage"
+    },
+    "gamePlay": "Game Play",
+    "gameStart": {
+        "bold":"It is your responsibility to execute the 'Submit turn' transaction on the game contract for every round.", 
+        "desc1": "The game will start after all of the players have joined and the game master has started the game. It will last for",
+        "desc2": "number of rounds (blocks).",
+        "n":"N", 
+        "title": "Game Start"
+    },
+    "instructions": "Instructions",
+    "objective": "Objective",
+    "playersNumber": "2-25",
+    "playTime": "20 minutes",
+    "rules": {
+        "desc1": "The goal of the game is to paint the most squares on the board. You will compete other players by writing a smart contract in",
+        "desc2": " Points are awarded based on how many squares you paint and the amount of",
+        "desc3": "you use.",
+        "gas": "gas",
+        "title": "Game Rules"
+    },
+    "setUp": "Setup"
+}
