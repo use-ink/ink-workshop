@@ -1,6 +1,13 @@
+import { AccountId } from '../../lib/useInk/types';
+
 export type Field = {
   x: string;
   y: string;
+};
+
+export type PlayerRegistered = {
+  name: EventName.PlayerRegistered;
+  player: AccountId;
 };
 
 export type SuccessfulTurn = {
@@ -44,6 +51,7 @@ export enum TurnOutcome {
 }
 
 export enum EventName {
+  PlayerRegistered = 'PlayerRegistered',
   GameStarted = 'GameStarted',
   TurnTaken = 'TurnTaken',
   GameEnded = 'GameEnded',

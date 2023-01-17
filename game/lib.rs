@@ -1,35 +1,17 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-pub use squink_splash::{
-    Field,
-    SquinkSplash,
-    SquinkSplashRef,
-};
+pub use squink_splash::{Field, SquinkSplash, SquinkSplashRef};
 
 #[ink::contract]
 mod squink_splash {
     use core::ops::RangeInclusive;
     use ink::{
         env::{
-            call::{
-                build_call,
-                Call,
-                ExecutionInput,
-                Selector,
-            },
-            debug_println,
-            CallFlags,
-            DefaultEnvironment,
+            call::{build_call, Call, ExecutionInput, Selector},
+            debug_println, CallFlags, DefaultEnvironment,
         },
-        prelude::{
-            collections::BTreeMap,
-            string::String,
-            vec::Vec,
-        },
-        storage::{
-            Lazy,
-            Mapping,
-        },
+        prelude::{collections::BTreeMap, string::String, vec::Vec},
+        storage::{Lazy, Mapping},
         LangError,
     };
 
@@ -150,6 +132,13 @@ mod squink_splash {
         /// Player contract failed to return a result. This happens if it paniced, ran out
         /// of gas, returns garbage or is not even a contract.
         BrokenPlayer,
+    }
+
+    /// A player joined the game by calling `register_player`.
+    #[ink(event)]
+    pub struct PlayerRegistered {
+        /// The player contract account ID.
+        player: AccountId,
     }
 
     /// Someone started the game by calling `start_game`.
@@ -341,6 +330,7 @@ mod squink_splash {
                         },
                     );
                     self.players.set(&players);
+                    self.env().emit_event(PlayerRegistered { player: id });
                 }
                 Ok(_) => panic!("Player already registered."),
             }

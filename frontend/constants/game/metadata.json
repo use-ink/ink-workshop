@@ -1,12 +1,12 @@
 {
   "source": {
-    "hash": "0xd0daf5a8f768a6680e346bfcc0661af8fc7cda2ee01e2550b0f72f47ba8746a8",
+    "hash": "0xa2e3b2dbde021e0b3efd6754d3ae2895d885e266f1d5cdfbd87a52c6eb4356a5",
     "language": "ink! 4.0.0-beta",
-    "compiler": "rustc 1.66.0",
+    "compiler": "rustc 1.66.1",
     "build_info": {
-      "build_mode": "Debug",
-      "cargo_contract_version": "2.0.0-beta.1",
-      "rust_toolchain": "stable-aarch64-apple-darwin",
+      "build_mode": "Release",
+      "cargo_contract_version": "2.0.0-beta",
+      "rust_toolchain": "stable-x86_64-apple-darwin",
       "wasm_opt_settings": {
         "keep_debug_symbols": false,
         "optimization_passes": "Z"
@@ -94,6 +94,27 @@
     ],
     "docs": [],
     "events": [
+      {
+        "args": [
+          {
+            "docs": [
+              " The player contract account ID."
+            ],
+            "indexed": false,
+            "label": "player",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 1
+            }
+          }
+        ],
+        "docs": [
+          " A player joined the game by calling `register_player`."
+        ],
+        "label": "PlayerRegistered"
+      },
       {
         "args": [
           {

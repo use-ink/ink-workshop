@@ -45,7 +45,7 @@
        "5": "What was that?!? Collision! {{player}} ({{x}}, {{y}})",
        "6": "You can't over paint that one! {{player}} ({{x}}, {{y}})"
      },
-    "playerJoined": { 
+    "playerRegistered": { 
         "0": "{{player}} joined!",
         "1": "{{player}} is in the building!",
         "2": "{{player}} is in the house!",

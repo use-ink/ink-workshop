@@ -38,7 +38,7 @@ export const ConnectWalletModal: React.FC = () => {
   }, [showWalletConnect]);
 
   useEffect(() => {
-    if (registerFunc.status === 'Finalized') {
+    if (registerFunc.status === 'InBlock') {
       setPlayer(playerAddress);
       setShowWalletConnect(false);
     }

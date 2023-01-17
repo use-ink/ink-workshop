@@ -16,13 +16,13 @@ export const FormingStatus: React.FC<Props> = ({ forming }) => {
         <span className={categoryClass}>{t('status')}: </span>
         <span className="font-normal bg-players-8 text-white rounded-full px-2 py-[2px]">{t('ready')}</span>
       </h6>
-      <h6 className="my-2">
+      <div className="my-2">
         {forming.startingIn > 0 && (
           <h6 className="flex items-center">
             {t('startingIn', { blocks: forming.startingIn })} <GiCube className="ml-1" size={12} />
           </h6>
         )}
-      </h6>
+      </div>
     </>
   );
 };

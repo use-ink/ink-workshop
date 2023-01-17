@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGame } from '../../../contexts/GameContext';
 import { usePlayers } from '../../../hooks/useGameContract';
-import { TurnEvent } from '../../../hooks/useGameEvents';
+import { PlayerRegistered, TurnEvent } from '../../../hooks/useGameEvents';
 import { useLanguageSettings } from '../../../hooks/useLanguageSettings';
 import { useNotifications } from '../../../lib/useInk/hooks/useNotifications';
 import { Status } from '../../../lib/useInk/types';
@@ -30,7 +30,7 @@ const NOTIFICATION_TYPES: { [k in NotificationKind]: SnackbarType } = {
 
 export const Notifications = () => {
   const { notifications } = useNotifications();
-  const { playerTurnEvents } = useGame();
+  const { playerTurnEvents, playerRegisteredEvents } = useGame();
   const names = usePlayers();
   const eventTranslation = useTranslation('events');
   const {
@@ -61,8 +61,20 @@ export const Notifications = () => {
     }
   };
 
+  const toPlayerRegisteredMessage = (event: PlayerRegistered): string => {
+    const player = names[event.player] ? names[event.player] : '';
+    const successIndex = Math.floor(Math.random() * (Object.values(resouces?.playerScored).length - 1));
+    return t(`playerJoined.${successIndex}`, { player });
+  };
+
   return (
     <ul className="fixed right-[150px] bottom-24 z-10">
+      {playerRegisteredEvents.map((registeredEvent) => (
+        <li key={registeredEvent.player} className="mt-1">
+          <Snackbar message={toPlayerRegisteredMessage(registeredEvent)} type="info" show />
+        </li>
+      ))}
+
       {playerTurnEvents.map((turnEvent) => (
         <li key={turnEvent.id} className="mt-1">
           <Snackbar

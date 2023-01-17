@@ -45,7 +45,7 @@
       "5": "Qu'est ce que c'est ?!? Collision pour {{player}} en ({{x}}, {{y}})",
       "6": "Tu ne peux colorier à nouveau cette case, {{player}} ({{x}}, {{y}})"
     },
-   "playerJoined": { 
+   "playerRegistered": { 
        "0": "{{player}} est avec nous!",
        "1": "{{player}} est dans la place!",
        "2": "{{player}} est dans le coup!",
