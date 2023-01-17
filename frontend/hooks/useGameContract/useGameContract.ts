@@ -25,10 +25,6 @@ import { useAudioSettings } from '../useAudioSettings';
 import { useTranslation } from 'react-i18next';
 import { useLanguageSettings } from '../useLanguageSettings';
 
-function pickOne<T>(messages: T[]): T {
-  return messages[new Date().getTime() % messages.length];
-}
-
 export const useGameContract = () => useGame().game;
 
 export const useDimensions = (): Dimensions | null => {
