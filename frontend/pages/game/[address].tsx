@@ -29,7 +29,7 @@ const Game: NextPage = (_props: InferGetServerSidePropsType<typeof getServerSide
 
 export const getServerSideProps: GetServerSideProps = async ({ locale }) => ({
   props: {
-    ...(await serverSideTranslations(locale ?? 'en', ['common', 'events'])),
+    ...(await serverSideTranslations(locale ?? 'en', ['common', 'events', 'rules'])),
   },
 });
 

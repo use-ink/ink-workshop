@@ -41,6 +41,7 @@
    "registerBeforeGameStart": "You must register before the game starts",
    "registerPlayer": "2. Register a Player",
    "selectPlayer": "Select a Player",
+   "selectLanguage": "Choose your Language",
    "showGameLogs": "Show game logs",
    "showPixelCoordinates": "Show pixel coordinates",
    "showPixelGrid": "Show pixel grid",

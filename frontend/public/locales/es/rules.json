@@ -1,0 +1,34 @@
+{
+    "completion": {
+        "desc1": "El juego termina cuando han transcurrido todas las rondas. Alguien debe llamar al", 
+        "desc2": "transacción para que el juego declare al ganador y otorgue los fondos.",
+        "title": "Terminación"
+    },
+    "formingStage": {
+        "camelCase": "camelCase",
+        "desc": "La Etapa de formación es un período de tiempo en el que los jugadores pueden unirse al juego al registrar su Jugador con el contrato del Juego. Cuando se registre, debe depositar los fondos requeridos y crear un nombre de jugador. No se permiten espacios, guiones bajos ni caracteres extraños. Deberías usar",
+        "or": "o",
+        "pascalCase": "PascalCase",
+        "title": "La etapa de formación"
+    },
+    "gamePlay": "Como se Juega",
+    "gameStart": {
+        "bold":"Es su responsabilidad ejecutar la transacción 'Enviar turno' en el contrato de juego para cada ronda.", 
+        "desc1": "El juego comenzará después de que todos los jugadores se hayan unido y el maestro del juego haya comenzado el juego. Durará por",
+        "desc2": "número de rondas (bloques).",
+        "n":"N", 
+        "title": "Empezar juego"
+    },
+    "instructions": "Instructions",
+    "objective": "Instrucciones",
+    "playersNumber": "2-25",
+    "playTime": "20 minutos",
+    "rules": {
+        "desc1": "El objetivo del juego es pintar la mayor cantidad de cuadrados en el tablero. Competirás con otros jugadores escribiendo un contrato inteligente en",
+        "desc2": "Los puntos se otorgan según la cantidad de cuadrados que pinte y la cantidad de",
+        "desc3": "tu usas",
+        "gas": "gas",
+        "title": "Reglas del juego"
+    },
+    "setUp": "Configuración"
+}

@@ -41,6 +41,7 @@
     "registerBeforeGameStart": "Debes registrarte antes de que comience el juego",
     "registerPlayer": "2. Registrar un jugador",
     "selectPlayer": "Seleccione un jugador",
+    "selectLanguage": "Elige tu idioma",
     "showGameLogs": "Mostrar registros de juegos",
     "showPixelCoordinates": "Mostrar coordenadas de píxeles",
     "showPixelGrid": "Mostrar cuadrícula de píxeles",
