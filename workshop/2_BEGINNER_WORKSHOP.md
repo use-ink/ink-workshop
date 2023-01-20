@@ -6,7 +6,7 @@
 After this workshop you will know how to:
 * Use `#[ink::contract]` and `#[ink(message)]` macros
 * Compile an ink! smart contract 
-* Deploy your contract using the `*.contract` files
+* Deploy your contract using `*.contract` files
 
 ## Prerequisites
 * Complete the [Setup Guide](https://github.com/paritytech/ink-workshop/blob/main/workshop/1_SETUP.md).
@@ -27,7 +27,44 @@ You are going to use a pre-existing smart contract called "Player" located here:
 ./beginners-workshop/basic-player/lib.rs
 ```
 
-1. Update the function `your_turn` so that it returns your two favorite numbers between 0-9 for both the x and the y dimensions. e.g. `Field { x: 3, y: 7 }`
+Before we start changing code, let's take a quick look at two ink! macros: `#[ink::contract]` and `#[ink(message)]`
+
+```rs
+// This macro is the entry point for writing ink! smart contracts. 
+// More docs: https://use.ink/macros-attributes/contract
+#[ink::contract]
+mod player {
+    // actual implementation
+}
+```
+
+```rs
+// This macro makes a method part of the contract's public API
+// An ink! method with a &self receiver may only READ state
+// Docs: https://use.ink/macros-attributes/message
+#[ink(message)]
+pub fn purely_reading(&self, from: AccountId) {
+    // actual implementation
+}
+
+// This macro makes a method part of the contract's public API
+// An ink! method with a &mut self receiver may mutate contract storage
+#[ink(message)]
+pub fn mutates_storage(&mut self, from: AccountId) {
+    // actual implementation
+}
+```
+
+We are going to update one function that contains a `#[ink::message]` macro:
+
+```rs
+#[ink(message, selector = 0)]
+pub fn your_turn(&mut self) -> Field {
+    // Change this code
+}
+```
+
+1. Update the method `your_turn` so that it returns your two favorite numbers between 0-9 for both the x and the y dimensions. e.g. `Field { x: 3, y: 7 }`
 2. Compile the contract:
 ```sh
 # Inside of ./beginners-workshop/basic-player/
@@ -76,3 +113,5 @@ After all players have registered your moderator will start the game via a block
 <img src="../.images/play.png" width="100%" />
 
 ## 🍀 Good luck!
+
+If you enjoyed this workshop, you can find more ink! tutorials [here](https://docs.substrate.io/tutorials/).
