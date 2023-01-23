@@ -85,7 +85,7 @@ Now it is your turn. The reference to the Game contract is already set up for yo
 ```
 
 1. Update the method `your_turn` so that it returns different coordinates on each block, and checks to see if the square on the game board if vacant.
-    * `self.dimensions.x` and `self.dimensions.y` are already available in the Player contract. Use these to make sure that you stay in bounds.
+    * TIP: `self.dimensions.x` and `self.dimensions.y` are already available in the Player contract. Use these to make sure that you stay in bounds.
     * TIP: you can use `self.env().block_number()` to retrieve the current block.
     * TIP: You can add a storage element to the Player struct, but be aware that this uses more gas per transaction
 
