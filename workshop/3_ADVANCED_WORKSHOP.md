@@ -65,7 +65,7 @@ mod player {
 ### DEPENDENCIES in both cargo.toml files
 We need this in `game/cargo.toml` to tell ink! to compile Game as a dependency
 ```toml
-// Inside of game/cargo.toml
+# Inside of game/cargo.toml
 ink-as-dependency = []
 ```
 
