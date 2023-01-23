@@ -114,4 +114,4 @@ After all players have registered your moderator will start the game via a block
 
 ## 🍀 Good luck!
 
-If you enjoyed this workshop, you can find more ink! tutorials [here](https://docs.substrate.io/tutorials/).
+If you enjoyed this workshop, you can find more ink! tutorials on the [ink! website](https://use.ink/) and on the [substrate website](https://docs.substrate.io/tutorials/)

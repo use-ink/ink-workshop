@@ -1,0 +1,29 @@
+[package]
+name = "player"
+version = "0.1.0"
+authors = ["[your_name] <[your_email]>"]
+edition = "2021"
+
+[dependencies]
+ink = { version = "4.0.0-beta", default-features = false }
+scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
+scale-info = { version = "2", default-features = false, features = ["derive"], optional = true }
+game = { package = "squink_splash", path = "../../game", default-features = false, features = ["ink-as-dependency"] }
+
+[lib]
+name = "player"
+path = "lib.rs"
+crate-type = [
+    # Used for normal contract Wasm blobs.
+    "cdylib",
+]
+
+[features]
+default = ["std"]
+std = [
+    "ink/std",
+    "scale/std",
+    "scale-info/std",
+    "game/std",
+]
+ink-as-dependency = []
