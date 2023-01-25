@@ -2,24 +2,18 @@
 
 #[ink::contract]
 mod player {
-    use game::{Field, SquinkSplashRef};
-    use ink::env::call::FromAccountId;
-
     #[ink(storage)]
     pub struct Player {
-        game: SquinkSplashRef,
-        dimensions: Field,
-        seed: u32,
+        dimensions: (u32, u32),
+        start_field: u32,
     }
 
     impl Player {
         #[ink(constructor)]
-        pub fn new(game: AccountId) -> Self {
-            let game = SquinkSplashRef::from_account_id(game);
+        pub fn new(dimensions: (u32, u32), start_field: u32) -> Self {
             Self {
-                dimensions: game.dimensions(),
-                seed: Self::env().block_number(),
-                game,
+                dimensions,
+                start_field,
             }
         }
 
@@ -36,8 +30,8 @@ mod player {
         /// The function can be named as you like, but it always needs to have
         /// a defined selector of `0`.
         #[ink(message, selector = 0)]
-        pub fn your_turn(&mut self) -> Field {
-            Field { x: 0, y: 0 }
+        pub fn your_turn(&self) -> (u32, u32) {
+            (0, 0)
         }
     }
 }
