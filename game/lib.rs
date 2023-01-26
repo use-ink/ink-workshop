@@ -53,6 +53,8 @@ mod contract {
         rounds: u32,
         /// The overall gas each player can use over the course of the whole game.
         gas_limit: u64,
+        /// The player making the first move in the next round.
+        first_player: u32,
     }
 
     /// The game can be in different states over its lifetime.
@@ -216,6 +218,7 @@ mod contract {
                 buy_in,
                 rounds,
                 gas_limit: gas_per_round * u64::from(rounds),
+                first_player: 0,
             };
             ret.players.set(&Vec::new());
             ret
@@ -227,18 +230,18 @@ mod contract {
             if let State::Finished { winner } = self.state {
                 assert_eq!(
                     winner,
-                    self.env().caller(),
+                    Self::env().caller(),
                     "Only winner is allowed to destroy the contract."
                 );
                 let (winning_player, score) = self
                     .player_score_iter()
                     .find(|(player, _score)| player.id == winner)
                     .expect("The winner is a player; qed");
-                self.env().emit_event(GameDestroyed {
+                Self::env().emit_event(GameDestroyed {
                     winner: winning_player,
                     score,
                 });
-                self.env().terminate_contract(winner)
+                Self::env().terminate_contract(winner)
             } else {
                 panic!("Only finished games can be destroyed.")
             }
@@ -249,7 +252,7 @@ mod contract {
         pub fn start_game(&mut self) {
             if let State::Forming { earliest_start } = self.state {
                 assert!(
-                    self.env().block_number() >= earliest_start,
+                    Self::env().block_number() >= earliest_start,
                     "Game can't be started, yet."
                 );
             } else {
@@ -260,11 +263,11 @@ mod contract {
             // We pretent that there was already a turn in this block so that no
             // turns can be submitted in the same block as when the game is started.
             self.state = State::Running {
-                last_turn: self.env().block_number(),
+                last_turn: Self::env().block_number(),
                 rounds_played: 0,
             };
-            self.env().emit_event(GameStarted {
-                starter: self.env().caller(),
+            Self::env().emit_event(GameStarted {
+                starter: Self::env().caller(),
             });
         }
 
@@ -290,13 +293,13 @@ mod contract {
                 .id;
 
             // Give the pot to the winner
-            self.env()
+            Self::env()
                 .transfer(winner, Balance::from(num_players) * self.buy_in)
                 .unwrap();
 
             self.state = State::Finished { winner };
-            self.env().emit_event(GameEnded {
-                ender: self.env().caller(),
+            Self::env().emit_event(GameEnded {
+                ender: Self::env().caller(),
             });
         }
 
@@ -315,7 +318,7 @@ mod contract {
             );
             assert_eq!(
                 self.buy_in,
-                self.env().transferred_value(),
+                Self::env().transferred_value(),
                 "Wrong buy in. Needs to be: {}",
                 self.buy_in
             );
@@ -339,16 +342,13 @@ mod contract {
                         },
                     );
                     self.players.set(&players);
-                    self.env().emit_event(PlayerRegistered { player: id });
+                    Self::env().emit_event(PlayerRegistered { player: id });
                 }
                 Ok(_) => panic!("Player already registered."),
             }
         }
 
-        /// Each block every player can submit their turn.
-        ///
-        /// Each player can only make one turn per block. If the contract panics or fails
-        /// to return the proper result the turn of forfeited and the gas usage is still recorded.
+        /// At most once per block anyone can trigger one turn of the game.
         #[ink(message)]
         pub fn submit_turn(&mut self) {
             let State::Running { last_turn, rounds_played } = &mut self.state else {
@@ -366,8 +366,12 @@ mod contract {
             *rounds_played += 1;
 
             let mut players = self.players();
+            let num_players = players.len();
+            let mut offset = self.first_player as usize;
+            for _ in 0..num_players {
+                let player = &mut players[offset];
+                offset = (offset + 1) % num_players;
 
-            for player in &mut players {
                 let gas_left = self.gas_limit.saturating_sub(player.gas_used);
                 // `0` means: use all gas. This is why we need to error out here
                 //  as we always want to cap the contract's available gas.
@@ -383,9 +387,9 @@ mod contract {
                     .call_flags(CallFlags::default().set_allow_reentry(true))
                     .returns::<Field>();
 
-                let gas_before = self.env().gas_left();
+                let gas_before = Self::env().gas_left();
                 let turn = call.try_invoke();
-                player.gas_used += gas_before - self.env().gas_left();
+                player.gas_used += gas_before - Self::env().gas_left();
 
                 // We continue even if the contract call fails. If the contract don't
                 // conform it is the players fault. No second tries.
@@ -408,12 +412,12 @@ mod contract {
                     }
                 };
 
-                self.env().emit_event(TurnTaken {
+                Self::env().emit_event(TurnTaken {
                     player: player.id,
                     outcome,
                 });
             }
-
+            self.first_player = (self.first_player + 1) % num_players as u32;
             self.players.set(&players);
         }
 
