@@ -1,28 +1,21 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
+pub use player::PlayerRef as TestPlayer;
+
 #[ink::contract]
 mod player {
-    use squink_splash::{
-        Field,
-        Game,
-    };
-    use ink::env::call::FromAccountId;
-
     #[ink(storage)]
     pub struct Player {
-        game: Game,
-        dimensions: Field,
-        seed: u32,
+        dimensions: (u32, u32),
+        next_turn: u32,
     }
 
     impl Player {
         #[ink(constructor)]
-        pub fn new(game: AccountId) -> Self {
-            let game = Game::from_account_id(game);
+        pub fn new(dimensions: (u32, u32), start: u32) -> Self {
             Self {
-                dimensions: game.dimensions(),
-                seed: Self::env().block_number(),
-                game,
+                dimensions,
+                next_turn: start,
             }
         }
 
@@ -39,10 +32,10 @@ mod player {
         /// The function can be named as you like, but it always needs to have
         /// a defined selector of `0`.
         #[ink(message, selector = 0)]
-        pub fn your_turn(&mut self) -> Field {
-            // self.game.field(Field { x: 0, x: 1 }) -> check if a square is painted
-
-            Field { x: 0, y: 0 }
+        pub fn your_turn(&mut self) -> (u32, u32) {
+            let turn =  self.next_turn;
+            self.next_turn += 1;
+            (turn % self.dimensions.0, turn / self.dimensions.0)
         }
     }
 }

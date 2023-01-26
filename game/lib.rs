@@ -1,18 +1,34 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-pub use squink_splash::{Field, SquinkSplash, SquinkSplashRef};
+pub use contract::{
+    Field,
+    SquinkSplashRef as Game,
+};
 
 #[ink::contract]
-mod squink_splash {
+mod contract {
     use core::ops::RangeInclusive;
     use ink::{
         env::{
-            call::{build_call, Call, ExecutionInput, Selector},
-            debug_println, CallFlags, DefaultEnvironment,
+            call::{
+                build_call,
+                Call,
+                ExecutionInput,
+                Selector,
+            },
+            debug_println,
+            CallFlags,
+            DefaultEnvironment,
         },
-        prelude::{collections::BTreeMap, string::String, vec::Vec},
-        storage::{Lazy, Mapping},
-        LangError,
+        prelude::{
+            collections::BTreeMap,
+            string::String,
+            vec::Vec,
+        },
+        storage::{
+            Lazy,
+            Mapping,
+        },
     };
 
     /// The amount of players that are allowed to register for a single game.
@@ -60,12 +76,10 @@ mod squink_splash {
         ///
         /// No new players can be registered in this phase.
         Running {
-            /// The block in which `start_game` was called.
-            start_block: u32,
-            /// The block at which the game ends and no new turns will be accepted. Everybody
-            /// can call `end_game` once this block is reached in order to progress the
-            /// `State` to `Finished`.
-            end_block: u32,
+            /// The block number the last turn was made.
+            last_turn: u32,
+            /// The number of rounds that are already played in the current game.
+            rounds_played: u32,
         },
         /// The game is finished an the pot has been payed out to the `winner`.
         Finished {
@@ -84,11 +98,9 @@ mod squink_splash {
         derive(Debug, scale_info::TypeInfo, ink::storage::traits::StorageLayout)
     )]
     pub struct Player {
-        id: AccountId,
-        name: String,
-        gas_used: u64,
-        /// The block number this player made its last turn.
-        last_turn: u32,
+        pub id: AccountId,
+        pub name: String,
+        pub gas_used: u64,
     }
 
     /// Describing either a single point in the field or its dimensions.
@@ -245,11 +257,11 @@ mod squink_splash {
             };
             let players = self.players();
             assert!(!players.is_empty(), "You need at least one player.");
-            let start_block = self.env().block_number();
-            let end_block = start_block + self.rounds;
+            // We pretent that there was already a turn in this block so that no
+            // turns can be submitted in the same block as when the game is started.
             self.state = State::Running {
-                start_block,
-                end_block,
+                last_turn: self.env().block_number(),
+                rounds_played: 0,
             };
             self.env().emit_event(GameStarted {
                 starter: self.env().caller(),
@@ -261,33 +273,31 @@ mod squink_splash {
         /// the winner.
         #[ink(message)]
         pub fn end_game(&mut self) {
-            match self.state {
-                State::Running { end_block, .. }
-                    if self.env().block_number() >= end_block =>
-                {
-                    let mut num_players = 0u64;
-                    let winner = self
-                        .player_score_iter()
-                        .max_by_key(|(_player, score)| {
-                            num_players += 1;
-                            *score
-                        })
-                        .expect("We only allow starting the game with at least 1 player.")
-                        .0
-                        .id;
+            assert!(
+                !self.is_running(),
+                "Game can't be ended or has already ended.",
+            );
 
-                    // Give the pot to the winner
-                    self.env()
-                        .transfer(winner, Balance::from(num_players) * self.buy_in)
-                        .unwrap();
+            let mut num_players = 0u64;
+            let winner = self
+                .player_score_iter()
+                .max_by_key(|(_player, score)| {
+                    num_players += 1;
+                    *score
+                })
+                .expect("We only allow starting the game with at least 1 player.")
+                .0
+                .id;
 
-                    self.state = State::Finished { winner };
-                    self.env().emit_event(GameEnded {
-                        ender: self.env().caller(),
-                    });
-                }
-                _ => panic!("Game can't be ended or has already ended."),
-            }
+            // Give the pot to the winner
+            self.env()
+                .transfer(winner, Balance::from(num_players) * self.buy_in)
+                .unwrap();
+
+            self.state = State::Finished { winner };
+            self.env().emit_event(GameEnded {
+                ender: self.env().caller(),
+            });
         }
 
         /// Add a new player to the game. Only allowed while the game has not started.
@@ -326,7 +336,6 @@ mod squink_splash {
                             id,
                             name,
                             gas_used: 0,
-                            last_turn: 0,
                         },
                     );
                     self.players.set(&players);
@@ -341,73 +350,69 @@ mod squink_splash {
         /// Each player can only make one turn per block. If the contract panics or fails
         /// to return the proper result the turn of forfeited and the gas usage is still recorded.
         #[ink(message)]
-        pub fn submit_turn(&mut self, id: AccountId) {
-            assert!(
-                self.is_running(),
-                "The game does not accept turns right now."
-            );
-            let mut players = self.players();
-            let player = if let Some(player) = Self::player_mut(&id, &mut players) {
-                // We need to immediately write back the the players since we need to record
-                // that a player did attempted a turn. Otherwise a player could make multiple
-                // turns per round by reentrancy.
-                let current_block = self.env().block_number();
-                assert!(
-                    player.last_turn < current_block,
-                    "This player already made its turn for this round. Last turn: {} Current Block: {}",
-                    player.last_turn, current_block,
-                );
-                player.last_turn = current_block;
-                self.players.set(&players);
-                // need to reborrow
-                Self::player_mut(&id, &mut players).unwrap()
-            } else {
-                panic!("Player not registered.")
+        pub fn submit_turn(&mut self) {
+            let State::Running { last_turn, rounds_played } = &mut self.state else {
+                panic!("This game does not accept turns right now.");
             };
 
-            // We need to panic early on `0` because zero means "use all gas".
-            let gas_left = self.gas_limit.saturating_sub(player.gas_used);
-            if gas_left == 0 {
-                panic!("No gas left to make further turns.")
-            }
+            // only one turn per block
+            let current_block = Self::env().block_number();
+            assert!(
+                *last_turn < current_block,
+                "A turn was already submitted for this block. Last turn: {} Current Block: {}",
+                last_turn, current_block,
+            );
+            *last_turn = current_block;
+            *rounds_played += 1;
 
-            // We need to call with reentrancy enabled to allow those contracts to query us.
-            let call = build_call::<DefaultEnvironment>()
-                .call_type(Call::new().callee(player.id))
-                .gas_limit(gas_left)
-                .exec_input(ExecutionInput::new(Selector::from([0x00; 4])))
-                .call_flags(CallFlags::default().set_allow_reentry(true))
-                .returns::<Result<Field, LangError>>();
+            let mut players = self.players();
 
-            let gas_before = self.env().gas_left();
-            let turn = call.fire();
-            player.gas_used += gas_before - self.env().gas_left();
+            for player in &mut players {
+                let gas_left = self.gas_limit.saturating_sub(player.gas_used);
+                // `0` means: use all gas. This is why we need to error out here
+                //  as we always want to cap the contract's available gas.
+                if gas_left == 0 {
+                    continue
+                }
 
-            // We don't bubble up the error cause we still want to record the gas usage
-            // and disallow another try. This should be enough punishment for a defunct contract.
-            let outcome = match turn {
-                Ok(Ok(turn)) => {
-                    if !self.is_valid_coord(&turn) {
-                        TurnOutcome::OutOfBounds { turn }
-                    } else {
-                        if let Some(player) = self.board.get(self.idx(&turn)) {
-                            TurnOutcome::Occupied { turn, player }
+                // We need to call with reentrancy enabled to allow those contracts to query us.
+                let call = build_call::<DefaultEnvironment>()
+                    .call_type(Call::new().callee(player.id))
+                    .gas_limit(gas_left)
+                    .exec_input(ExecutionInput::new(Selector::from([0x00; 4])))
+                    .call_flags(CallFlags::default().set_allow_reentry(true))
+                    .returns::<Field>();
+
+                let gas_before = self.env().gas_left();
+                let turn = call.try_invoke();
+                player.gas_used += gas_before - self.env().gas_left();
+
+                // We continue even if the contract call fails. If the contract don't
+                // conform it is the players fault. No second tries.
+                let outcome = match turn {
+                    Ok(Ok(turn)) => {
+                        if !self.is_valid_coord(&turn) {
+                            TurnOutcome::OutOfBounds { turn }
                         } else {
-                            self.board.insert(self.idx(&turn), &player.id);
-                            TurnOutcome::Success { turn }
+                            if let Some(player) = self.board.get(self.idx(&turn)) {
+                                TurnOutcome::Occupied { turn, player }
+                            } else {
+                                self.board.insert(self.idx(&turn), &player.id);
+                                TurnOutcome::Success { turn }
+                            }
                         }
                     }
-                }
-                err => {
-                    debug_println!("Contract failed to make a turn: {:?}", err);
-                    TurnOutcome::BrokenPlayer
-                }
-            };
+                    err => {
+                        debug_println!("Contract failed to make a turn: {:?}", err);
+                        TurnOutcome::BrokenPlayer
+                    }
+                };
 
-            self.env().emit_event(TurnTaken {
-                player: player.id,
-                outcome,
-            });
+                self.env().emit_event(TurnTaken {
+                    player: player.id,
+                    outcome,
+                });
+            }
 
             self.players.set(&players);
         }
@@ -488,18 +493,9 @@ mod squink_splash {
             players.binary_search_by_key(id, |player| player.id)
         }
 
-        fn player_mut<'a>(
-            id: &AccountId,
-            players: &'a mut [Player],
-        ) -> Option<&'a mut Player> {
-            Self::find_player(id, players)
-                .map(|idx| &mut players[idx])
-                .ok()
-        }
-
         fn is_running(&self) -> bool {
-            if let State::Running { end_block, .. } = self.state {
-                self.env().block_number() < end_block
+            if let State::Running { rounds_played, .. } = self.state {
+                rounds_played < self.rounds
             } else {
                 false
             }
@@ -512,5 +508,184 @@ mod squink_splash {
         fn is_valid_coord(&self, coord: &Field) -> bool {
             self.idx(coord) < self.dimensions.x * self.dimensions.y
         }
+    }
+}
+
+#[cfg(all(test, feature = "e2e-tests"))]
+mod tests {
+    use crate::{
+        Field,
+        Game,
+    };
+    use ink_e2e::{
+        alice,
+        build_message,
+    };
+    use test_player::TestPlayer;
+
+    #[ink_e2e::test(additional_contracts = "../test-player/Cargo.toml")]
+    async fn e2e_game(mut client: Client<C, E>) {
+        let alice = alice();
+        let dimensions = Field { x: 10, y: 10 };
+        let forming_rounds = 0;
+        let rounds = 20;
+        let buy_in = 0;
+
+        let player_alex = client
+            .instantiate(
+                "test-player",
+                &alice,
+                TestPlayer::new((dimensions.x, dimensions.y), 7),
+                0,
+                None,
+            )
+            .await
+            .unwrap()
+            .account_id;
+
+        let player_bob = client
+            .instantiate(
+                "test-player",
+                &alice,
+                TestPlayer::new((dimensions.x, dimensions.y), 3),
+                0,
+                None,
+            )
+            .await
+            .unwrap()
+            .account_id;
+
+        // find out how much gas a player turn takes to estimate a gas limit for the game
+        let (gas_consumed, gas_required) = {
+            let ret = client
+                .call(
+                    &alice,
+                    build_message::<TestPlayer>(player_alex).call(|c| c.your_turn()),
+                    0,
+                    None,
+                )
+                .await
+                .unwrap();
+            (ret.dry_run.gas_consumed, ret.dry_run.gas_required)
+        };
+        println!(
+            "turn of test player: consumed={} required={}",
+            gas_consumed, gas_required
+        );
+
+        let game = client
+            .instantiate(
+                "squink_splash",
+                &alice,
+                Game::new(
+                    dimensions,
+                    buy_in,
+                    forming_rounds,
+                    rounds,
+                    gas_required.ref_time(),
+                ),
+                0,
+                None,
+            )
+            .await
+            .unwrap()
+            .account_id;
+
+        client
+            .call(
+                &alice,
+                build_message::<Game>(game)
+                    .call(|c| c.register_player(player_alex, "Alex".into())),
+                0,
+                None,
+            )
+            .await
+            .unwrap();
+
+        client
+            .call(
+                &alice,
+                build_message::<Game>(game)
+                    .call(|c| c.register_player(player_bob, "Bob".into())),
+                0,
+                None,
+            )
+            .await
+            .unwrap();
+
+        client
+            .call(
+                &alice,
+                build_message::<Game>(game).call(|c| c.start_game()),
+                0,
+                None,
+            )
+            .await
+            .unwrap();
+
+        let state = client
+            .call(
+                &alice,
+                build_message::<Game>(game).call(|c| c.state()),
+                0,
+                None,
+            )
+            .await
+            .unwrap()
+            .return_value();
+        println!("state: {:?}", state);
+
+        for _ in 0..rounds {
+            client
+                .call(
+                    &alice,
+                    build_message::<Game>(game).call(|c| c.submit_turn()),
+                    0,
+                    None,
+                )
+                .await
+                .unwrap();
+
+            let scores = client
+                .call(
+                    &alice,
+                    build_message::<Game>(game).call(|c| c.player_scores()),
+                    0,
+                    None,
+                )
+                .await
+                .unwrap()
+                .return_value();
+
+            println!(
+                "scores: {:?}",
+                scores
+                    .iter()
+                    .map(|(p, score)| (&p.name, score))
+                    .collect::<Vec<_>>()
+            );
+        }
+
+        let state = client
+            .call(
+                &alice,
+                build_message::<Game>(game).call(|c| c.state()),
+                0,
+                None,
+            )
+            .await
+            .unwrap()
+            .return_value();
+        println!("state: {:?}", state);
+
+        client
+            .call(
+                &alice,
+                build_message::<Game>(game).call(|c| c.end_game()),
+                0,
+                None,
+            )
+            .await
+            .unwrap();
     }
 }
