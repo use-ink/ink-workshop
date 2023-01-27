@@ -53,8 +53,6 @@ mod contract {
         rounds: u32,
         /// The overall gas each player can use over the course of the whole game.
         gas_limit: u64,
-        /// The player making the first move in the next round.
-        first_player: u32,
     }
 
     /// The game can be in different states over its lifetime.
@@ -218,7 +216,6 @@ mod contract {
                 buy_in,
                 rounds,
                 gas_limit: gas_per_round * u64::from(rounds),
-                first_player: 0,
             };
             ret.players.set(&Vec::new());
             ret
@@ -351,6 +348,8 @@ mod contract {
         /// At most once per block anyone can trigger one turn of the game.
         #[ink(message)]
         pub fn submit_turn(&mut self) {
+            let mut players = self.players();
+
             let State::Running { last_turn, rounds_played } = &mut self.state else {
                 panic!("This game does not accept turns right now.");
             };
@@ -363,13 +362,14 @@ mod contract {
                 last_turn, current_block,
             );
             *last_turn = current_block;
+
+            // the last player from this round goes first in the next one
+            let num_players = players.len() as u32;
+            let mut offset = (*rounds_played * (num_players - 1)) % num_players;
             *rounds_played += 1;
 
-            let mut players = self.players();
-            let num_players = players.len();
-            let mut offset = self.first_player as usize;
             for _ in 0..num_players {
-                let player = &mut players[offset];
+                let player = &mut players[offset as usize];
                 offset = (offset + 1) % num_players;
 
                 let gas_left = self.gas_limit.saturating_sub(player.gas_used);
@@ -417,7 +417,6 @@ mod contract {
                     outcome,
                 });
             }
-            self.first_player = (self.first_player + 1) % num_players as u32;
             self.players.set(&players);
         }
 
