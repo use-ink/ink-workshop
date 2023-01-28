@@ -53,6 +53,8 @@ mod contract {
         rounds: u32,
         /// The overall gas each player can use over the course of the whole game.
         gas_limit: u64,
+        /// The block number the last turn was made.
+        last_turn: Lazy<u32>,
     }
 
     /// The game can be in different states over its lifetime.
@@ -76,8 +78,6 @@ mod contract {
         ///
         /// No new players can be registered in this phase.
         Running {
-            /// The block number the last turn was made.
-            last_turn: u32,
             /// The number of rounds that are already played in the current game.
             rounds_played: u32,
         },
@@ -216,6 +216,7 @@ mod contract {
                 buy_in,
                 rounds,
                 gas_limit: gas_per_round * u64::from(rounds),
+                last_turn: Default::default(),
             };
             ret.players.set(&Vec::new());
             ret
@@ -257,12 +258,10 @@ mod contract {
             };
             let players = self.players();
             assert!(!players.is_empty(), "You need at least one player.");
+            self.state = State::Running { rounds_played: 0 };
             // We pretent that there was already a turn in this block so that no
             // turns can be submitted in the same block as when the game is started.
-            self.state = State::Running {
-                last_turn: Self::env().block_number(),
-                rounds_played: 0,
-            };
+            self.last_turn.set(&Self::env().block_number());
             Self::env().emit_event(GameStarted {
                 starter: Self::env().caller(),
             });
@@ -350,18 +349,24 @@ mod contract {
         pub fn submit_turn(&mut self) {
             let mut players = self.players();
 
-            let State::Running { last_turn, rounds_played } = &mut self.state else {
+            let State::Running { rounds_played } = &mut self.state else {
                 panic!("This game does not accept turns right now.");
             };
 
             // only one turn per block
+            // we need to write this to storage because of reentrancy: The called contract
+            // could call this function again and do another turn in the same block
             let current_block = Self::env().block_number();
+            let last_turn = self
+                .last_turn
+                .get()
+                .expect("Value was set when starting the game.");
             assert!(
-                *last_turn < current_block,
+                last_turn < current_block,
                 "A turn was already submitted for this block. Last turn: {} Current Block: {}",
                 last_turn, current_block,
             );
-            *last_turn = current_block;
+            self.last_turn.set(&current_block);
 
             // the last player from this round goes first in the next one
             let num_players = players.len() as u32;
