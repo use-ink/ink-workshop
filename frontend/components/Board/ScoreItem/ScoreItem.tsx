@@ -25,10 +25,6 @@ export const ScoreItem: React.FC<Props> = ({ player, rank }) => {
 
       <span className="flex lg:flex-row flex-col lg:items-center items-end justify-end text-end gap-3 text-brand-500/40">
         <span className="flex items-center gap-1">
-          <p className="text-[10px]">{player.lastTurn}</p>
-          <GiCube size={12} />
-        </span>
-        <span className="flex items-center gap-1">
           <p className="text-[10px]">{player.gasUsed}</p>
           <GiGasPump size={12} />
         </span>

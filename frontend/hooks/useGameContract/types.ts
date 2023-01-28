@@ -34,7 +34,6 @@ export type Player = {
   id: AccountId;
   name: string;
   gasUsed: number;
-  lastTurn: number;
 };
 
 export type PlayerList = { [accountId: string]: string };
