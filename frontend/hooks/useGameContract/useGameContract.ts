@@ -36,20 +36,14 @@ export const useDimensions = (): Dimensions | null => {
 };
 
 const toRunningStatus = (gameState: any, blockNumber: number | undefined): Running => {
-  const currentBlock = blockNumber || 0;
-
-  const startBlock = stringNumberToBN(gameState.Running.startBlock).toNumber() || 0;
-  const endBlock = stringNumberToBN(gameState.Running.endBlock).toNumber() || 0;
-  const totalRounds = gameState ? endBlock - startBlock : 0;
-  const hasEnded = endBlock < currentBlock;
-  const currentRound = hasEnded ? totalRounds : currentBlock - startBlock;
-
+  const currentRound = stringNumberToBN(gameState.Running.roundsPlayed).toNumber() || 0;
+  const totalRounds = 200; // todo pass in from top state
+  const hasEnded = currentRound >= totalRounds;
   return {
     status: 'Running',
-    startBlock,
-    endBlock,
     totalRounds,
     currentRound,
+    hasEnded,
   };
 };
 

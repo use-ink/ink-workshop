@@ -15,10 +15,9 @@ export type Forming = {
 
 export type Running = {
   status: 'Running';
-  startBlock: number;
-  endBlock: number;
   totalRounds: number;
   currentRound: number;
+  hasEnded: boolean;
 };
 
 export type Finished = {
