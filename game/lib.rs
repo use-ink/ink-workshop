@@ -117,6 +117,12 @@ mod contract {
         pub y: u32,
     }
 
+    impl Field {
+        fn len(&self) -> u32 {
+            self.x * self.y
+        }
+    }
+
     /// The different effects resulting from a player making a turn.
     ///
     /// Please note that these are only the failures that don't make the transaction fail
@@ -434,6 +440,16 @@ mod contract {
             self.state.clone()
         }
 
+        #[ink(message)]
+        pub fn is_running(&self) -> bool {
+            if let State::Running { rounds_played, .. } = self.state {
+                let claimed_fields = self.board_iter().flatten().count() as u32;
+                rounds_played < self.rounds || claimed_fields >= self.dimensions.len()
+            } else {
+                false
+            }
+        }
+
         /// List of all players sorted by id.
         #[ink(message)]
         pub fn players(&self) -> Vec<Player> {
@@ -467,11 +483,13 @@ mod contract {
         /// The index into the vector is calculated as `x + y * width`.
         #[ink(message)]
         pub fn board(&self) -> Vec<Option<AccountId>> {
-            (0..self.dimensions.y)
-                .flat_map(|y| {
-                    (0..self.dimensions.x).map(move |x| self.field(Field { x, y }))
-                })
-                .collect()
+            self.board_iter().collect()
+        }
+
+        fn board_iter<'a>(&'a self) -> impl Iterator<Item = Option<AccountId>> + 'a {
+            (0..self.dimensions.y).flat_map(move |y| {
+                (0..self.dimensions.x).map(move |x| self.field(Field { x, y }))
+            })
         }
 
         fn player_score_iter(&self) -> impl Iterator<Item = (Player, u64)> {
@@ -494,20 +512,12 @@ mod contract {
             players.binary_search_by_key(id, |player| player.id)
         }
 
-        fn is_running(&self) -> bool {
-            if let State::Running { rounds_played, .. } = self.state {
-                rounds_played < self.rounds
-            } else {
-                false
-            }
-        }
-
         fn idx(&self, coord: &Field) -> u32 {
             coord.x + coord.y * self.dimensions.x
         }
 
         fn is_valid_coord(&self, coord: &Field) -> bool {
-            self.idx(coord) < self.dimensions.x * self.dimensions.y
+            self.idx(coord) < self.dimensions.len()
         }
     }
 }
