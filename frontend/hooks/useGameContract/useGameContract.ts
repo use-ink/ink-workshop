@@ -35,9 +35,8 @@ export const useDimensions = (): Dimensions | null => {
   return { x: parseInt(decoded.value.result.x), y: parseInt(decoded.value.result.y) };
 };
 
-const toRunningStatus = (gameState: any, blockNumber: number | undefined): Running => {
+const toRunningStatus = (gameState: any, totalRounds: number): Running => {
   const currentRound = stringNumberToBN(gameState.Running.roundsPlayed).toNumber() || 0;
-  const totalRounds = 200; // todo pass in from top state
   const hasEnded = currentRound >= totalRounds;
   return {
     status: 'Running',
@@ -64,11 +63,12 @@ export const useGameState = (): GameState | null => {
   const currentBlock = blockNumber || 0;
   const [gameState, setGameState] = useState<GameState | null>(null);
   const result = useContractCallDecoded<any>(game, 'state');
+  const totalRounds = useContractCallDecoded<any>(game, 'totalRounds');
 
   const phase = result && result.ok ? Object.keys(result.value.result || {})[0] || '' : '';
 
   useMemo(() => {
-    if (!result || !result.ok) return null;
+    if (!result || !result.ok || !totalRounds || !totalRounds.ok) return null;
 
     switch (phase.toLowerCase()) {
       case 'forming':
@@ -76,7 +76,7 @@ export const useGameState = (): GameState | null => {
         break;
 
       case 'running':
-        setGameState(toRunningStatus(result.value.result, currentBlock));
+        setGameState(toRunningStatus(result.value.result, totalRounds.value.result));
         break;
 
       case 'finished':
