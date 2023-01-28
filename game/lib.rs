@@ -34,6 +34,9 @@ mod contract {
     /// The amount of players that are allowed to register for a single game.
     const PLAYER_LIMIT: usize = 25;
 
+    /// We need to cap the players execution time so they don't stall the game.
+    const GAS_LIMIT: u64 = 400_000_000_000 / PLAYER_LIMIT as u64;
+
     /// Maximum number of bytes in a players name.
     const ALLOWED_NAME_SIZES: RangeInclusive<usize> = 3..=16;
 
@@ -51,8 +54,6 @@ mod contract {
         buy_in: Balance,
         /// The amount of blocks that this game is played for once it started.
         rounds: u32,
-        /// The overall gas each player can use over the course of the whole game.
-        gas_limit: u64,
         /// The block number the last turn was made.
         last_turn: Lazy<u32>,
     }
@@ -204,7 +205,6 @@ mod contract {
             buy_in: Balance,
             forming_rounds: u32,
             rounds: u32,
-            gas_per_round: u64,
         ) -> Self {
             let mut ret = Self {
                 state: State::Forming {
@@ -215,7 +215,6 @@ mod contract {
                 players: Default::default(),
                 buy_in,
                 rounds,
-                gas_limit: gas_per_round * u64::from(rounds),
                 last_turn: Default::default(),
             };
             ret.players.set(&Vec::new());
@@ -277,20 +276,19 @@ mod contract {
                 "Game can't be ended or has already ended.",
             );
 
-            let mut num_players = 0u64;
-            let winner = self
-                .player_score_iter()
-                .max_by_key(|(_player, score)| {
-                    num_players += 1;
-                    *score
-                })
+            let player_scores = self.player_scores();
+            let winner = player_scores
+                .first()
                 .expect("We only allow starting the game with at least 1 player.")
                 .0
                 .id;
 
             // Give the pot to the winner
             Self::env()
-                .transfer(winner, Balance::from(num_players) * self.buy_in)
+                .transfer(
+                    winner,
+                    Balance::from(player_scores.len() as u32) * self.buy_in,
+                )
                 .unwrap();
 
             self.state = State::Finished { winner };
@@ -377,17 +375,10 @@ mod contract {
                 let player = &mut players[offset as usize];
                 offset = (offset + 1) % num_players;
 
-                let gas_left = self.gas_limit.saturating_sub(player.gas_used);
-                // `0` means: use all gas. This is why we need to error out here
-                //  as we always want to cap the contract's available gas.
-                if gas_left == 0 {
-                    continue
-                }
-
                 // We need to call with reentrancy enabled to allow those contracts to query us.
                 let call = build_call::<DefaultEnvironment>()
                     .call_type(Call::new().callee(player.id))
-                    .gas_limit(gas_left)
+                    .gas_limit(GAS_LIMIT)
                     .exec_input(ExecutionInput::new(Selector::from([0x00; 4])))
                     .call_flags(CallFlags::default().set_allow_reentry(true))
                     .returns::<Field>();
@@ -448,19 +439,15 @@ mod contract {
         /// List of of all players (sorted by id) and their current scores.
         #[ink(message)]
         pub fn player_scores(&self) -> Vec<(Player, u64)> {
-            self.player_score_iter().collect()
+            let mut players: Vec<_> = self.player_score_iter().collect();
+            players.sort_unstable_by_key(|(player, score)| (*score, player.gas_used));
+            players
         }
 
         /// Returns the dimensions of the board.
         #[ink(message)]
         pub fn dimensions(&self) -> Field {
             self.dimensions
-        }
-
-        /// Returns the gas limit configured for this game.
-        #[ink(message)]
-        pub fn gas_limit(&self) -> u64 {
-            self.gas_limit
         }
 
         /// Returns the value (owner) of the supplied field.
@@ -563,35 +550,11 @@ mod tests {
             .unwrap()
             .account_id;
 
-        // find out how much gas a player turn takes to estimate a gas limit for the game
-        let (gas_consumed, gas_required) = {
-            let ret = client
-                .call(
-                    &alice,
-                    build_message::<TestPlayer>(player_alex).call(|c| c.your_turn()),
-                    0,
-                    None,
-                )
-                .await
-                .unwrap();
-            (ret.dry_run.gas_consumed, ret.dry_run.gas_required)
-        };
-        println!(
-            "turn of test player: consumed={} required={}",
-            gas_consumed, gas_required
-        );
-
         let game = client
             .instantiate(
                 "squink_splash",
                 &alice,
-                Game::new(
-                    dimensions,
-                    buy_in,
-                    forming_rounds,
-                    rounds,
-                    gas_required.ref_time(),
-                ),
+                Game::new(dimensions, buy_in, forming_rounds, rounds),
                 0,
                 None,
             )
