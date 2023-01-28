@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x1f9f4d3bf81e4d536993122f2a73db4ac3e5bdaf8dfb57c96ba4d1d12c463eae",
+    "hash": "0xc2715f9335d6b2974d872e397a6cc1de5b275ed55acfbdf4938865c4e4ef2479",
     "language": "ink! 4.0.0-beta.1",
     "compiler": "rustc 1.67.0",
     "build_info": {
@@ -152,7 +152,7 @@
               "displayName": [
                 "TurnOutcome"
               ],
-              "type": 25
+              "type": 26
             }
           }
         ],
@@ -355,6 +355,23 @@
       {
         "args": [],
         "docs": [
+          " The total amount of rounds this game is to be played for."
+        ],
+        "label": "total_rounds",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 14
+        },
+        "selector": "0x98e2054a"
+      },
+      {
+        "args": [],
+        "docs": [
           " The current game state."
         ],
         "label": "state",
@@ -365,7 +382,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 14
+          "type": 15
         },
         "selector": "0x0ced162a"
       },
@@ -382,7 +399,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 16
+          "type": 17
         },
         "selector": "0x4c3724ad"
       },
@@ -399,7 +416,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 17
+          "type": 18
         },
         "selector": "0x2ec966dd"
       },
@@ -416,7 +433,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 20
+          "type": 21
         },
         "selector": "0xf10dee95"
       },
@@ -443,7 +460,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 21
+          "type": 22
         },
         "selector": "0x4abe8f1b"
       },
@@ -462,7 +479,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 23
+          "type": 24
         },
         "selector": "0x276086cb"
       }
@@ -880,7 +897,7 @@
               {
                 "fields": [
                   {
-                    "type": 15
+                    "type": 0
                   }
                 ],
                 "index": 0,
@@ -901,7 +918,7 @@
         "params": [
           {
             "name": "T",
-            "type": 15
+            "type": 0
           },
           {
             "name": "E",
@@ -915,6 +932,48 @@
     },
     {
       "id": 15,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 16
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 12
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 16
+          },
+          {
+            "name": "E",
+            "type": 12
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 16,
       "type": {
         "def": {
           "variant": {
@@ -963,7 +1022,7 @@
       }
     },
     {
-      "id": 16,
+      "id": 17,
       "type": {
         "def": {
           "variant": {
@@ -1005,7 +1064,7 @@
       }
     },
     {
-      "id": 17,
+      "id": 18,
       "type": {
         "def": {
           "variant": {
@@ -1013,7 +1072,7 @@
               {
                 "fields": [
                   {
-                    "type": 18
+                    "type": 19
                   }
                 ],
                 "index": 0,
@@ -1034,7 +1093,7 @@
         "params": [
           {
             "name": "T",
-            "type": 18
+            "type": 19
           },
           {
             "name": "E",
@@ -1047,17 +1106,17 @@
       }
     },
     {
-      "id": 18,
+      "id": 19,
       "type": {
         "def": {
           "sequence": {
-            "type": 19
+            "type": 20
           }
         }
       }
     },
     {
-      "id": 19,
+      "id": 20,
       "type": {
         "def": {
           "tuple": [
@@ -1068,7 +1127,7 @@
       }
     },
     {
-      "id": 20,
+      "id": 21,
       "type": {
         "def": {
           "variant": {
@@ -1110,7 +1169,7 @@
       }
     },
     {
-      "id": 21,
+      "id": 22,
       "type": {
         "def": {
           "variant": {
@@ -1118,7 +1177,7 @@
               {
                 "fields": [
                   {
-                    "type": 22
+                    "type": 23
                   }
                 ],
                 "index": 0,
@@ -1139,7 +1198,7 @@
         "params": [
           {
             "name": "T",
-            "type": 22
+            "type": 23
           },
           {
             "name": "E",
@@ -1152,7 +1211,7 @@
       }
     },
     {
-      "id": 22,
+      "id": 23,
       "type": {
         "def": {
           "variant": {
@@ -1185,7 +1244,7 @@
       }
     },
     {
-      "id": 23,
+      "id": 24,
       "type": {
         "def": {
           "variant": {
@@ -1193,7 +1252,7 @@
               {
                 "fields": [
                   {
-                    "type": 24
+                    "type": 25
                   }
                 ],
                 "index": 0,
@@ -1214,7 +1273,7 @@
         "params": [
           {
             "name": "T",
-            "type": 24
+            "type": 25
           },
           {
             "name": "E",
@@ -1227,17 +1286,17 @@
       }
     },
     {
-      "id": 24,
+      "id": 25,
       "type": {
         "def": {
           "sequence": {
-            "type": 22
+            "type": 23
           }
         }
       }
     },
     {
-      "id": 25,
+      "id": 26,
       "type": {
         "def": {
           "variant": {

@@ -422,6 +422,12 @@ mod contract {
             self.buy_in
         }
 
+        /// The total amount of rounds this game is to be played for.
+        #[ink(message)]
+        pub fn total_rounds(&self) -> u32 {
+            self.rounds
+        }
+
         /// The current game state.
         #[ink(message)]
         pub fn state(&self) -> State {
