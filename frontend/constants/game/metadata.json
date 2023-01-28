@@ -1,12 +1,12 @@
 {
   "source": {
-    "hash": "0xa2e3b2dbde021e0b3efd6754d3ae2895d885e266f1d5cdfbd87a52c6eb4356a5",
-    "language": "ink! 4.0.0-beta",
-    "compiler": "rustc 1.66.1",
+    "hash": "0x1f9f4d3bf81e4d536993122f2a73db4ac3e5bdaf8dfb57c96ba4d1d12c463eae",
+    "language": "ink! 4.0.0-beta.1",
+    "compiler": "rustc 1.67.0",
     "build_info": {
       "build_mode": "Release",
-      "cargo_contract_version": "2.0.0-beta",
-      "rust_toolchain": "stable-x86_64-apple-darwin",
+      "cargo_contract_version": "2.0.0-rc",
+      "rust_toolchain": "stable-aarch64-apple-darwin",
       "wasm_opt_settings": {
         "keep_debug_symbols": false,
         "optimization_passes": "Z"
@@ -58,15 +58,6 @@
                 "u32"
               ],
               "type": 0
-            }
-          },
-          {
-            "label": "gas_per_round",
-            "type": {
-              "displayName": [
-                "u64"
-              ],
-              "type": 7
             }
           }
         ],
@@ -161,7 +152,7 @@
               "displayName": [
                 "TurnOutcome"
               ],
-              "type": 26
+              "type": 25
             }
           }
         ],
@@ -328,22 +319,9 @@
         "selector": "0x44c9d826"
       },
       {
-        "args": [
-          {
-            "label": "id",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 1
-            }
-          }
-        ],
+        "args": [],
         "docs": [
-          " Each block every player can submit their turn.",
-          "",
-          " Each player can only make one turn per block. If the contract panics or fails",
-          " to return the proper result the turn of forfeited and the gas usage is still recorded."
+          " At most once per block anyone can trigger one turn of the game."
         ],
         "label": "submit_turn",
         "mutates": true,
@@ -443,23 +421,6 @@
         "selector": "0xf10dee95"
       },
       {
-        "args": [],
-        "docs": [
-          " Returns the gas limit configured for this game."
-        ],
-        "label": "gas_limit",
-        "mutates": false,
-        "payable": false,
-        "returnType": {
-          "displayName": [
-            "ink",
-            "MessageResult"
-          ],
-          "type": 21
-        },
-        "selector": "0x58f2a0ae"
-      },
-      {
         "args": [
           {
             "label": "coord",
@@ -482,7 +443,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 22
+          "type": 21
         },
         "selector": "0x4abe8f1b"
       },
@@ -501,7 +462,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 24
+          "type": 23
         },
         "selector": "0x276086cb"
       }
@@ -541,16 +502,7 @@
                               "ty": 0
                             }
                           },
-                          "name": "start_block"
-                        },
-                        {
-                          "layout": {
-                            "leaf": {
-                              "key": "0x00000000",
-                              "ty": 0
-                            }
-                          },
-                          "name": "end_block"
+                          "name": "rounds_played"
                         }
                       ],
                       "name": "Running"
@@ -650,12 +602,17 @@
             },
             {
               "layout": {
-                "leaf": {
-                  "key": "0x00000000",
-                  "ty": 7
+                "root": {
+                  "layout": {
+                    "leaf": {
+                      "key": "0xecf15311",
+                      "ty": 0
+                    }
+                  },
+                  "root_key": "0xecf15311"
                 }
               },
-              "name": "gas_limit"
+              "name": "last_turn"
             }
           ],
           "name": "SquinkSplash"
@@ -742,18 +699,13 @@
                 "name": "gas_used",
                 "type": 7,
                 "typeName": "u64"
-              },
-              {
-                "name": "last_turn",
-                "type": 0,
-                "typeName": "u32"
               }
             ]
           }
         },
         "path": [
-          "game",
           "squink_splash",
+          "contract",
           "Player"
         ]
       }
@@ -802,8 +754,8 @@
           }
         },
         "path": [
-          "game",
           "squink_splash",
+          "contract",
           "Field"
         ]
       }
@@ -981,12 +933,7 @@
               {
                 "fields": [
                   {
-                    "name": "start_block",
-                    "type": 0,
-                    "typeName": "u32"
-                  },
-                  {
-                    "name": "end_block",
+                    "name": "rounds_played",
                     "type": 0,
                     "typeName": "u32"
                   }
@@ -1009,8 +956,8 @@
           }
         },
         "path": [
-          "game",
           "squink_splash",
+          "contract",
           "State"
         ]
       }
@@ -1171,7 +1118,7 @@
               {
                 "fields": [
                   {
-                    "type": 7
+                    "type": 22
                   }
                 ],
                 "index": 0,
@@ -1192,7 +1139,7 @@
         "params": [
           {
             "name": "T",
-            "type": 7
+            "type": 22
           },
           {
             "name": "E",
@@ -1206,48 +1153,6 @@
     },
     {
       "id": 22,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 23
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 12
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 23
-          },
-          {
-            "name": "E",
-            "type": 12
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 23,
       "type": {
         "def": {
           "variant": {
@@ -1280,7 +1185,7 @@
       }
     },
     {
-      "id": 24,
+      "id": 23,
       "type": {
         "def": {
           "variant": {
@@ -1288,7 +1193,7 @@
               {
                 "fields": [
                   {
-                    "type": 25
+                    "type": 24
                   }
                 ],
                 "index": 0,
@@ -1309,7 +1214,7 @@
         "params": [
           {
             "name": "T",
-            "type": 25
+            "type": 24
           },
           {
             "name": "E",
@@ -1322,17 +1227,17 @@
       }
     },
     {
-      "id": 25,
+      "id": 24,
       "type": {
         "def": {
           "sequence": {
-            "type": 23
+            "type": 22
           }
         }
       }
     },
     {
-      "id": 26,
+      "id": 25,
       "type": {
         "def": {
           "variant": {
@@ -1383,8 +1288,8 @@
           }
         },
         "path": [
-          "game",
           "squink_splash",
+          "contract",
           "TurnOutcome"
         ]
       }
