@@ -15,10 +15,9 @@ export type Forming = {
 
 export type Running = {
   status: 'Running';
-  startBlock: number;
-  endBlock: number;
   totalRounds: number;
   currentRound: number;
+  hasEnded: boolean;
 };
 
 export type Finished = {
@@ -34,7 +33,6 @@ export type Player = {
   id: AccountId;
   name: string;
   gasUsed: number;
-  lastTurn: number;
 };
 
 export type PlayerList = { [accountId: string]: string };
