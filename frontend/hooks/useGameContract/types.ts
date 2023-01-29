@@ -17,7 +17,6 @@ export type Running = {
   status: 'Running';
   totalRounds: number;
   currentRound: number;
-  hasEnded: boolean;
 };
 
 export type Finished = {

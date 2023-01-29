@@ -37,12 +37,10 @@ export const useDimensions = (): Dimensions | null => {
 
 const toRunningStatus = (gameState: any, totalRounds: number): Running => {
   const currentRound = stringNumberToBN(gameState.Running.roundsPlayed).toNumber() || 0;
-  const hasEnded = currentRound >= totalRounds;
   return {
     status: 'Running',
     totalRounds,
     currentRound,
-    hasEnded,
   };
 };
 
