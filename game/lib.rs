@@ -7,7 +7,10 @@ pub use contract::{
 
 #[ink::contract]
 mod contract {
-    use core::ops::RangeInclusive;
+    use core::{
+        cmp::Reverse,
+        ops::RangeInclusive,
+    };
     use ink::{
         env::{
             call::{
@@ -462,7 +465,9 @@ mod contract {
         #[ink(message)]
         pub fn player_scores(&self) -> Vec<(Player, u64)> {
             let mut players: Vec<_> = self.player_score_iter().collect();
-            players.sort_unstable_by_key(|(player, score)| (*score, player.gas_used));
+            players.sort_unstable_by_key(|(player, score)| {
+                Reverse((*score, player.gas_used))
+            });
             players
         }
 
