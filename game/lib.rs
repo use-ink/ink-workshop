@@ -447,7 +447,7 @@ mod contract {
         pub fn is_running(&self) -> bool {
             if let State::Running { rounds_played, .. } = self.state {
                 let claimed_fields = self.board_iter().flatten().count() as u32;
-                rounds_played < self.rounds || claimed_fields < self.dimensions.len()
+                rounds_played < self.rounds && claimed_fields < self.dimensions.len()
             } else {
                 false
             }

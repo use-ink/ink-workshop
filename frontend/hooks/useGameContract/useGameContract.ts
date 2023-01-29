@@ -37,12 +37,10 @@ export const useDimensions = (): Dimensions | null => {
 
 const toRunningStatus = (gameState: any, totalRounds: number): Running => {
   const currentRound = stringNumberToBN(gameState.Running.roundsPlayed).toNumber() || 0;
-  const hasEnded = currentRound >= totalRounds;
   return {
     status: 'Running',
     totalRounds,
     currentRound,
-    hasEnded,
   };
 };
 
@@ -126,19 +124,11 @@ export const usePlayerScores = (): PlayerScore[] => {
 
   return useMemo(() => {
     if (result && result.ok) {
-      return [...result.value.result]
-        .sort((a, b) => {
-          try {
-            return stringNumberToBN(a[1]).lte(stringNumberToBN(b[1])) ? 1 : 0;
-          } catch (e) {
-            return 1;
-          }
-        })
-        .map((data, i) => ({
-          ...data[0],
-          score: data[1],
-          color: colors[data[0].id],
-        }));
+      return [...result.value.result].map((data, i) => ({
+        ...data[0],
+        score: data[1],
+        color: colors[data[0].id],
+      }));
     }
 
     return [];

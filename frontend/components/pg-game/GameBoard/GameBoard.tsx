@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { useDimensions, useBoard, useGameState } from '../../../hooks/useGameContract';
 import { Board } from '../../Board';
-import { ConnectWallet } from '../../ConnectWallet';
 import { useAudioSettings } from '../../../hooks/useAudioSettings';
 import { Settings } from './Settings';
 import { PlayerTurnSoundEffect } from '../../Board/PlayerTurnSoundEffect';
@@ -47,10 +46,6 @@ export const GameBoard: React.FC = () => {
         ))}
 
         <Board boardWidth="80%" board={board} dimensions={dim} className="w-full h-full" status={status} />
-
-        <div className="fixed right-3 bottom-3 max-w-sm z-10">
-          <ConnectWallet />
-        </div>
 
         <div className="fixed left-3 bottom-3 z-10">
           <Settings />
