@@ -1,7 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub use contract::{
-    Field,
+    Field, FieldEntry,
     SquinkSplashRef as Game,
 };
 
@@ -59,6 +59,16 @@ mod contract {
         rounds: u32,
         /// The block number the last turn was made.
         last_turn: Lazy<u32>,
+    }
+
+    #[derive(scale::Decode, scale::Encode)]
+    #[cfg_attr(
+        feature = "std",
+        derive(Debug, scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+    )]
+    pub struct GameInfo {
+        rounds_played: u32,
+        player_scores: Vec<(String, u64)>
     }
 
     /// The game can be in different states over its lifetime.
@@ -126,13 +136,16 @@ mod contract {
         }
     }
 
+    /// Info for each occupied board entry.
     #[derive(scale::Decode, scale::Encode, Debug)]
     #[cfg_attr(
         feature = "std",
         derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
     )]
     pub struct FieldEntry {
+        /// Player to claimed the field.
         owner: AccountId,
+        /// The round in which the field was claimed.
         claimed_at: u32,
     }
 
