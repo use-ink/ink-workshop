@@ -48,7 +48,7 @@ mod contract {
         /// In which game phase is this contract.
         state: State,
         /// List of fields with their owner (if any).
-        board: Mapping<u32, AccountId>,
+        board: Mapping<u32, FieldEntry>,
         /// Width and height of the board.
         dimensions: Field,
         /// List of all players.
@@ -124,6 +124,16 @@ mod contract {
         fn len(&self) -> u32 {
             self.x * self.y
         }
+    }
+
+    #[derive(scale::Decode, scale::Encode, Debug)]
+    #[cfg_attr(
+        feature = "std",
+        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+    )]
+    pub struct FieldEntry {
+        owner: AccountId,
+        claimed_at: u32,
     }
 
     /// The different effects resulting from a player making a turn.
@@ -384,6 +394,7 @@ mod contract {
             let num_players = players.len() as u32;
             let mut offset = (*rounds_played * (num_players - 1)) % num_players;
             *rounds_played += 1;
+            let rounds_played = *rounds_played;
 
             for _ in 0..num_players {
                 let player = &mut players[offset as usize];
@@ -408,10 +419,19 @@ mod contract {
                         if !self.is_valid_coord(&turn) {
                             TurnOutcome::OutOfBounds { turn }
                         } else {
-                            if let Some(player) = self.board.get(self.idx(&turn)) {
-                                TurnOutcome::Occupied { turn, player }
+                            if let Some(entry) = self.board.get(self.idx(&turn)) {
+                                TurnOutcome::Occupied {
+                                    turn,
+                                    player: entry.owner,
+                                }
                             } else {
-                                self.board.insert(self.idx(&turn), &player.id);
+                                self.board.insert(
+                                    self.idx(&turn),
+                                    &FieldEntry {
+                                        owner: player.id,
+                                        claimed_at: rounds_played,
+                                    },
+                                );
                                 TurnOutcome::Success { turn }
                             }
                         }
@@ -484,7 +504,7 @@ mod contract {
 
         /// Returns the value (owner) of the supplied field.
         #[ink(message)]
-        pub fn field(&self, coord: Field) -> Option<AccountId> {
+        pub fn field(&self, coord: Field) -> Option<FieldEntry> {
             self.board.get(self.idx(&coord))
         }
 
@@ -492,11 +512,11 @@ mod contract {
         ///
         /// The index into the vector is calculated as `x + y * width`.
         #[ink(message)]
-        pub fn board(&self) -> Vec<Option<AccountId>> {
+        pub fn board(&self) -> Vec<Option<FieldEntry>> {
             self.board_iter().collect()
         }
 
-        fn board_iter<'a>(&'a self) -> impl Iterator<Item = Option<AccountId>> + 'a {
+        fn board_iter<'a>(&'a self) -> impl Iterator<Item = Option<FieldEntry>> + 'a {
             (0..self.dimensions.y).flat_map(move |y| {
                 (0..self.dimensions.x).map(move |x| self.field(Field { x, y }))
             })
@@ -507,9 +527,9 @@ mod contract {
             let board = self.board();
             let mut scores = BTreeMap::<AccountId, u64>::new();
 
-            for owner in board.into_iter().flatten() {
-                let entry = scores.entry(owner).or_default();
-                *entry = *entry + 1;
+            for field in board.into_iter().flatten() {
+                let entry = scores.entry(field.owner).or_default();
+                *entry = *entry + u64::from(field.claimed_at);
             }
 
             players.into_iter().map(move |p| {
