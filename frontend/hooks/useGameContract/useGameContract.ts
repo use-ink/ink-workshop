@@ -162,7 +162,7 @@ export const useBoard = (): BoardPosition[] => {
   const game = useGameContract();
   const dim = useDimensions();
   const colors = usePlayerColors();
-  const result = useContractCallDecoded<(AccountId | null)[]>(game, 'board');
+  const result = useContractCallDecoded<({ owner: string } | null)[]>(game, 'board');
 
   return useMemo(() => {
     if (dim && result && result.ok) {
@@ -171,7 +171,7 @@ export const useBoard = (): BoardPosition[] => {
       let index = 0;
       for (let y = 0; y < dim.y; y += 1) {
         for (let x = 0; x < dim.x; x += 1) {
-          const owner = result.value.result?.[index];
+          const owner = result.value.result?.[index]?.owner;
           data.push({ x, y, owner, color: colors[owner || ''] });
           index += 1;
         }
