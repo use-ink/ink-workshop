@@ -428,7 +428,7 @@ mod contract {
 
                 // We need to call with reentrancy enabled to allow those contracts to query us.
                 let call = build_call::<DefaultEnvironment>()
-                    .call_type(Call::new().callee(player.id))
+                    .call_type(Call::new(player.id))
                     .gas_limit(GAS_LIMIT)
                     .exec_input(
                         ExecutionInput::new(Selector::from([0x00; 4]))
