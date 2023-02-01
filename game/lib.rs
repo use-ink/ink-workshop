@@ -3,6 +3,7 @@
 pub use contract::{
     Field,
     FieldEntry,
+    GameInfo,
     SquinkSplashRef as Game,
 };
 
@@ -178,6 +179,8 @@ mod contract {
         /// Player contract failed to return a result. This happens if it paniced, ran out
         /// of gas, returns garbage or is not even a contract.
         BrokenPlayer,
+        /// Player decided to not make a turn and hence was charged no gas.
+        NoTurn,
     }
 
     /// A player joined the game by calling `register_player`.
@@ -432,16 +435,18 @@ mod contract {
                             .push_arg(&game_info),
                     )
                     .call_flags(CallFlags::default().set_allow_reentry(true))
-                    .returns::<Field>();
+                    .returns::<Option<Field>>();
 
                 let gas_before = Self::env().gas_left();
                 let turn = call.try_invoke();
-                player.gas_used += gas_before - Self::env().gas_left();
+                let gas_used = gas_before - Self::env().gas_left();
 
                 // We continue even if the contract call fails. If the contract don't
                 // conform it is the players fault. No second tries.
                 let outcome = match turn {
-                    Ok(Ok(turn)) => {
+                    Ok(Ok(Some(turn))) => {
+                        // player tried to make a turn: charge gas
+                        player.gas_used += gas_used;
                         if !self.is_valid_coord(&turn) {
                             TurnOutcome::OutOfBounds { turn }
                         } else {
@@ -462,7 +467,10 @@ mod contract {
                             }
                         }
                     }
+                    Ok(Ok(None)) => TurnOutcome::NoTurn,
                     err => {
+                        // player gets charged gas for failing
+                        player.gas_used += gas_used;
                         debug_println!("Contract failed to make a turn: {:?}", err);
                         TurnOutcome::BrokenPlayer
                     }

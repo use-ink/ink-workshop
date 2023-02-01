@@ -2,11 +2,12 @@
 
 #[ink::contract]
 mod player {
+    use ink::env::call::FromAccountId;
     use squink_splash::{
         Field,
         Game,
+        GameInfo,
     };
-    use ink::env::call::FromAccountId;
 
     #[ink(storage)]
     pub struct Player {
@@ -39,10 +40,10 @@ mod player {
         /// The function can be named as you like, but it always needs to have
         /// a defined selector of `0`.
         #[ink(message, selector = 0)]
-        pub fn your_turn(&mut self) -> Field {
+        pub fn your_turn(&mut self, info: GameInfo) -> Option<Field> {
             // self.game.field(Field { x: 0, x: 1 }) -> check if a square is painted
 
-            Field { x: 0, y: 0 }
+            Some(Field { x: 0, y: 0 })
         }
     }
 }

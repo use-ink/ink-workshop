@@ -12,6 +12,7 @@ squink_splash = { path = "../../game", default-features = false, features = ["in
 
 [lib]
 path = "lib.rs"
+crate-type = ["cdylib"]
 
 [features]
 default = ["std"]

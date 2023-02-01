@@ -8,7 +8,7 @@ mod player {
     impl Player {
         #[ink(constructor)]
         pub fn new() -> Self {
-            Self  {}
+            Self {}
         }
 
         /// This is the function that will be called during every game round.
@@ -24,7 +24,7 @@ mod player {
         /// The function can be named as you like, but it always needs to have
         /// a defined selector of `0`.
         #[ink(message, selector = 0)]
-        pub fn your_turn(&self) -> (u32, u32) {
+        pub fn your_turn(&self) -> Option<(u32, u32)> {
             // TODO: return the turn you want to make (x, y)
             unimplemented!()
         }

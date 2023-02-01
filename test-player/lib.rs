@@ -32,10 +32,10 @@ mod player {
         /// The function can be named as you like, but it always needs to have
         /// a defined selector of `0`.
         #[ink(message, selector = 0)]
-        pub fn your_turn(&mut self) -> (u32, u32) {
-            let turn =  self.next_turn;
+        pub fn your_turn(&mut self) -> Option<(u32, u32)> {
+            let turn = self.next_turn;
             self.next_turn += 1;
-            (turn % self.dimensions.0, turn / self.dimensions.0)
+            Some((turn % self.dimensions.0, turn / self.dimensions.0))
         }
     }
 }
