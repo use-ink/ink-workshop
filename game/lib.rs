@@ -38,8 +38,11 @@ mod contract {
     /// The amount of players that are allowed to register for a single game.
     const PLAYER_LIMIT: usize = 50;
 
-    /// We need to cap the players execution time so they don't stall the game.
-    const GAS_LIMIT: u64 = 300_000_000_000 / PLAYER_LIMIT as u64;
+    /// The amount of gas we want to allocate to all players within one turn.
+    ///
+    /// Should be smaller than the maximum extrinsic weight since we also need to account
+    /// for the overhead of the game contract itself.
+    const GAS_LIMIT: u64 = 250_000_000_000;
 
     /// Maximum number of bytes in a players name.
     const ALLOWED_NAME_SIZES: RangeInclusive<usize> = 3..=16;
@@ -426,7 +429,7 @@ mod contract {
                 // We need to call with reentrancy enabled to allow those contracts to query us.
                 let call = build_call::<DefaultEnvironment>()
                     .call_type(Call::new(player.id))
-                    .gas_limit(GAS_LIMIT)
+                    .gas_limit(GAS_LIMIT / u64::from(num_players))
                     .exec_input(
                         ExecutionInput::new(Selector::from([0x00; 4]))
                             .push_arg(&game_info),
