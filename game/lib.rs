@@ -26,7 +26,6 @@ mod contract {
             DefaultEnvironment,
         },
         prelude::{
-            collections::BTreeMap,
             string::String,
             vec::Vec,
         },
@@ -117,6 +116,7 @@ mod contract {
         pub id: AccountId,
         pub name: String,
         pub gas_used: u64,
+        pub score: u64,
     }
 
     /// Describing either a single point in the field or its dimensions.
@@ -222,8 +222,6 @@ mod contract {
     pub struct GameDestroyed {
         /// The winning player who is also the one who destroyed the contract.
         winner: Player,
-        /// The winning score of the player.
-        score: u64,
     }
 
     impl SquinkSplash {
@@ -266,15 +264,14 @@ mod contract {
                     Self::env().caller(),
                     "Only winner is allowed to destroy the contract."
                 );
-                let (winning_player, score) = self
-                    .player_score_iter()
-                    .find(|(player, _score)| player.id == winner)
+                let winner = self
+                    .players()
+                    .into_iter()
+                    .find(|player| player.id == winner)
                     .expect("The winner is a player; qed");
-                Self::env().emit_event(GameDestroyed {
-                    winner: winning_player,
-                    score,
-                });
-                Self::env().terminate_contract(winner)
+                let winner_id = winner.id.clone();
+                Self::env().emit_event(GameDestroyed { winner });
+                Self::env().terminate_contract(winner_id)
             } else {
                 panic!("Only finished games can be destroyed.")
             }
@@ -312,11 +309,10 @@ mod contract {
                 "Game can't be ended or has already ended.",
             );
 
-            let player_scores = self.player_scores();
+            let player_scores = self.players();
             let winner = player_scores
                 .first()
                 .expect("We only allow starting the game with at least 1 player.")
-                .0
                 .id;
 
             // Give the pot to the winner
@@ -369,6 +365,7 @@ mod contract {
                             id,
                             name,
                             gas_used: 0,
+                            score: 0,
                         },
                     );
                     self.players.set(&players);
@@ -416,9 +413,9 @@ mod contract {
             // information about the game passed to players
             let game_info = GameInfo {
                 rounds_played,
-                player_scores: self
-                    .player_score_iter()
-                    .map(|(player, score)| (player.name, score))
+                player_scores: players
+                    .iter()
+                    .map(|player| (player.name.clone(), player.score.clone()))
                     .collect(),
             };
 
@@ -463,6 +460,7 @@ mod contract {
                                         claimed_at: rounds_played,
                                     },
                                 );
+                                player.score += u64::from(rounds_played);
                                 TurnOutcome::Success { turn }
                             }
                         }
@@ -505,31 +503,20 @@ mod contract {
         #[ink(message)]
         pub fn is_running(&self) -> bool {
             if let State::Running { rounds_played, .. } = self.state {
-                let claimed_fields = self.board_iter().flatten().count() as u32;
-                rounds_played < self.rounds && claimed_fields < self.dimensions.len()
+                rounds_played < self.rounds
             } else {
                 false
             }
         }
 
-        /// List of all players sorted by id.
+        /// List of all players sorted by score and gas costs.
         #[ink(message)]
-        pub fn players(&self) -> Vec<Player> {
-            self.players
-                .get()
-                .expect("Initial value is set in constructor.")
-        }
-
-        /// List of of all players (sorted by id) and their current scores.
-        #[ink(message)]
-        pub fn player_scores(&self) -> Vec<(Player, u64)> {
-            let mut players: Vec<_> = self.player_score_iter().collect();
-            players.sort_unstable_by_key(|(player, score)| {
-                (Reverse(*score), player.gas_used)
-            });
+        pub fn players_sorted(&self) -> Vec<Player> {
+            let mut players = self.players();
+            players
+                .sort_unstable_by_key(|player| (Reverse(player.score), player.gas_used));
             players
         }
-
         /// Returns the dimensions of the board.
         #[ink(message)]
         pub fn dimensions(&self) -> Field {
@@ -550,25 +537,15 @@ mod contract {
             self.board_iter().collect()
         }
 
+        fn players(&self) -> Vec<Player> {
+            self.players
+                .get()
+                .expect("Initial value is set in constructor.")
+        }
+
         fn board_iter<'a>(&'a self) -> impl Iterator<Item = Option<FieldEntry>> + 'a {
             (0..self.dimensions.y).flat_map(move |y| {
                 (0..self.dimensions.x).map(move |x| self.field(Field { x, y }))
-            })
-        }
-
-        fn player_score_iter(&self) -> impl Iterator<Item = (Player, u64)> {
-            let players = self.players();
-            let board = self.board();
-            let mut scores = BTreeMap::<AccountId, u64>::new();
-
-            for field in board.into_iter().flatten() {
-                let entry = scores.entry(field.owner).or_default();
-                *entry = *entry + u64::from(field.claimed_at);
-            }
-
-            players.into_iter().map(move |p| {
-                let score = scores.get(&p.id).unwrap_or(&0);
-                (p, *score)
             })
         }
 
