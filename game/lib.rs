@@ -354,6 +354,11 @@ mod contract {
         /// At most once per block anyone can trigger one turn of the game.
         #[ink(message)]
         pub fn submit_turn(&mut self) {
+            assert!(
+                self.is_running(),
+                "Game can't be ended or has already ended.",
+            );
+
             let mut players = self.players();
 
             let State::Running { rounds_played } = &mut self.state else {
