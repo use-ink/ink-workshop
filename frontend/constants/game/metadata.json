@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xad013e23b60f9357cb64342b83004000a90fa2b53d3ddcd50ed410b1c53ab9a8",
+    "hash": "0xedfcad70ec07c54403ac11ac4ae0c01ac6f9214f24b2e5519068c1d33e03acea",
     "language": "ink! 4.0.0-beta.1",
     "compiler": "rustc 1.67.0",
     "build_info": {
@@ -152,7 +152,7 @@
               "displayName": [
                 "TurnOutcome"
               ],
-              "type": 28
+              "type": 29
             }
           }
         ],
@@ -494,7 +494,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 26
+          "type": 27
         },
         "selector": "0x276086cb"
       }
@@ -562,9 +562,28 @@
               "layout": {
                 "root": {
                   "layout": {
-                    "leaf": {
-                      "key": "0xb93a8c6e",
-                      "ty": 1
+                    "struct": {
+                      "fields": [
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0xb93a8c6e",
+                              "ty": 1
+                            }
+                          },
+                          "name": "owner"
+                        },
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0xb93a8c6e",
+                              "ty": 0
+                            }
+                          },
+                          "name": "claimed_at"
+                        }
+                      ],
+                      "name": "FieldEntry"
                     }
                   },
                   "root_key": "0xb93a8c6e"
@@ -1288,7 +1307,7 @@
               {
                 "fields": [
                   {
-                    "type": 1
+                    "type": 26
                   }
                 ],
                 "index": 1,
@@ -1300,7 +1319,7 @@
         "params": [
           {
             "name": "T",
-            "type": 1
+            "type": 26
           }
         ],
         "path": [
@@ -1312,12 +1331,38 @@
       "id": 26,
       "type": {
         "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "owner",
+                "type": 1,
+                "typeName": "AccountId"
+              },
+              {
+                "name": "claimed_at",
+                "type": 0,
+                "typeName": "u32"
+              }
+            ]
+          }
+        },
+        "path": [
+          "squink_splash",
+          "contract",
+          "FieldEntry"
+        ]
+      }
+    },
+    {
+      "id": 27,
+      "type": {
+        "def": {
           "variant": {
             "variants": [
               {
                 "fields": [
                   {
-                    "type": 27
+                    "type": 28
                   }
                 ],
                 "index": 0,
@@ -1338,7 +1383,7 @@
         "params": [
           {
             "name": "T",
-            "type": 27
+            "type": 28
           },
           {
             "name": "E",
@@ -1351,7 +1396,7 @@
       }
     },
     {
-      "id": 27,
+      "id": 28,
       "type": {
         "def": {
           "sequence": {
@@ -1361,7 +1406,7 @@
       }
     },
     {
-      "id": 28,
+      "id": 29,
       "type": {
         "def": {
           "variant": {
@@ -1407,6 +1452,10 @@
               {
                 "index": 3,
                 "name": "BrokenPlayer"
+              },
+              {
+                "index": 4,
+                "name": "NoTurn"
               }
             ]
           }
