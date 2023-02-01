@@ -471,7 +471,7 @@ mod contract {
         pub fn player_scores(&self) -> Vec<(Player, u64)> {
             let mut players: Vec<_> = self.player_score_iter().collect();
             players.sort_unstable_by_key(|(player, score)| {
-                Reverse((*score, player.gas_used))
+                (Reverse(*score), player.gas_used)
             });
             players
         }
