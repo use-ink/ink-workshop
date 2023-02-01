@@ -1,7 +1,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub use contract::{
-    Field, FieldEntry,
+    Field,
+    FieldEntry,
     SquinkSplashRef as Game,
 };
 
@@ -68,7 +69,7 @@ mod contract {
     )]
     pub struct GameInfo {
         rounds_played: u32,
-        player_scores: Vec<(String, u64)>
+        player_scores: Vec<(String, u64)>,
     }
 
     /// The game can be in different states over its lifetime.
@@ -409,6 +410,15 @@ mod contract {
             *rounds_played += 1;
             let rounds_played = *rounds_played;
 
+            // information about the game passed to players
+            let game_info = GameInfo {
+                rounds_played,
+                player_scores: self
+                    .player_score_iter()
+                    .map(|(player, score)| (player.name, score))
+                    .collect(),
+            };
+
             for _ in 0..num_players {
                 let player = &mut players[offset as usize];
                 offset = (offset + 1) % num_players;
@@ -417,7 +427,10 @@ mod contract {
                 let call = build_call::<DefaultEnvironment>()
                     .call_type(Call::new().callee(player.id))
                     .gas_limit(GAS_LIMIT)
-                    .exec_input(ExecutionInput::new(Selector::from([0x00; 4])))
+                    .exec_input(
+                        ExecutionInput::new(Selector::from([0x00; 4]))
+                            .push_arg(&game_info),
+                    )
                     .call_flags(CallFlags::default().set_allow_reentry(true))
                     .returns::<Field>();
 
