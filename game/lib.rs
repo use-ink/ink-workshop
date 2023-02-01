@@ -2,6 +2,8 @@
 
 pub use contract::{
     Field,
+    FieldEntry,
+    GameInfo,
     SquinkSplashRef as Game,
 };
 
@@ -48,7 +50,7 @@ mod contract {
         /// In which game phase is this contract.
         state: State,
         /// List of fields with their owner (if any).
-        board: Mapping<u32, AccountId>,
+        board: Mapping<u32, FieldEntry>,
         /// Width and height of the board.
         dimensions: Field,
         /// List of all players.
@@ -59,6 +61,16 @@ mod contract {
         rounds: u32,
         /// The block number the last turn was made.
         last_turn: Lazy<u32>,
+    }
+
+    #[derive(scale::Decode, scale::Encode)]
+    #[cfg_attr(
+        feature = "std",
+        derive(Debug, scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+    )]
+    pub struct GameInfo {
+        rounds_played: u32,
+        player_scores: Vec<(String, u64)>,
     }
 
     /// The game can be in different states over its lifetime.
@@ -126,6 +138,19 @@ mod contract {
         }
     }
 
+    /// Info for each occupied board entry.
+    #[derive(scale::Decode, scale::Encode, Debug)]
+    #[cfg_attr(
+        feature = "std",
+        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+    )]
+    pub struct FieldEntry {
+        /// Player to claimed the field.
+        owner: AccountId,
+        /// The round in which the field was claimed.
+        claimed_at: u32,
+    }
+
     /// The different effects resulting from a player making a turn.
     ///
     /// Please note that these are only the failures that don't make the transaction fail
@@ -154,6 +179,8 @@ mod contract {
         /// Player contract failed to return a result. This happens if it paniced, ran out
         /// of gas, returns garbage or is not even a contract.
         BrokenPlayer,
+        /// Player decided to not make a turn and hence was charged no gas.
+        NoTurn,
     }
 
     /// A player joined the game by calling `register_player`.
@@ -384,6 +411,16 @@ mod contract {
             let num_players = players.len() as u32;
             let mut offset = (*rounds_played * (num_players - 1)) % num_players;
             *rounds_played += 1;
+            let rounds_played = *rounds_played;
+
+            // information about the game passed to players
+            let game_info = GameInfo {
+                rounds_played,
+                player_scores: self
+                    .player_score_iter()
+                    .map(|(player, score)| (player.name, score))
+                    .collect(),
+            };
 
             for _ in 0..num_players {
                 let player = &mut players[offset as usize];
@@ -393,30 +430,47 @@ mod contract {
                 let call = build_call::<DefaultEnvironment>()
                     .call_type(Call::new().callee(player.id))
                     .gas_limit(GAS_LIMIT)
-                    .exec_input(ExecutionInput::new(Selector::from([0x00; 4])))
+                    .exec_input(
+                        ExecutionInput::new(Selector::from([0x00; 4]))
+                            .push_arg(&game_info),
+                    )
                     .call_flags(CallFlags::default().set_allow_reentry(true))
-                    .returns::<Field>();
+                    .returns::<Option<Field>>();
 
                 let gas_before = Self::env().gas_left();
                 let turn = call.try_invoke();
-                player.gas_used += gas_before - Self::env().gas_left();
+                let gas_used = gas_before - Self::env().gas_left();
 
                 // We continue even if the contract call fails. If the contract don't
                 // conform it is the players fault. No second tries.
                 let outcome = match turn {
-                    Ok(Ok(turn)) => {
+                    Ok(Ok(Some(turn))) => {
+                        // player tried to make a turn: charge gas
+                        player.gas_used += gas_used;
                         if !self.is_valid_coord(&turn) {
                             TurnOutcome::OutOfBounds { turn }
                         } else {
-                            if let Some(player) = self.board.get(self.idx(&turn)) {
-                                TurnOutcome::Occupied { turn, player }
+                            if let Some(entry) = self.board.get(self.idx(&turn)) {
+                                TurnOutcome::Occupied {
+                                    turn,
+                                    player: entry.owner,
+                                }
                             } else {
-                                self.board.insert(self.idx(&turn), &player.id);
+                                self.board.insert(
+                                    self.idx(&turn),
+                                    &FieldEntry {
+                                        owner: player.id,
+                                        claimed_at: rounds_played,
+                                    },
+                                );
                                 TurnOutcome::Success { turn }
                             }
                         }
                     }
+                    Ok(Ok(None)) => TurnOutcome::NoTurn,
                     err => {
+                        // player gets charged gas for failing
+                        player.gas_used += gas_used;
                         debug_println!("Contract failed to make a turn: {:?}", err);
                         TurnOutcome::BrokenPlayer
                     }
@@ -484,7 +538,7 @@ mod contract {
 
         /// Returns the value (owner) of the supplied field.
         #[ink(message)]
-        pub fn field(&self, coord: Field) -> Option<AccountId> {
+        pub fn field(&self, coord: Field) -> Option<FieldEntry> {
             self.board.get(self.idx(&coord))
         }
 
@@ -492,11 +546,11 @@ mod contract {
         ///
         /// The index into the vector is calculated as `x + y * width`.
         #[ink(message)]
-        pub fn board(&self) -> Vec<Option<AccountId>> {
+        pub fn board(&self) -> Vec<Option<FieldEntry>> {
             self.board_iter().collect()
         }
 
-        fn board_iter<'a>(&'a self) -> impl Iterator<Item = Option<AccountId>> + 'a {
+        fn board_iter<'a>(&'a self) -> impl Iterator<Item = Option<FieldEntry>> + 'a {
             (0..self.dimensions.y).flat_map(move |y| {
                 (0..self.dimensions.x).map(move |x| self.field(Field { x, y }))
             })
@@ -507,9 +561,9 @@ mod contract {
             let board = self.board();
             let mut scores = BTreeMap::<AccountId, u64>::new();
 
-            for owner in board.into_iter().flatten() {
-                let entry = scores.entry(owner).or_default();
-                *entry = *entry + 1;
+            for field in board.into_iter().flatten() {
+                let entry = scores.entry(field.owner).or_default();
+                *entry = *entry + u64::from(field.claimed_at);
             }
 
             players.into_iter().map(move |p| {
