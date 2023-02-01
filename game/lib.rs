@@ -37,10 +37,10 @@ mod contract {
     };
 
     /// The amount of players that are allowed to register for a single game.
-    const PLAYER_LIMIT: usize = 25;
+    const PLAYER_LIMIT: usize = 50;
 
     /// We need to cap the players execution time so they don't stall the game.
-    const GAS_LIMIT: u64 = 400_000_000_000 / PLAYER_LIMIT as u64;
+    const GAS_LIMIT: u64 = 300_000_000_000 / PLAYER_LIMIT as u64;
 
     /// Maximum number of bytes in a players name.
     const ALLOWED_NAME_SIZES: RangeInclusive<usize> = 3..=16;
