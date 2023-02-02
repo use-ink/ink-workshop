@@ -39,7 +39,7 @@ else
   echo "Using existing game contract $GAME"
 fi
 
-for i in {1..50}
+for i in {1..25}
 do
   SALT=$((SALT + 1))
   /bin/bash create-player.sh $SALT $GAME
