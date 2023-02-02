@@ -318,7 +318,7 @@ mod contract {
                 "Game can't be ended or has already ended.",
             );
 
-            let player_scores = self.players();
+            let player_scores = self.players_sorted();
             let winner = player_scores
                 .first()
                 .expect("We only allow starting the game with at least 1 player.")
