@@ -44,6 +44,9 @@ mod contract {
     /// for the overhead of the game contract itself.
     const GAS_LIMIT: u64 = 250_000_000_000 / PLAYER_LIMIT as u64;
 
+    /// The amount of gas that a player can use per round (multiplied with the rounds).
+    const AVERAGE_GAS: u64 = GAS_LIMIT / 3;
+
     /// Maximum number of bytes in a players name.
     const ALLOWED_NAME_SIZES: RangeInclusive<usize> = 3..=16;
 
@@ -72,6 +75,7 @@ mod contract {
     )]
     pub struct GameInfo {
         rounds_played: u32,
+        gas_left: u64,
         player_scores: Vec<(String, u64)>,
     }
 
@@ -184,6 +188,8 @@ mod contract {
         BrokenPlayer,
         /// Player decided to not make a turn and hence was charged no gas.
         NoTurn,
+        /// Contract doesn't have any budget left and isn't called anymore.
+        BudgetExhausted,
     }
 
     /// A player joined the game by calling `register_player`.
@@ -414,8 +420,9 @@ mod contract {
             let rounds_played = *rounds_played;
 
             // information about the game passed to players
-            let game_info = GameInfo {
+            let mut game_info = GameInfo {
                 rounds_played,
+                gas_left: 0,
                 player_scores: players
                     .iter()
                     .map(|player| (player.name.clone(), player.score.clone()))
@@ -425,6 +432,17 @@ mod contract {
             for _ in 0..num_players {
                 let player = &mut players[offset as usize];
                 offset = (offset + 1) % num_players;
+
+                // stop calling a contract that has no gas left
+                let gas_left = self.gas_budget().saturating_sub(player.gas_used);
+                if gas_left == 0 {
+                    Self::env().emit_event(TurnTaken {
+                        player: player.id,
+                        outcome: TurnOutcome::BudgetExhausted,
+                    });
+                    continue
+                }
+                game_info.gas_left = gas_left;
 
                 // We need to call with reentrancy enabled to allow those contracts to query us.
                 let call = build_call::<DefaultEnvironment>()
@@ -495,6 +513,12 @@ mod contract {
         #[ink(message)]
         pub fn total_rounds(&self) -> u32 {
             self.rounds
+        }
+
+        /// How much gas each player is allowed to consume for the whole game.
+        #[ink(message)]
+        pub fn gas_budget(&self) -> u64 {
+            u64::from(self.rounds) * AVERAGE_GAS
         }
 
         /// The current game state.
