@@ -31,7 +31,7 @@ export type GameState = Forming | Running | Finished;
 export type Player = {
   id: AccountId;
   name: string;
-  gasUsed: number;
+  gasUsed: string;
   score: number;
 };
 
@@ -46,6 +46,7 @@ export type Score = string;
 
 export type PlayerScore = Player & {
   color: Color;
+  gasLeft: string;
 };
 
 export type XYCoordinate = [number, number];

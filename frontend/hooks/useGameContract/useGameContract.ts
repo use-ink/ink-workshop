@@ -116,18 +116,26 @@ export const usePlayerColors = (): PlayerColors => {
   }, [decoded]);
 };
 
+const toNumber = (valWithComma: string): number => parseInt(`${valWithComma?.split(',').join('')}`);
+
 export const usePlayerScores = (): PlayerScore[] => {
   const game = useGameContract();
   const colors = usePlayerColors();
   const result = useContractCallDecoded<Player[]>(game, 'playersSorted');
+  const budget = useContractCallDecoded<string>(game, 'gasBudget');
 
   return useMemo(() => {
-    if (result && result.ok) {
-      return result.value.result.map(data => ({
-        ...data,
-        score: data.score,
-        color: colors[data.id],
-      }));
+    if (result && result.ok && budget && budget.ok) {
+      let gas_budget = toNumber(budget.value.result);
+      return result.value.result.map(data => {
+          //let gasLeft = gas_budget - data.gasUsed;
+          return {
+            ...data,
+            gasLeft: (gas_budget - toNumber(data.gasUsed)).toLocaleString(),
+            score: data.score,
+            color: colors[data.id],
+        }
+      });
     }
 
     return [];
