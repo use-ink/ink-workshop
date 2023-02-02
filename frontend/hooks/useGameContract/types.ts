@@ -32,6 +32,7 @@ export type Player = {
   id: AccountId;
   name: string;
   gasUsed: number;
+  score: number;
 };
 
 export type PlayerList = { [accountId: string]: string };
@@ -42,10 +43,8 @@ export type PlayerColors = {
 };
 
 export type Score = string;
-export type PlayerScoreData = [Player, Score];
 
 export type PlayerScore = Player & {
-  score: Score;
   color: Color;
 };
 

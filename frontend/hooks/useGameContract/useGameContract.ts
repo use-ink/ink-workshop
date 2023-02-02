@@ -14,7 +14,6 @@ import {
   PlayerColors,
   PlayerList,
   PlayerScore,
-  PlayerScoreData,
   Running,
 } from './types';
 import { ContractTxFunc } from '../../lib/useInk/types';
@@ -103,7 +102,7 @@ export const useBuyInAmount = (): BN | null => {
 
 export const usePlayerColors = (): PlayerColors => {
   const game = useGameContract();
-  const decoded = useContractCallDecoded<Player[]>(game, 'players');
+  const decoded = useContractCallDecoded<Player[]>(game, 'playersSorted');
 
   return useMemo(() => {
     if (decoded && decoded.ok && decoded.value) {
@@ -120,14 +119,14 @@ export const usePlayerColors = (): PlayerColors => {
 export const usePlayerScores = (): PlayerScore[] => {
   const game = useGameContract();
   const colors = usePlayerColors();
-  const result = useContractCallDecoded<PlayerScoreData[]>(game, 'playerScores');
+  const result = useContractCallDecoded<Player[]>(game, 'playersSorted');
 
   return useMemo(() => {
     if (result && result.ok) {
-      return [...result.value.result].map((data, i) => ({
-        ...data[0],
-        score: data[1],
-        color: colors[data[0].id],
+      return result.value.result.map(data => ({
+        ...data,
+        score: data.score,
+        color: colors[data.id],
       }));
     }
 
