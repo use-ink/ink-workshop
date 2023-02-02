@@ -7,8 +7,7 @@ mod player {
     #[ink(storage)]
     pub struct Player {
         dimensions: (u32, u32),
-        current_seed: u32,
-        original_seed: u32,
+        seed: u32,
     }
 
     impl Player {
@@ -16,8 +15,7 @@ mod player {
         pub fn new(dimensions: (u32, u32), seed: u32) -> Self {
             Self {
                 dimensions,
-                original_seed: seed,
-                current_seed: seed,
+                seed,
             }
         }
 
@@ -37,16 +35,11 @@ mod player {
         pub fn your_turn(&mut self) -> Option<(u32, u32)> {
             use rand::{SeedableRng, RngCore, rngs::SmallRng};
 
-            let seed = self.current_seed;
-
-            let mut small_rng = SmallRng::seed_from_u64(seed.into());
+            let mut small_rng = SmallRng::seed_from_u64(self.seed.into());
             let x = small_rng.next_u32() % self.dimensions.0;
-
-            let mut small_rng = SmallRng::seed_from_u64(x.into());
             let y = small_rng.next_u32() % self.dimensions.1;
 
-            let mut small_rng = SmallRng::seed_from_u64((self.original_seed + x + y).into());
-            self.current_seed = small_rng.next_u32();
+            self.seed = small_rng.next_u32();
 
             Some((x, y))
         }
