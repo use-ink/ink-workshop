@@ -42,7 +42,7 @@ mod contract {
     ///
     /// Should be smaller than the maximum extrinsic weight since we also need to account
     /// for the overhead of the game contract itself.
-    const GAS_LIMIT: u64 = 250_000_000_000;
+    const GAS_LIMIT: u64 = 250_000_000_000 / PLAYER_LIMIT as u64;
 
     /// Maximum number of bytes in a players name.
     const ALLOWED_NAME_SIZES: RangeInclusive<usize> = 3..=16;
@@ -429,7 +429,7 @@ mod contract {
                 // We need to call with reentrancy enabled to allow those contracts to query us.
                 let call = build_call::<DefaultEnvironment>()
                     .call_type(Call::new(player.id))
-                    .gas_limit(GAS_LIMIT / u64::from(num_players))
+                    .gas_limit(GAS_LIMIT)
                     .exec_input(
                         ExecutionInput::new(Selector::from([0x00; 4]))
                             .push_arg(&game_info),
