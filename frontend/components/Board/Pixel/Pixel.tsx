@@ -69,7 +69,6 @@ export const Pixel: React.FC<Props> = ({ isSmallBoard, owner, color, x, y, event
         <div key={e.id} className="w-full mx-auto h-full">
           <span className="w-full h-full fixed flex flex-col items-center justify-center">
             <img src={IMAGE_MAP[e.name]} className="w-1/3" />
-            <p className="text-xs">{players[e.player]}</p>
           </span>
         </div>
       ))}
