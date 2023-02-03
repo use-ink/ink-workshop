@@ -410,9 +410,7 @@ mod contract {
             );
             self.last_turn.set(&current_block);
 
-            // the last player from this round goes first in the next one
             let num_players = players.len() as u32;
-            let mut offset = (*rounds_played * (num_players - 1)) % num_players;
             *rounds_played += 1;
             let rounds_played = *rounds_played;
 
@@ -426,10 +424,7 @@ mod contract {
                     .collect(),
             };
 
-            for _ in 0..num_players {
-                let player = &mut players[offset as usize];
-                offset = (offset + 1) % num_players;
-
+            for player in players.iter_mut() {
                 // stop calling a contract that has no gas left
                 let gas_limit = Self::calc_gas_limit(num_players as usize);
                 let gas_left = Self::calc_gas_budget(gas_limit, self.rounds)
