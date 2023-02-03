@@ -578,10 +578,9 @@ mod contract {
         }
 
         fn calc_gas_limit(num_players: usize) -> u64 {
-            GAS_LIMIT_ALL_PLAYERS
-                * u64::from(NUM_BATCHES)
-                    .checked_div(num_players as u64)
-                    .unwrap_or(0)
+            (GAS_LIMIT_ALL_PLAYERS * u64::from(NUM_BATCHES))
+                .checked_div(num_players as u64)
+                .unwrap_or(0)
         }
 
         fn calc_gas_budget(gas_limit: u64, num_rounds: u32) -> u64 {
