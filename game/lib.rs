@@ -38,6 +38,11 @@ mod contract {
     /// The amount of players that are allowed to register for a single game.
     const PLAYER_LIMIT: usize = 80;
 
+    /// Determine into many groups the players should be partioned.
+    ///
+    /// How often `submit_turn` needs to be called until all players made a turn.
+    const NUM_BATCHES: u32 = 2;
+
     /// The amount of gas we want to allocate to all players within one turn.
     ///
     /// Should be smaller than the maximum extrinsic weight since we also need to account
@@ -410,13 +415,14 @@ mod contract {
             );
             self.last_turn.set(&current_block);
 
-            let num_players = players.len() as u32;
+            // batching is needed so we don't call all the players every round (because of gas limit)
+            let current_round = *rounds_played;
             *rounds_played += 1;
-            let rounds_played = *rounds_played;
+            let current_batch = current_round % NUM_BATCHES;
 
             // information about the game passed to players
             let mut game_info = GameInfo {
-                rounds_played,
+                rounds_played: current_round,
                 gas_left: 0,
                 player_scores: players
                     .iter()
@@ -424,7 +430,14 @@ mod contract {
                     .collect(),
             };
 
-            for player in players.iter_mut() {
+            // needed in the mutable borrowed loop
+            let num_players = players.len() as u32;
+
+            for (idx, player) in players.iter_mut().enumerate() {
+                if idx as u32 % NUM_BATCHES != current_batch {
+                    continue
+                }
+
                 // stop calling a contract that has no gas left
                 let gas_limit = Self::calc_gas_limit(num_players as usize);
                 let gas_left = Self::calc_gas_budget(gas_limit, self.rounds)
@@ -472,10 +485,10 @@ mod contract {
                                     self.idx(&turn),
                                     &FieldEntry {
                                         owner: player.id,
-                                        claimed_at: rounds_played,
+                                        claimed_at: current_round,
                                     },
                                 );
-                                player.score += u64::from(rounds_played);
+                                player.score += u64::from(current_round + 1);
                                 TurnOutcome::Success { turn }
                             }
                         }
@@ -566,8 +579,9 @@ mod contract {
 
         fn calc_gas_limit(num_players: usize) -> u64 {
             GAS_LIMIT_ALL_PLAYERS
-                .checked_div(num_players as u64)
-                .unwrap_or(0)
+                * u64::from(NUM_BATCHES)
+                    .checked_div(num_players as u64)
+                    .unwrap_or(0)
         }
 
         fn calc_gas_budget(gas_limit: u64, num_rounds: u32) -> u64 {

@@ -1,10 +1,10 @@
 {
   "source": {
-    "hash": "0x52905e20044db398899964e26c7214475156d218487cc55ce6751fe1db8dbad1",
+    "hash": "0x48f4e9a42db252dad3280d33b7e1b68eaf5e8ccf11b82ef7b6542045dfb2e274",
     "language": "ink! 4.0.0-rc",
     "compiler": "rustc 1.67.0",
     "build_info": {
-      "build_mode": "Release",
+      "build_mode": "Debug",
       "cargo_contract_version": "2.0.0-rc",
       "rust_toolchain": "stable-aarch64-apple-darwin",
       "wasm_opt_settings": {
@@ -355,6 +355,23 @@
           "type": 14
         },
         "selector": "0x98e2054a"
+      },
+      {
+        "args": [],
+        "docs": [
+          " How much gas each player is allowed to use per round."
+        ],
+        "label": "gas_limit",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 15
+        },
+        "selector": "0x58f2a0ae"
       },
       {
         "args": [],
