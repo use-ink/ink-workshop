@@ -36,16 +36,13 @@ mod contract {
     };
 
     /// The amount of players that are allowed to register for a single game.
-    const PLAYER_LIMIT: usize = 50;
+    const PLAYER_LIMIT: usize = 80;
 
     /// The amount of gas we want to allocate to all players within one turn.
     ///
     /// Should be smaller than the maximum extrinsic weight since we also need to account
     /// for the overhead of the game contract itself.
-    const GAS_LIMIT: u64 = 250_000_000_000 / PLAYER_LIMIT as u64;
-
-    /// The amount of gas that a player can use per round (multiplied with the rounds).
-    const AVERAGE_GAS: u64 = GAS_LIMIT / 3;
+    const GAS_LIMIT_ALL_PLAYERS: u64 = 250_000_000_000;
 
     /// Maximum number of bytes in a players name.
     const ALLOWED_NAME_SIZES: RangeInclusive<usize> = 3..=16;
@@ -434,7 +431,9 @@ mod contract {
                 offset = (offset + 1) % num_players;
 
                 // stop calling a contract that has no gas left
-                let gas_left = self.gas_budget().saturating_sub(player.gas_used);
+                let gas_limit = Self::calc_gas_limit(num_players as usize);
+                let gas_left = Self::calc_gas_budget(gas_limit, self.rounds)
+                    .saturating_sub(player.gas_used);
                 if gas_left == 0 {
                     Self::env().emit_event(TurnTaken {
                         player: player.id,
@@ -447,7 +446,7 @@ mod contract {
                 // We need to call with reentrancy enabled to allow those contracts to query us.
                 let call = build_call::<DefaultEnvironment>()
                     .call_type(Call::new(player.id))
-                    .gas_limit(GAS_LIMIT)
+                    .gas_limit(gas_limit)
                     .exec_input(
                         ExecutionInput::new(Selector::from([0x00; 4]))
                             .push_arg(&game_info),
@@ -515,10 +514,16 @@ mod contract {
             self.rounds
         }
 
+        /// How much gas each player is allowed to use per round.
+        #[ink(message)]
+        pub fn gas_limit(&self) -> u64 {
+            Self::calc_gas_limit(self.players().len())
+        }
+
         /// How much gas each player is allowed to consume for the whole game.
         #[ink(message)]
         pub fn gas_budget(&self) -> u64 {
-            u64::from(self.rounds) * AVERAGE_GAS
+            Self::calc_gas_budget(self.gas_limit(), self.rounds)
         }
 
         /// The current game state.
@@ -562,6 +567,16 @@ mod contract {
         #[ink(message)]
         pub fn board(&self) -> Vec<Option<FieldEntry>> {
             self.board_iter().collect()
+        }
+
+        fn calc_gas_limit(num_players: usize) -> u64 {
+            GAS_LIMIT_ALL_PLAYERS
+                .checked_div(num_players as u64)
+                .unwrap_or(0)
+        }
+
+        fn calc_gas_budget(gas_limit: u64, num_rounds: u32) -> u64 {
+            gas_limit * u64::from(num_rounds) / 3
         }
 
         fn players(&self) -> Vec<Player> {
