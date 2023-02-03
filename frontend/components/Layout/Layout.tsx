@@ -22,7 +22,7 @@ type Props = {
 };
 
 export const Layout: React.FC<Props> = ({ children }) => {
-  const { darkMode } = useUI();
+  const { darkMode, showNotifications } = useUI();
   return (
     <div
       className={classNames(
@@ -40,7 +40,7 @@ export const Layout: React.FC<Props> = ({ children }) => {
       <div>{children}</div>
       <Rules />
       <ConnectWalletModal />
-      <Notifications />
+      {showNotifications && <Notifications />}
     </div>
   );
 };
