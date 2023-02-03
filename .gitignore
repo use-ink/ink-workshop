@@ -1,5 +1,6 @@
 # Ignore build artifacts from the local tests sub-crate.
 /target/
+/stresstest/target/
 /core/target/
 /model/target/
 /lang/target/

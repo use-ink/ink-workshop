@@ -15,6 +15,8 @@ export const Settings: React.FC = () => {
     setShowSettings,
     showGrid,
     setShowGrid,
+    showNotifications,
+    setShowNotifications,
     showCoordinates,
     setShowCoordinates,
     showLogs,
@@ -51,6 +53,12 @@ export const Settings: React.FC = () => {
               handleClick={() => setDarkMode(!darkMode)}
               isOn={darkMode}
               label={t('darkMode')}
+            />
+            <ToggleSwitchLabel
+              className="mt-3"
+              handleClick={() => setShowNotifications(!showNotifications)}
+              isOn={showNotifications}
+              label={t('showNotifications')}
             />
             <ToggleSwitchLabel
               className="mt-3"

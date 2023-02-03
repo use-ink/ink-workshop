@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { animated, config, useSpring } from 'react-spring';
 import { useUI } from '../../../contexts/UIContext';
 import { useAudioSettings } from '../../../hooks/useAudioSettings';
@@ -30,10 +30,17 @@ export const Pixel: React.FC<Props> = ({ isSmallBoard, owner, color, x, y, event
   const props = useSpring({ x: pulse, config: config.default });
   const gameEvents: TurnEvent[] = events || [];
 
-  useEffect(() => {
-    if (gameEvents.find(({ name }) => name === 'Occupied')) {
-      failureEffect?.play();
-    }
+  const uniqueEvents = useMemo(() => {
+    const unique: { [k: string]: true } = {};
+    return gameEvents.reduce((acc, event) => {
+      if (!unique[event.id]) return acc;
+      unique[event.id] = true;
+
+      if (event.name === 'Occupied') failureEffect?.play();
+      acc.push(event);
+
+      return acc;
+    }, [] as TurnEvent[]);
   }, [gameEvents]);
 
   useEffect(() => {
@@ -58,11 +65,10 @@ export const Pixel: React.FC<Props> = ({ isSmallBoard, owner, color, x, y, event
       }}
       className={classNames('transition duration-100 w-full h-full', !owner && 'flex items-center justify-center')}
     >
-      {gameEvents.map((e) => (
+      {uniqueEvents.map((e) => (
         <div key={e.id} className="w-full mx-auto h-full">
           <span className="w-full h-full fixed flex flex-col items-center justify-center">
             <img src={IMAGE_MAP[e.name]} className="w-1/3" />
-            <p className="text-xs">{players[e.player]}</p>
           </span>
         </div>
       ))}
