@@ -1,6 +1,5 @@
-import { GiCube } from 'react-icons/gi';
-import { useGameState } from '../../hooks/useGameContract';
-import { useBlockHeader } from '../../lib/useInk/hooks';
+import { GiBackup } from 'react-icons/gi';
+import { useGameState, usePlayers } from '../../hooks/useGameContract';
 import { SimpleWidget } from '../SimpleWidget';
 import { FinishedStatus } from './FinishedStatus';
 import { FormingStatus } from './FormingStatus';
@@ -20,19 +19,19 @@ type Status = RunningStatus;
 
 export const GameStatus: React.FC = () => {
   const gameState = useGameState();
-  const { blockNumber } = useBlockHeader();
+  const players = usePlayers();
 
   return (
     <SimpleWidget>
-      {'Forming' === gameState?.status && <FormingStatus forming={gameState} />}
-      {'Running' === gameState?.status && <RunningStatus running={gameState} />}
+      {'Forming' === gameState?.status && <FormingStatus />}
+      {'Running' === gameState?.status && <RunningStatus />}
       {'Finished' === gameState?.status && <FinishedStatus finished={gameState} />}
 
-      <span className="flex items-center">
+      <span className="flex items-center justify-between mt-2">
         <span className="mr-1">
-          <GiCube size={12} />
+          <GiBackup size={18} />
         </span>
-        <h6 className="font-normal rounded-full">{blockNumber}</h6>
+        <h6 className="font-normal rounded-full text-md">{Object.keys(players).length}</h6>
       </span>
     </SimpleWidget>
   );
