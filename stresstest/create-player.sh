@@ -41,7 +41,7 @@ echo "Registering player $CONTRACT with game at $GAME"
 
 cargo contract call\
 		--url wss://contracts.theissen.io\
-		--suri "melt just mouse also lizard tail afford trophy visit sport wrap neck"\
+		--suri "$SURI"\
 		--skip-dry-run\
 		--gas 300000000000\
 		--proof-size 512000\
