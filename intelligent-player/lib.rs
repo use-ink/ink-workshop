@@ -63,7 +63,8 @@ mod player {
             }
         }
 
-        /// Return a pseudo-random turn.
+        /// Cross-contract call for the board and start at a random point
+        /// to look through it for free cells.
         #[ink(message, selector = 0)]
         pub fn your_turn(&mut self) -> Option<(u32, u32)> {
             let board: Vec<Option<FieldEntry>> = build_call::<DefaultEnvironment>()
