@@ -5,7 +5,7 @@ do
 	cargo contract call\
 		--url wss://rococo-contracts-rpc.polkadot.io\
 		--contract "$1"\
-		--suri "$2"\
+		--suri "${SURI}"\
 		--message submit_turn\
 		--skip-dry-run\
 		--gas 300000000000\

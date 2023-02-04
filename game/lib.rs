@@ -128,6 +128,13 @@ mod contract {
         pub score: u64,
     }
 
+    impl Player {
+        /// Return the key to sort by (winner is max value by this order)
+        fn scoring_order(&self) -> impl Ord {
+            (Reverse(self.score), self.gas_used)
+        }
+    }
+
     /// Describing either a single point in the field or its dimensions.
     #[derive(scale::Decode, scale::Encode, Clone, Copy, Debug)]
     #[cfg_attr(
@@ -320,18 +327,16 @@ mod contract {
                 "Game can't be ended or has already ended.",
             );
 
-            let player_scores = self.players_sorted();
-            let winner = player_scores
-                .first()
+            let players = self.players();
+            let winner = players
+                .iter()
+                .max_by_key(|p| p.scoring_order())
                 .expect("We only allow starting the game with at least 1 player.")
                 .id;
 
             // Give the pot to the winner
             Self::env()
-                .transfer(
-                    winner,
-                    Balance::from(player_scores.len() as u32) * self.buy_in,
-                )
+                .transfer(winner, Balance::from(players.len() as u32) * self.buy_in)
                 .unwrap();
 
             self.state = State::Finished { winner };
@@ -553,8 +558,7 @@ mod contract {
         #[ink(message)]
         pub fn players_sorted(&self) -> Vec<Player> {
             let mut players = self.players();
-            players
-                .sort_unstable_by_key(|player| (Reverse(player.score), player.gas_used));
+            players.sort_unstable_by_key(|player| player.scoring_order());
             players
         }
 
