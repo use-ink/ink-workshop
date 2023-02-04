@@ -38,11 +38,6 @@ mod contract {
     /// The amount of players that are allowed to register for a single game.
     const PLAYER_LIMIT: usize = 80;
 
-    /// Determine into many groups the players should be partioned.
-    ///
-    /// How often `submit_turn` needs to be called until all players made a turn.
-    const NUM_BATCHES: u32 = 2;
-
     /// The amount of gas we want to allocate to all players within one turn.
     ///
     /// Should be smaller than the maximum extrinsic weight since we also need to account
@@ -421,10 +416,14 @@ mod contract {
             );
             self.last_turn.set(&current_block);
 
+            // we need to cache this as we can't accessed players in the loop
+            let num_players = players.len();
+
             // batching is needed so we don't call all the players every round (because of gas limit)
             let current_round = *rounds_played;
             *rounds_played += 1;
-            let current_batch = current_round % NUM_BATCHES;
+            let num_batches = Self::calc_num_batches(num_players);
+            let current_batch = current_round % num_batches;
 
             // information about the game passed to players
             let mut game_info = GameInfo {
@@ -436,11 +435,8 @@ mod contract {
                     .collect(),
             };
 
-            // needed in the mutable borrowed loop
-            let num_players = players.len() as u32;
-
             for (idx, player) in players.iter_mut().enumerate() {
-                if idx as u32 % NUM_BATCHES != current_batch {
+                if idx as u32 % num_batches != current_batch {
                     continue
                 }
 
@@ -534,6 +530,14 @@ mod contract {
             Self::calc_gas_limit(self.players().len())
         }
 
+        /// Describes into many groups the players should be partioned.
+        ///
+        /// How often `submit_turn` needs to be called until all players made a turn.
+        #[ink(message)]
+        pub fn num_batches(&self) -> u32 {
+            Self::calc_num_batches(self.players().len())
+        }
+
         /// How much gas each player is allowed to consume for the whole game.
         #[ink(message)]
         pub fn gas_budget(&self) -> u64 {
@@ -584,9 +588,17 @@ mod contract {
         }
 
         fn calc_gas_limit(num_players: usize) -> u64 {
-            (GAS_LIMIT_ALL_PLAYERS * u64::from(NUM_BATCHES))
+            (GAS_LIMIT_ALL_PLAYERS * u64::from(Self::calc_num_batches(num_players)))
                 .checked_div(num_players as u64)
                 .unwrap_or(0)
+        }
+
+        fn calc_num_batches(num_players: usize) -> u32 {
+            if num_players > 30 {
+                2
+            } else {
+                1
+            }
         }
 
         fn calc_gas_budget(gas_limit: u64, num_rounds: u32) -> u64 {
