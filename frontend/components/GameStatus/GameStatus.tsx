@@ -23,8 +23,8 @@ export const GameStatus: React.FC = () => {
 
   return (
     <SimpleWidget>
-      {'Forming' === gameState?.status && <FormingStatus />}
-      {'Running' === gameState?.status && <RunningStatus />}
+      {'Forming' === gameState?.status && <FormingStatus forming={gameState} />}
+      {'Running' === gameState?.status && <RunningStatus running={gameState} />}
       {'Finished' === gameState?.status && <FinishedStatus finished={gameState} />}
 
       <span className="flex items-center justify-between mt-2">

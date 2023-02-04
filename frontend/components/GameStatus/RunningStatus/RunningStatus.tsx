@@ -1,8 +1,13 @@
 import { useTranslation } from 'react-i18next';
 import { useGame } from '../../../contexts/GameContext';
 import { useContractCallDecoded } from '../../../lib/useInk/hooks/useContractCallDecoded';
+import { Running } from '../../../hooks/useGameContract';
 
-export const RunningStatus: React.FC = () => {
+type Props = {
+  running: Running;
+};
+
+export const RunningStatus: React.FC<Props> = ({ running }) => {
   const categoryClass = 'mr-1';
   const { t } = useTranslation('common');
   const useGameContract = () => useGame().game;
@@ -18,6 +23,12 @@ export const RunningStatus: React.FC = () => {
           {isRunning ? t('play') : t('complete')}
         </span>
       </h6>
+      <h6 className="my-2">
+         <span className={categoryClass}>{t('block')}:</span>
+         <span className="font-normal bg-brand-500 text-white rounded-full px-2 py-[2px]">
+           {`${running.currentRound}/${running.totalRounds}`}
+         </span>
+       </h6>
     </>
   );
 };
