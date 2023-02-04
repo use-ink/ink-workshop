@@ -124,7 +124,7 @@ mod contract {
     }
 
     impl Player {
-        /// Return the key to sort by (winner is max value by this order)
+        /// Return the key to sort by (winner is min value by this order)
         fn scoring_order(&self) -> impl Ord {
             (Reverse(self.score), self.gas_used)
         }
@@ -326,7 +326,7 @@ mod contract {
             let players = self.players();
             let winner = players
                 .iter()
-                .max_by_key(|p| p.scoring_order())
+                .min_by_key(|p| p.scoring_order())
                 .expect("We only allow starting the game with at least 1 player.")
                 .id;
 
