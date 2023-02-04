@@ -730,10 +730,10 @@ mod tests {
                 .await
                 .unwrap();
 
-            let scores = client
+            let players = client
                 .call(
                     &alice,
-                    build_message::<Game>(game).call(|c| c.player_scores()),
+                    build_message::<Game>(game).call(|c| c.players_sorted()),
                     0,
                     None,
                 )
@@ -741,13 +741,7 @@ mod tests {
                 .unwrap()
                 .return_value();
 
-            println!(
-                "scores: {:?}",
-                scores
-                    .iter()
-                    .map(|(p, score)| (&p.name, score))
-                    .collect::<Vec<_>>()
-            );
+            println!("players: {:?}", players);
         }
 
         let state = client
