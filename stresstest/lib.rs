@@ -19,18 +19,7 @@ mod player {
             }
         }
 
-        /// This is the function that will be called during every game round.
-        ///
-        /// The function returns an `(x, y)` coordinate of the pixel which you
-        /// want to color.
-        ///
-        /// # Notes
-        ///
-        /// The function signature `&mut self` is so that you can retain state
-        /// in the contract's storage if you want to.
-        ///
-        /// The function can be named as you like, but it always needs to have
-        /// a defined selector of `0`.
+        /// Return a pseudo-random turn.
         #[ink(message, selector = 0)]
         pub fn your_turn(&mut self) -> Option<(u32, u32)> {
             use rand::{SeedableRng, RngCore, rngs::SmallRng};

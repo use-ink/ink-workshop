@@ -557,6 +557,7 @@ mod contract {
                 .sort_unstable_by_key(|player| (Reverse(player.score), player.gas_used));
             players
         }
+
         /// Returns the dimensions of the board.
         #[ink(message)]
         pub fn dimensions(&self) -> Field {

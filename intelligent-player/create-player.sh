@@ -34,7 +34,7 @@ CONTRACT=$(cargo contract instantiate\
 		--skip-dry-run\
 		--gas 300000000000\
 		--proof-size 512000\
-		--args "(25,25)" $SALT | grep "Contract" | tail -n1 | cut -d ' ' -f6)
+		--args $GAME $SALT | grep "Contract" | tail -n1 | cut -d ' ' -f6)
 echo "Instantiated player contract at $CONTRACT"
 
 echo "Registering player $CONTRACT with game at $GAME"
