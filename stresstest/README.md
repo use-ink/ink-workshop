@@ -12,7 +12,7 @@ cargo contract build --release
 export SURI="your twelve words"
 /bin/bash stresstest.sh 3344
 ```
-The parameter `3344` is a salt, it has to be a number with odd digits.
+The parameter `3344` is a salt, it has to be a number with an even amount of digits.
 
 ### Starting the game
 

@@ -13,7 +13,7 @@ if [[ -z "${SURI}" ]]; then
   exit 1
 fi
 if [[ -z "$1" ]]; then
-  echo "Please supply an odd random number as the first argument!"
+  echo "Please supply an even random number as the first argument!"
   exit 1
 fi
 if [[ -z "$2" ]]; then
