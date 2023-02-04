@@ -282,11 +282,12 @@ mod contract {
                     Self::env().caller(),
                     "Only winner is allowed to destroy the contract."
                 );
-                let winner = self
-                    .players()
-                    .into_iter()
-                    .find(|player| player.id == winner)
-                    .expect("The winner is a player; qed");
+                let winner = {
+                    let players = self.players();
+                    let winning_idx = Self::find_player(&winner, &players)
+                        .expect("The winner is a player; qed");
+                    players.into_iter().nth(winning_idx).unwrap()
+                };
                 let winner_id = winner.id.clone();
                 Self::env().emit_event(GameDestroyed { winner });
                 Self::env().terminate_contract(winner_id)
