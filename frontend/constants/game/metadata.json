@@ -1,11 +1,11 @@
 {
   "source": {
-    "hash": "0x48f4e9a42db252dad3280d33b7e1b68eaf5e8ccf11b82ef7b6542045dfb2e274",
+    "hash": "0x44a5df5014155086e2167ca38f63692220663394cd8096b857776c6dbe97658b",
     "language": "ink! 4.0.0-rc",
     "compiler": "rustc 1.67.0",
     "build_info": {
-      "build_mode": "Debug",
-      "cargo_contract_version": "2.0.0-rc",
+      "build_mode": "Release",
+      "cargo_contract_version": "2.0.0-rc.1",
       "rust_toolchain": "stable-aarch64-apple-darwin",
       "wasm_opt_settings": {
         "keep_debug_symbols": false,
@@ -372,6 +372,25 @@
           "type": 15
         },
         "selector": "0x58f2a0ae"
+      },
+      {
+        "args": [],
+        "docs": [
+          " Describes into many groups the players should be partioned.",
+          "",
+          " How often `submit_turn` needs to be called until all players made a turn."
+        ],
+        "label": "num_batches",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 14
+        },
+        "selector": "0xb0e1bfe3"
       },
       {
         "args": [],
