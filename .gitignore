@@ -4,6 +4,7 @@
 /core/target/
 /model/target/
 /lang/target/
+/intelligent-player/target/
 /primitives/target/
 /examples/**/target/
 /design/

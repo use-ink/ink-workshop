@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { animated, config, useSpring } from 'react-spring';
 import { useUI } from '../../../contexts/UIContext';
 import { useAudioSettings } from '../../../hooks/useAudioSettings';
@@ -10,44 +10,16 @@ type Props = {
   y: number;
   owner?: string | null;
   color?: string;
-  isSmallBoard?: boolean;
   events?: TurnEvent[];
-  players: { [id: string]: string };
 };
 
-const IMAGE_MAP = {
-  Success: '/star-fish.svg',
-  Occupied: '/spider-crab.svg',
-  OutOfBounds: '/spider-crab.svg',
-  BrokenPlayer: '/spider-crab.svg',
-};
-
-export const Pixel: React.FC<Props> = ({ isSmallBoard, owner, color, x, y, events, players }) => {
-  const { successEffect, failureEffect } = useAudioSettings();
+export const Pixel: React.FC<Props> = ({ owner, color, x, y, events }) => {
   const { showGrid, showCoordinates } = useUI();
-  const [skipPlayOnLoad] = useState(Boolean(owner));
   const [pulse, setPulse] = useState(owner ? 1 : 0);
   const props = useSpring({ x: pulse, config: config.default });
-  const gameEvents: TurnEvent[] = events || [];
-
-  const uniqueEvents = useMemo(() => {
-    const unique: { [k: string]: true } = {};
-    return gameEvents.reduce((acc, event) => {
-      if (!unique[event.id]) return acc;
-      unique[event.id] = true;
-
-      if (event.name === 'Occupied') failureEffect?.play();
-      acc.push(event);
-
-      return acc;
-    }, [] as TurnEvent[]);
-  }, [gameEvents]);
 
   useEffect(() => {
-    if (owner) {
-      setPulse(1);
-      !skipPlayOnLoad && successEffect?.play();
-    }
+    if (owner) setPulse(1);
   }, [owner]);
 
   return (
@@ -65,14 +37,7 @@ export const Pixel: React.FC<Props> = ({ isSmallBoard, owner, color, x, y, event
       }}
       className={classNames('transition duration-100 w-full h-full', !owner && 'flex items-center justify-center')}
     >
-      {uniqueEvents.map((e) => (
-        <div key={e.id} className="w-full mx-auto h-full">
-          <span className="w-full h-full fixed flex flex-col items-center justify-center">
-            <img src={IMAGE_MAP[e.name]} className="w-1/3" />
-          </span>
-        </div>
-      ))}
-      {isSmallBoard && showCoordinates && (
+      {showCoordinates && (
         <p className="text-xs text-black/20" style={{ color: color ? color : '' }}>
           {x}, {y}
         </p>

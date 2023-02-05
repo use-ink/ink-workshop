@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDimensions, useBoard, useGameState } from '../../../hooks/useGameContract';
 import { Board } from '../../Board';
 import { useAudioSettings } from '../../../hooks/useAudioSettings';
@@ -12,8 +12,18 @@ export const GameBoard: React.FC = () => {
   const board = useBoard();
   const { status } = useGameState() || {};
   const { trackPlayer, playTrack } = useAudioSettings();
+  const { successEffect } = useAudioSettings();
   const { playerTurnEvents } = useGame();
   const { t } = useTranslation('common');
+  const [previousPaintedCount, setPrevPaintedCount] = useState(0);
+
+  useEffect(() => {
+    const paintedCount = board.filter((b) => b.owner !== undefined).length;
+    if (paintedCount > previousPaintedCount) {
+      if (!successEffect?.playing()) successEffect?.play();
+      setPrevPaintedCount(previousPaintedCount + 1);
+    }
+  }, [board]);
 
   useEffect(() => {
     if (playTrack && trackPlayer) {
