@@ -1,17 +1,38 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-pub use contract::{Field, FieldEntry, GameInfo, SquinkSplashRef as Game};
+pub use contract::{
+    Field,
+    FieldEntry,
+    GameInfo,
+    SquinkSplashRef as Game,
+};
 
 #[ink::contract]
 mod contract {
-    use core::{cmp::Reverse, ops::RangeInclusive};
+    use core::{
+        cmp::Reverse,
+        ops::RangeInclusive,
+    };
     use ink::{
         env::{
-            call::{build_call, Call, ExecutionInput, Selector},
-            debug_println, CallFlags, DefaultEnvironment,
+            call::{
+                build_call,
+                Call,
+                ExecutionInput,
+                Selector,
+            },
+            debug_println,
+            CallFlags,
+            DefaultEnvironment,
         },
-        prelude::{string::String, vec::Vec},
-        storage::{Lazy, Mapping},
+        prelude::{
+            string::String,
+            vec::Vec,
+        },
+        storage::{
+            Lazy,
+            Mapping,
+        },
     };
 
     /// The amount of players that are allowed to register for a single game.
@@ -428,7 +449,7 @@ mod contract {
 
             for (idx, player) in players.iter_mut().enumerate() {
                 if idx as u32 % num_batches != current_batch {
-                    continue;
+                    continue
                 }
 
                 // Stop calling a contract that has no gas left.
@@ -440,7 +461,7 @@ mod contract {
                         player: player.id,
                         outcome: TurnOutcome::BudgetExhausted,
                     });
-                    continue;
+                    continue
                 }
                 game_info.gas_left = gas_left;
 
@@ -631,8 +652,14 @@ mod contract {
 
 #[cfg(all(test, feature = "e2e-tests"))]
 mod tests {
-    use crate::{Field, Game};
-    use ink_e2e::{alice, build_message};
+    use crate::{
+        Field,
+        Game,
+    };
+    use ink_e2e::{
+        alice,
+        build_message,
+    };
     use test_player::TestPlayer;
 
     #[ink_e2e::test(additional_contracts = "../test-player/Cargo.toml")]
