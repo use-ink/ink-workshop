@@ -166,8 +166,8 @@ mod contract {
             /// The player that occupies the field that was tried to be painted by `turn`.
             player: AccountId,
         },
-        /// Player contract failed to return a result. This happens if it paniced, ran out
-        /// of gas, returns garbage or is not even a contract.
+        /// Player contract failed to return a result. This happens if it
+        /// panicked, ran out of gas, returns garbage or is not even a contract.
         BrokenPlayer,
         /// Player decided to not make a turn and hence was charged no gas.
         NoTurn,
@@ -175,26 +175,27 @@ mod contract {
         BudgetExhausted,
     }
 
-    /// A player joined the game by calling `register_player`.
+    /// A player joined the game by calling [`register_player`].
     #[ink(event)]
     pub struct PlayerRegistered {
         /// The player contract account ID.
         player: AccountId,
     }
 
-    /// The rounds played have increased. This is used for the client side to keep the TurnTaken events
-    /// and "Blocks" UI in sync. Events are emitted before block number changes,
-    /// so re-fetching rounds_played on a block change causes a brief delay in the UI.
+    /// The rounds played have increased. This is used for the client side to keep
+    /// the [`TurnTaken`] events and "Blocks" UI in sync. Events are emitted before
+    /// block number changes, so re-fetching [`rounds_played`] on a block change
+    /// causes a brief delay in the UI.
     #[ink(event)]
     pub struct RoundIncremented {
-        /// The number of rounds played
+        /// The number of rounds played.
         rounds_played: u32,
     }
 
-    /// Someone started the game by calling `start_game`.
+    /// Someone started the game by calling [`start_game`].
     #[ink(event)]
     pub struct GameStarted {
-        /// The account start called `start_game`.
+        /// The account start called [`start_game`].
         starter: AccountId,
     }
 
@@ -207,11 +208,11 @@ mod contract {
         outcome: TurnOutcome,
     }
 
-    /// Someone ended the game by calling `end_game`.
+    /// Someone ended the game by calling [`end_game`].
     ///
     /// This event doesn't contain information about the winner because the contract still
     /// exists. Interested parties can read this information from the contract by calling
-    /// `state` and `player_scores`.
+    /// [`state`] and [`player_scores`].
     #[ink(event)]
     pub struct GameEnded {
         /// The account that ended the game.
@@ -228,7 +229,7 @@ mod contract {
     impl SquinkSplash {
         /// Create a new game.
         ///
-        /// - `dimensions`: (width,height) Of the board
+        /// - `dimensions`: (width, height) of the board.
         /// - `buy_in`: The amount of balance each player needs to submit in order to play.
         /// - `forming_rounds`: Number of blocks that needs to pass until anyone can start the game.
         /// - `rounds`: The number of blocks a game can be played for.
@@ -293,7 +294,8 @@ mod contract {
             let players = self.players();
             assert!(!players.is_empty(), "You need at least one player.");
             self.state = State::Running { rounds_played: 0 };
-            // We pretent that there was already a turn in this block so that no
+
+            // We pretend that there was already a turn in this block so that no
             // turns can be submitted in the same block as when the game is started.
             self.last_turn.set(&Self::env().block_number());
             Self::env().emit_event(GameStarted {
@@ -301,9 +303,9 @@ mod contract {
             });
         }
 
-        /// When enough time has passed no new turns can be submitted.
-        /// Then everybody can call this to end the game and trigger the payout to
-        /// the winner.
+        /// When enough time has passed, no new turns can be submitted.
+        /// Then anybody may call this function to end the game and
+        /// trigger the payout to the winner.
         #[ink(message)]
         pub fn end_game(&mut self) {
             assert!(
@@ -389,9 +391,9 @@ mod contract {
                 panic!("This game does not accept turns right now.");
             };
 
-            // only one turn per block
-            // we need to write this to storage because of reentrancy: The called contract
-            // could call this function again and do another turn in the same block
+            // Only one turn per block
+            // We need to write this to storage because of reentrancy: The called contract
+            // could call this function again and do another turn in the same block.
             let current_block = Self::env().block_number();
             let last_turn = self
                 .last_turn
@@ -404,16 +406,17 @@ mod contract {
             );
             self.last_turn.set(&current_block);
 
-            // we need to cache this as we can't accessed players in the loop
+            // We need to cache this as we can't accessed players in the loop.
             let num_players = players.len();
 
-            // batching is needed so we don't call all the players every round (because of gas limit)
+            // Batching is needed so we don't call all the players every round
+            // (because of the gas limit).
             let current_round = *rounds_played;
             *rounds_played += 1;
             let num_batches = Self::calc_num_batches(num_players);
             let current_batch = current_round % num_batches;
 
-            // information about the game passed to players
+            // Information about the game is passed to players.
             let mut game_info = GameInfo {
                 rounds_played: current_round,
                 gas_left: 0,
@@ -428,7 +431,7 @@ mod contract {
                     continue;
                 }
 
-                // stop calling a contract that has no gas left
+                // Stop calling a contract that has no gas left.
                 let gas_limit = Self::calc_gas_limit(num_players as usize);
                 let gas_left = Self::calc_gas_budget(gas_limit, self.rounds)
                     .saturating_sub(player.gas_used);
@@ -441,7 +444,8 @@ mod contract {
                 }
                 game_info.gas_left = gas_left;
 
-                // We need to call with reentrancy enabled to allow those contracts to query us.
+                // We need to call with reentrancy enabled to allow those
+                // contracts to query us.
                 let call = build_call::<DefaultEnvironment>()
                     .call_type(Call::new(player.id))
                     .gas_limit(gas_limit)
@@ -456,11 +460,11 @@ mod contract {
                 let turn = call.try_invoke();
                 let gas_used = gas_before - Self::env().gas_left();
 
-                // We continue even if the contract call fails. If the contract don't
-                // conform it is the players fault. No second tries.
+                // We continue even if the contract call fails. If the contract
+                // doesn't conform it is the players fault. No second tries.
                 let outcome = match turn {
                     Ok(Ok(Some(turn))) => {
-                        // player tried to make a turn: charge gas
+                        // Player tried to make a turn: charge gas.
                         player.gas_used += gas_used;
                         if !self.is_valid_coord(&turn) {
                             TurnOutcome::OutOfBounds { turn }
@@ -485,7 +489,7 @@ mod contract {
                     }
                     Ok(Ok(None)) => TurnOutcome::NoTurn,
                     err => {
-                        // player gets charged gas for failing
+                        // Player gets charged gas for failing.
                         player.gas_used += gas_used;
                         debug_println!("Contract failed to make a turn: {:?}", err);
                         TurnOutcome::BrokenPlayer
@@ -504,7 +508,7 @@ mod contract {
             self.players.set(&players);
         }
 
-        /// The buy in amount to register a player
+        /// The buy-in amount to register a player.
         #[ink(message)]
         pub fn buy_in_amount(&self) -> Balance {
             self.buy_in
@@ -522,9 +526,10 @@ mod contract {
             Self::calc_gas_limit(self.players().len())
         }
 
-        /// Describes into many groups the players should be partioned.
+        /// Describes into many groups the players should be partitioned.
         ///
-        /// How often `submit_turn` needs to be called until all players made a turn.
+        /// How often [`submit_turn`] needs to be called until all players
+        /// made a turn.
         #[ink(message)]
         pub fn num_batches(&self) -> u32 {
             Self::calc_num_batches(self.players().len())
@@ -542,6 +547,7 @@ mod contract {
             self.state.clone()
         }
 
+        /// Returns `true` if the game is running.
         #[ink(message)]
         pub fn is_running(&self) -> bool {
             if let State::Running { rounds_played, .. } = self.state {
