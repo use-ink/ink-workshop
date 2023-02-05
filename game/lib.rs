@@ -398,7 +398,10 @@ mod contract {
             }
         }
 
-        /// At most once per block anyone can trigger one turn of the game.
+        /// This is the actual game loop.
+        ///
+        /// It can be called by anyone and triggers at most one turn
+        /// of the game per block.
         #[ink(message)]
         pub fn submit_turn(&mut self) {
             assert!(
