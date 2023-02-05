@@ -1,22 +1,31 @@
-# 🦑 ink! 4.0-alpha.3 Workshop
+# 🦑 ink! 4.0 Workshop
 
-It doesn't matter if you finished the workshop or not, we're interested in your thoughts:
-[link to our survey]().
+This repository contains an interactive ink! workshop. 
+We created it as a way of gamifying the experience of learning ink!.
 
-## 🎮 Beginners Workshop
+The workshop is a game, in which students write a smart contract
+that plays on their behalf – an agent.
+The score function of the game was chosen in a way that it favors
+contracts that are using as little as gas possible to play the game.
+This can be done using smart contract best practices.
 
-Please follow the [preparation instructions](https://github.com/paritytech/ink-workshop/blob/main/workshop/1_SETUP.md).
+This repository contains:
 
-Here are the important links to get you playing.
+* `game/`: A smart contract that runs the game. Workshop participants
+  have to register their player with the game contract.
+* `basic-player`: Example of a player contract.
+* `frontend/`: The Game UI, which the workshop instructor can put
+  on a big screen, so that participants can see live how their agents
+  are doing.
 
-* Basic `player` smart contract
-  * [On the ink! Playground](https://ink-playground.substrate.io/?id=9230e11fc09945ac2cdc928d53cfbfdd)
-  * [On GitHub](https://github.com/paritytech/ink-workshop/blob/main/beginners-workshop/basic-player/lib.rs)
-* [`polkadot-js` frontend for our Contracts parachain on Rococo](https://polkadot.js.org/apps/?rpc=wss%3A%2F%2Frococo-contracts-rpc.polkadot.io#/explorer)
-* [The game frontend](http://splash.use.ink)
+The idea is that anyone who wants can give this workshop can use the slides and
+instructions which will be provided here.
+ We'll add slides on how to conduct the workshop soon!
 
-### 📝 Workshop Survey
+There are two other relevant repositories:
 
-<a href="https://forms.gle/LA6aidjTSZjXrvhq8"><img src=".images/beginner-survey.png" width="300" /></a>
-
-[Survey Link](https://forms.gle/LA6aidjTSZjXrvhq8)
+* [paritytech/squink-splash-beginner](https://github.com/paritytech/squink-splash-beginner):
+  Contains setup instructions for the workshop participants and a
+  basic player to participate in the game.
+* [paritytech/squink-splash-advanced](https://github.com/paritytech/squink-splash-advanced):
+  Contains pointers to advanced ideas for playing the game.
