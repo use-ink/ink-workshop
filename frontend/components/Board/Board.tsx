@@ -1,9 +1,9 @@
 /* eslint-disable @next/next/no-img-element */
 import classNames from 'classnames';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useGame } from '../../contexts/GameContext';
 import { useUI } from '../../contexts/UIContext';
-import { Dimensions, BoardPosition, GameStatus, usePlayers, usePlayerScores } from '../../hooks/useGameContract';
+import { Dimensions, BoardPosition, GameStatus, usePlayerScores } from '../../hooks/useGameContract';
 import { Pixel } from './Pixel';
 import { ScoreItem } from './ScoreItem';
 
@@ -30,10 +30,8 @@ export const Board: React.FC<Props> = ({ className, board, dimensions, boardWidt
   const scoreBoardRef = useRef<SVGGElement>(null);
   const [pixelBoardPosition, setPixelBoardPosition] = useState<CanvasPosition | null>(null);
   const [scoreBoardPosition, setScoreBoardPosition] = useState<CanvasPosition | null>(null);
-  const isSmallBoard = useMemo(() => dimensions && dimensions?.x <= 10 && dimensions?.y <= 10, [dimensions]);
   const { turnData } = useGame();
   const scores = usePlayerScores();
-  const players = usePlayers();
 
   const sirenColor = status
     ? {
@@ -109,16 +107,7 @@ export const Board: React.FC<Props> = ({ className, board, dimensions, boardWidt
             }}
           >
             {board.map(({ x, y, owner, color }) => (
-              <Pixel
-                players={players}
-                key={`(${x}, ${y})`}
-                events={turnData[`(${x},${y})`]}
-                x={x}
-                y={y}
-                owner={owner}
-                color={color}
-                isSmallBoard={isSmallBoard}
-              />
+              <Pixel key={`(${x}, ${y})`} events={turnData[`(${x},${y})`]} x={x} y={y} owner={owner} color={color} />
             ))}
           </div>
         )}
