@@ -21,7 +21,7 @@ export const GameBoard: React.FC = () => {
     const paintedCount = board.filter((b) => b.owner !== undefined).length;
     if (paintedCount > previousPaintedCount) {
       if (!successEffect?.playing()) successEffect?.play();
-      setPrevPaintedCount(previousPaintedCount + 1);
+      setPrevPaintedCount(paintedCount);
     }
   }, [board]);
 
