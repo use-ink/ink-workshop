@@ -1,12 +1,12 @@
 {
   "source": {
-    "hash": "0x44a5df5014155086e2167ca38f63692220663394cd8096b857776c6dbe97658b",
-    "language": "ink! 4.0.0-rc",
+    "hash": "0x187ca01adbe186bf62bdbfa8acbb3c94f071281277bd6438177e32c22e180735",
+    "language": "ink! 4.0.0-beta.1",
     "compiler": "rustc 1.67.0",
     "build_info": {
       "build_mode": "Release",
-      "cargo_contract_version": "2.0.0-rc.1",
-      "rust_toolchain": "stable-aarch64-apple-darwin",
+      "cargo_contract_version": "2.0.0-beta",
+      "rust_toolchain": "stable-x86_64-apple-darwin",
       "wasm_opt_settings": {
         "keep_debug_symbols": false,
         "optimization_passes": "Z"
@@ -105,6 +105,29 @@
           " A player joined the game by calling `register_player`."
         ],
         "label": "PlayerRegistered"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              " The number of rounds played"
+            ],
+            "indexed": false,
+            "label": "rounds_played",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          " The rounds played have increased. This is used for the client side to keep the TurnTaken events",
+          " and \"Blocks\" UI in sync. Events are emitted before block number changes,",
+          " so re-fetching rounds_played on a block change causes a brief delay in the UI."
+        ],
+        "label": "RoundIncremented"
       },
       {
         "args": [

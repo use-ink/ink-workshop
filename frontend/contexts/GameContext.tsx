@@ -5,6 +5,7 @@ import { EventName, Field, PlayerRegistered, TurnData, TurnEvent } from '../hook
 import { useContract } from '../lib/useInk/hooks';
 import { useContractEvents } from '../lib/useInk/hooks/useContractEvents';
 import { ContractEvent } from '../lib/useInk/providers/contractEvents/model';
+import { stringNumberToBN } from '../lib/useInk/utils';
 
 export const ABI = new Abi(METADATA);
 
@@ -16,6 +17,7 @@ type Game = {
   turnData: TurnData;
   playerTurnEvents: TurnEvent[];
   playerRegisteredEvents: PlayerRegistered[];
+  roundsPlayed: number;
 };
 
 const DEFAULT_GAME: Game = {
@@ -26,6 +28,7 @@ const DEFAULT_GAME: Game = {
   turnData: {},
   playerTurnEvents: [],
   playerRegisteredEvents: [],
+  roundsPlayed: 0,
 };
 
 const useGameValues = (): Game => {
@@ -33,10 +36,11 @@ const useGameValues = (): Game => {
   const game = useContract(gameAddress || '', METADATA);
   const events = useContractEvents(gameAddress || '', ABI, true);
 
-  const [turnData, playerTurnEvents, playerRegisteredEvents] = useMemo(() => {
+  const [turnData, playerTurnEvents, playerRegisteredEvents, roundsPlayed] = useMemo(() => {
     let results: TurnData = {};
     const playerTurns: TurnEvent[] = [];
     const registeredEvents: PlayerRegistered[] = [];
+    let roundsPlayed = 0;
 
     try {
       for (let i = 0; i < events.length; i++) {
@@ -44,6 +48,10 @@ const useGameValues = (): Game => {
 
         if (EventName.PlayerRegistered === event.name) {
           registeredEvents.push({ name: EventName.PlayerRegistered, player: event.args[0] as any as string });
+        }
+
+        if (EventName.RoundIncremented === event.name && typeof event.args?.[0] === 'string') {
+          roundsPlayed = stringNumberToBN(event.args[0] || '0').toNumber();
         }
 
         if (EventName.TurnTaken !== event.name) continue;
@@ -87,7 +95,7 @@ const useGameValues = (): Game => {
       console.error('Error converting useTurnTakenEvents');
     }
 
-    return [results, playerTurns, registeredEvents];
+    return [results, playerTurns, registeredEvents, roundsPlayed];
   }, [events]);
 
   return {
@@ -98,6 +106,7 @@ const useGameValues = (): Game => {
     turnData,
     playerTurnEvents,
     playerRegisteredEvents,
+    roundsPlayed,
   };
 };
 

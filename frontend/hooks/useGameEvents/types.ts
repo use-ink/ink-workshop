@@ -10,6 +10,11 @@ export type PlayerRegistered = {
   player: AccountId;
 };
 
+export type RoundIncremented = {
+  name: EventName.RoundIncremented;
+  roundsPlayed: string;
+};
+
 export type SuccessfulTurn = {
   name: 'Success';
   player: string;
@@ -56,4 +61,5 @@ export enum EventName {
   TurnTaken = 'TurnTaken',
   GameEnded = 'GameEnded',
   GameDestroyed = 'GameDestroyed',
+  RoundIncremented = 'RoundIncremented',
 }
