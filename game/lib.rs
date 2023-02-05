@@ -1,38 +1,17 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-pub use contract::{
-    Field,
-    FieldEntry,
-    GameInfo,
-    SquinkSplashRef as Game,
-};
+pub use contract::{Field, FieldEntry, GameInfo, SquinkSplashRef as Game};
 
 #[ink::contract]
 mod contract {
-    use core::{
-        cmp::Reverse,
-        ops::RangeInclusive,
-    };
+    use core::{cmp::Reverse, ops::RangeInclusive};
     use ink::{
         env::{
-            call::{
-                build_call,
-                Call,
-                ExecutionInput,
-                Selector,
-            },
-            debug_println,
-            CallFlags,
-            DefaultEnvironment,
+            call::{build_call, Call, ExecutionInput, Selector},
+            debug_println, CallFlags, DefaultEnvironment,
         },
-        prelude::{
-            string::String,
-            vec::Vec,
-        },
-        storage::{
-            Lazy,
-            Mapping,
-        },
+        prelude::{string::String, vec::Vec},
+        storage::{Lazy, Mapping},
     };
 
     /// The amount of players that are allowed to register for a single game.
@@ -201,6 +180,15 @@ mod contract {
     pub struct PlayerRegistered {
         /// The player contract account ID.
         player: AccountId,
+    }
+
+    /// The rounds played have increased. This is used for the client side to keep the TurnTaken events
+    /// and "Blocks" UI in sync. Events are emitted before block number changes,
+    /// so re-fetching rounds_played on a block change causes a brief delay in the UI.
+    #[ink(event)]
+    pub struct RoundIncremented {
+        /// The number of rounds played
+        rounds_played: u32,
     }
 
     /// Someone started the game by calling `start_game`.
@@ -437,7 +425,7 @@ mod contract {
 
             for (idx, player) in players.iter_mut().enumerate() {
                 if idx as u32 % num_batches != current_batch {
-                    continue
+                    continue;
                 }
 
                 // stop calling a contract that has no gas left
@@ -449,7 +437,7 @@ mod contract {
                         player: player.id,
                         outcome: TurnOutcome::BudgetExhausted,
                     });
-                    continue
+                    continue;
                 }
                 game_info.gas_left = gas_left;
 
@@ -503,6 +491,10 @@ mod contract {
                         TurnOutcome::BrokenPlayer
                     }
                 };
+
+                Self::env().emit_event(RoundIncremented {
+                    rounds_played: current_round + 1,
+                });
 
                 Self::env().emit_event(TurnTaken {
                     player: player.id,
@@ -633,14 +625,8 @@ mod contract {
 
 #[cfg(all(test, feature = "e2e-tests"))]
 mod tests {
-    use crate::{
-        Field,
-        Game,
-    };
-    use ink_e2e::{
-        alice,
-        build_message,
-    };
+    use crate::{Field, Game};
+    use ink_e2e::{alice, build_message};
     use test_player::TestPlayer;
 
     #[ink_e2e::test(additional_contracts = "../test-player/Cargo.toml")]

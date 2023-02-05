@@ -127,14 +127,14 @@ export const usePlayerScores = (): PlayerScore[] => {
   return useMemo(() => {
     if (result && result.ok && budget && budget.ok) {
       let gas_budget = toNumber(budget.value.result);
-      return result.value.result.map(data => {
-          //let gasLeft = gas_budget - data.gasUsed;
-          return {
-            ...data,
-            gasLeft: (gas_budget - toNumber(data.gasUsed)).toLocaleString(),
-            score: data.score,
-            color: colors[data.id],
-        }
+      return result.value.result.map((data) => {
+        //let gasLeft = gas_budget - data.gasUsed;
+        return {
+          ...data,
+          gasLeft: (gas_budget - toNumber(data.gasUsed)).toLocaleString(),
+          score: data.score,
+          color: colors[data.id],
+        };
       });
     }
 
