@@ -15,12 +15,6 @@ test-player = { path = "../test-player", features = ["ink-as-dependency"] }
 
 [lib]
 path = "lib.rs"
-crate-type = [
-	# Used for normal contract Wasm blobs.
-	"cdylib",
-	# Needed to use it as dependency.
-	"rlib",
-]
 
 [features]
 default = ["std"]

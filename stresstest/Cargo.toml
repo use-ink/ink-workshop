@@ -13,10 +13,6 @@ rand = { version = "0.8.3", features = ["small_rng"], default-features = false }
 
 [lib]
 path = "lib.rs"
-crate-type = [
-    "cdylib",
-    "rlib",
-]
 
 [features]
 default = ["std"]
