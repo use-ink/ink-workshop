@@ -520,15 +520,16 @@ mod contract {
                     }
                 };
 
-                Self::env().emit_event(RoundIncremented {
-                    rounds_played: current_round + 1,
-                });
-
                 Self::env().emit_event(TurnTaken {
                     player: player.id,
                     outcome,
                 });
             }
+
+            Self::env().emit_event(RoundIncremented {
+                rounds_played: current_round + 1,
+            });
+
             self.players.set(&players);
         }
 
