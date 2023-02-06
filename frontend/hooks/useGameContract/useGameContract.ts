@@ -4,7 +4,6 @@ import { useGame } from '../../contexts/GameContext';
 import { useBlockHeader, useContractTx, useNotifications } from '../../lib/useInk/hooks';
 import { useContractCallDecoded } from '../../lib/useInk/hooks/useContractCallDecoded';
 import {
-  AccountId,
   BoardPosition,
   Dimensions,
   Field,
@@ -23,6 +22,7 @@ import { useUI } from '../../contexts/UIContext';
 import { useAudioSettings } from '../useAudioSettings';
 import { useTranslation } from 'react-i18next';
 import { useLanguageSettings } from '../useLanguageSettings';
+import { stringToHex } from '../../utils';
 
 export const useGameContract = () => useGame().game;
 
@@ -103,17 +103,18 @@ export const useBuyInAmount = (): BN | null => {
 export const usePlayerColors = (): PlayerColors => {
   const game = useGameContract();
   const decoded = useContractCallDecoded<Player[]>(game, 'playersSorted');
+  const playerCount = decoded?.ok ? decoded.value.result.length : 0;
 
   return useMemo(() => {
     if (decoded && decoded.ok && decoded.value) {
-      return decoded.value.result.reduce((acc, p, index) => {
-        const colorIndex = index % PLAYER_COLORS.length;
+      return decoded.value.result.reduce((acc, p) => {
+        const colorIndex = parseInt(stringToHex(p.name), 16) % PLAYER_COLORS.length;
         return { ...acc, [p.id]: PLAYER_COLORS[colorIndex] };
       }, {});
     }
 
     return [];
-  }, [decoded]);
+  }, [playerCount]);
 };
 
 const toNumber = (valWithComma: string): number => parseInt(`${valWithComma?.split(',').join('')}`);
