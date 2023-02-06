@@ -487,20 +487,21 @@ mod contract {
                 // We continue even if the contract call fails. If the contract
                 // doesn't conform it is the players fault. No second tries.
                 let outcome = match turn {
-                    Ok(Ok(Some(turn))) => {
+                    Ok(Ok(Some(turn))) if self.idx(&turn).is_some() => {
+                        let idx = self.idx(&turn).unwrap();
                         // Player tried to make a turn: charge gas.
                         player.gas_used += gas_used;
                         if !self.is_valid_coord(&turn) {
                             TurnOutcome::OutOfBounds { turn }
                         } else {
-                            if let Some(entry) = self.board.get(self.idx(&turn)) {
+                            if let Some(entry) = self.board.get(&idx) {
                                 TurnOutcome::Occupied {
                                     turn,
                                     player: entry.owner,
                                 }
                             } else {
                                 self.board.insert(
-                                    self.idx(&turn),
+                                    idx,
                                     &FieldEntry {
                                         owner: player.id,
                                         claimed_at: current_round,
@@ -599,7 +600,7 @@ mod contract {
         /// Returns the value (owner) of the supplied field.
         #[ink(message)]
         pub fn field(&self, coord: Field) -> Option<FieldEntry> {
-            self.board.get(self.idx(&coord))
+            self.idx(&coord).and_then(|idx| self.board.get(idx))
         }
 
         /// Returns the complete board.
@@ -644,12 +645,17 @@ mod contract {
             players.binary_search_by_key(id, |player| player.id)
         }
 
-        fn idx(&self, coord: &Field) -> u32 {
-            coord.x + coord.y * self.dimensions.x
+        fn idx(&self, coord: &Field) -> Option<u32> {
+            coord
+                .y
+                .checked_mul(self.dimensions.x)
+                .and_then(|val| val.checked_add(coord.x))
         }
 
         fn is_valid_coord(&self, coord: &Field) -> bool {
-            self.idx(coord) < self.dimensions.len()
+            self.idx(coord)
+                .map(|val| val < self.dimensions.len())
+                .unwrap_or(false)
         }
     }
 }
