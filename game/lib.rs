@@ -626,7 +626,7 @@ mod contract {
         }
 
         fn calc_gas_budget(gas_limit: u64, num_rounds: u32) -> u64 {
-            gas_limit * u64::from(num_rounds) / 3
+            gas_limit * u64::from(num_rounds) / 4
         }
 
         fn players(&self) -> Vec<Player> {
