@@ -63,6 +63,8 @@ mod contract {
         rounds: u32,
         /// The block number the last turn was made.
         last_turn: Lazy<u32>,
+        /// The opener is allowed to start the game early.
+        opener: AccountId,
     }
 
     #[derive(scale::Decode, scale::Encode)]
@@ -273,6 +275,7 @@ mod contract {
                 buy_in,
                 rounds,
                 last_turn: Default::default(),
+                opener: Self::env().caller(),
             };
             ret.players.set(&Vec::new());
             ret
@@ -306,7 +309,8 @@ mod contract {
         pub fn start_game(&mut self) {
             if let State::Forming { earliest_start } = self.state {
                 assert!(
-                    Self::env().block_number() >= earliest_start,
+                    Self::env().caller() == self.opener
+                        || Self::env().block_number() >= earliest_start,
                     "Game can't be started, yet."
                 );
             } else {
