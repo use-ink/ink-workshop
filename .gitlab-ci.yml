@@ -60,7 +60,7 @@ workflow:
   before_script:
     - *rust-info-script
   tags:
-    - linux-docker
+    - linux-docker-vm-c2
 
 .start-substrate-contracts-node:                     &start-substrate-contracts-node
     - substrate-contracts-node -linfo,runtime::contracts=debug  2>&1 | tee /tmp/contracts-node.log &
