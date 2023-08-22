@@ -16,6 +16,8 @@
 #   you can use them for mentioning unlike an email.
 # - The latest matching rule, if multiple, takes precedence.
 
+# People prepping the worksbop
+* @SkymanOne @DoubleOTheven @pmikolajczyk41
 
 # CI
-/.gitlab-ci.yml @paritytech/ci
+/.gitlab-ci.yml @paritytech/ci @SkymanOne @DoubleOTheven
