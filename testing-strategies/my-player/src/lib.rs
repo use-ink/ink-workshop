@@ -1,5 +1,8 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+#[cfg(all(test, feature = "unit-tests"))]
+mod unit_tests;
+
 #[ink::contract]
 mod my_player {
     #[ink(storage)]

@@ -6,13 +6,13 @@ version = "0.1.0"
 publish = false
 
 [dependencies]
-ink = { version = "=4.2.1", default-features = false, features = ["ink-debug"] }
+ink = { version = "=4.3.0", default-features = false, features = ["ink-debug"] }
 
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
 
 [dev-dependencies]
-ink_e2e = { version = "=4.2.1" }
+ink_e2e = { version = "=4.3.0" }
 drink = { version = "0.1.3" }
 
 [lib]
@@ -26,3 +26,7 @@ std = [
     "scale-info/std",
 ]
 ink-as-dependency = []
+
+unit-tests = []
+drink-tests = []
+e2e-tests = []
