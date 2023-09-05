@@ -24,7 +24,10 @@ mod my_player {
         pub fn my_turn(&mut self) -> Option<(u32, u32)> {
             let turn = self.next_turn;
             self.next_turn += 1;
-            Some((turn % self.dimensions.0, turn / self.dimensions.0))
+            Some((
+                turn % self.dimensions.0,
+                (turn / self.dimensions.0) % self.dimensions.1,
+            ))
         }
     }
 }

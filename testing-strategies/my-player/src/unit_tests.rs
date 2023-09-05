@@ -20,6 +20,6 @@ fn check_dummy_playing<const WIDTH: u32, const HEIGHT: u32, const START: u32>() 
     for turn in START..(HEIGHT * WIDTH) + START {
         let (x, y) = player.my_turn().expect("should return coordinates");
         assert_eq!(x, turn % WIDTH);
-        assert_eq!(y, turn / WIDTH);
+        assert_eq!(y, turn / WIDTH % HEIGHT);
     }
 }
