@@ -1,12 +1,27 @@
+use game_parameters::*;
 use ink_e2e::build_message;
-use squink_splash::{Field, Game as GameRef};
+use squink_splash::Game as GameRef;
+use utils::*;
 
 use crate::my_player::MyPlayerRef;
 
 type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
-const DIMENSION: u32 = 4;
-const START: u32 = 1;
+const CHECK_STATE_BEFORE_EVERY_TURN: bool = true;
+
+mod game_parameters {
+    use squink_splash::Field;
+
+    pub const DIMENSION: u32 = 4;
+    pub const START: u32 = 1;
+    pub const FIELD: Field = Field {
+        x: DIMENSION,
+        y: DIMENSION,
+    };
+    pub const FORMING_ROUNDS: u32 = 0;
+    pub const ROUNDS: u32 = 10;
+    pub const BUY_IN: u128 = 0;
+}
 
 #[ink_e2e::test]
 fn instantiation_works(mut client: Client) -> E2EResult<()> {
@@ -14,7 +29,7 @@ fn instantiation_works(mut client: Client) -> E2EResult<()> {
         .instantiate(
             "my-player",
             &ink_e2e::alice(),
-            MyPlayerRef::new((10, 10), 1),
+            MyPlayerRef::new((DIMENSION, DIMENSION), START),
             0,
             None,
         )
@@ -26,17 +41,7 @@ fn instantiation_works(mut client: Client) -> E2EResult<()> {
 
 #[ink_e2e::test]
 fn uses_dummy_strategy_correctly(mut client: Client) -> E2EResult<()> {
-    let player_address = client
-        .instantiate(
-            "my-player",
-            &ink_e2e::alice(),
-            MyPlayerRef::new((DIMENSION, DIMENSION), START),
-            0,
-            None,
-        )
-        .await
-        .expect("Failed to instantiate contract")
-        .account_id;
+    let player_address = instantiate_my_player(&mut client).await;
 
     let call = build_message::<MyPlayerRef>(player_address).call(|player| player.my_turn());
 
@@ -59,103 +64,115 @@ fn uses_dummy_strategy_correctly(mut client: Client) -> E2EResult<()> {
 
 #[ink_e2e::test(additional_contracts = "../../game/Cargo.toml")]
 fn we_can_simulate_one_player_game(mut client: Client) -> E2EResult<()> {
-    let dimensions = Field {
-        x: DIMENSION,
-        y: DIMENSION,
+    let player_address = instantiate_my_player(&mut client).await;
+    let game_address = instantiate_game(&mut client).await;
+
+    game_action(&mut client, game_address, |c| {
+        c.register_player(player_address, "Player 1".into())
+    })
+    .await;
+
+    game_action(&mut client, game_address, |c| c.start_game()).await;
+
+    for _ in 0..ROUNDS {
+        if CHECK_STATE_BEFORE_EVERY_TURN {
+            game_action(&mut client, game_address, |c| c.state()).await;
+        }
+        game_action(&mut client, game_address, |c| c.submit_turn()).await;
+    }
+
+    game_action(&mut client, game_address, |c| c.end_game()).await;
+
+    Ok(())
+}
+
+mod utils {
+    use ink::{
+        codegen::TraitCallBuilder,
+        env::{
+            call::{
+                utils::{ReturnType, Set, Unset},
+                Call, CallBuilder, CreateBuilder, ExecutionInput,
+            },
+            DefaultEnvironment,
+        },
+        primitives::{AccountId, Hash},
     };
-    let forming_rounds = 0;
-    let rounds = 10;
-    let buy_in = 0;
-    let caller = ink_e2e::alice();
+    use ink_e2e::{build_message, Client, PolkadotConfig};
+    use scale::Encode;
 
-    let player_address = client
-        .instantiate(
+    use crate::{
+        e2e_tests::{GameRef, BUY_IN, DIMENSION, FIELD, FORMING_ROUNDS, ROUNDS, START},
+        my_player::MyPlayerRef,
+    };
+
+    pub async fn instantiate_my_player(
+        client: &mut Client<PolkadotConfig, DefaultEnvironment>,
+    ) -> AccountId {
+        instantiate(
+            client,
             "my-player",
-            &caller,
             MyPlayerRef::new((DIMENSION, DIMENSION), START),
-            0,
-            None,
         )
         .await
-        .expect("Failed to instantiate contract")
-        .account_id;
+    }
 
-    let game_address = client
-        .instantiate(
+    pub async fn instantiate_game(
+        client: &mut Client<PolkadotConfig, DefaultEnvironment>,
+    ) -> AccountId {
+        instantiate(
+            client,
             "squink_splash",
-            &caller,
-            GameRef::new(dimensions, buy_in, forming_rounds, rounds),
-            0,
-            None,
+            GameRef::new(FIELD, BUY_IN, FORMING_ROUNDS, ROUNDS),
         )
         .await
-        .expect("Failed to instantiate contract")
-        .account_id;
+    }
 
-    client
-        .call(
-            &caller,
-            build_message::<GameRef>(game_address)
-                .call(|c| c.register_player(player_address, "Player 1".into())),
-            0,
-            None,
-        )
-        .await
-        .unwrap();
-
-    client
-        .call(
-            &caller,
-            build_message::<GameRef>(game_address).call(|c| c.start_game()),
-            0,
-            None,
-        )
-        .await
-        .unwrap();
-
-    // XDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
-    client
-        .call(
-            &caller,
-            build_message::<GameRef>(game_address).call(|c| c.state()),
-            0,
-            None,
-        )
-        .await
-        .unwrap();
-
-    for _ in 0..rounds {
+    async fn instantiate<ContractRef, Args: Encode, R>(
+        client: &mut Client<PolkadotConfig, DefaultEnvironment>,
+        contract_name: &str,
+        constructor: CreateBuilder<
+            DefaultEnvironment,
+            ContractRef,
+            Unset<Hash>,
+            Unset<u64>,
+            Unset<u128>,
+            Set<ExecutionInput<Args>>,
+            Unset<ink::env::call::state::Salt>,
+            Set<ReturnType<R>>,
+        >,
+    ) -> AccountId {
         client
-            .call(
-                &caller,
-                build_message::<GameRef>(game_address).call(|c| c.submit_turn()),
-                0,
-                None,
-            )
+            .instantiate(contract_name, &ink_e2e::alice(), constructor, 0, None)
             .await
-            .map_err(|e| println!("{:?}", e))
-            .unwrap();
+            .expect("Failed to instantiate contract")
+            .account_id
+    }
 
+    pub async fn game_action<Action, Args, RetType>(
+        client: &mut Client<PolkadotConfig, DefaultEnvironment>,
+        game_address: AccountId,
+        mut action: Action,
+    ) where
+        Action: FnMut(
+            &mut <GameRef as TraitCallBuilder>::Builder,
+        ) -> CallBuilder<
+            DefaultEnvironment,
+            Set<Call<DefaultEnvironment>>,
+            Set<ExecutionInput<Args>>,
+            Set<ReturnType<RetType>>,
+        >,
+        Args: scale::Encode,
+        RetType: scale::Decode,
+    {
         client
             .call(
-                &caller,
-                build_message::<GameRef>(game_address).call(|c| c.state()),
+                &ink_e2e::alice(),
+                build_message::<GameRef>(game_address).call(|c| action(c)),
                 0,
                 None,
             )
             .await
             .unwrap();
     }
-
-    client
-        .call(
-            &caller,
-            build_message::<GameRef>(game_address).call(|c| c.end_game()),
-            0,
-            None,
-        )
-        .await
-        .unwrap();
-
-    Ok(())
 }
