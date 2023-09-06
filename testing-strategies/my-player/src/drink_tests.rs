@@ -1,9 +1,9 @@
 use drink::{runtime::MinimalRuntime, session::Session};
 
 use crate::drink_tests::{
-    game_parameters::{DIMENSION, START},
+    game_parameters::{BUY_IN, DIMENSION, FORMING_ROUNDS, ROUNDS, START},
     utils::{bytes, coordinates_as_value, instantiate_my_player, transcoder},
-    Contract::MyPlayer,
+    Contract::{CornerPlayer, Game, MyPlayer, RandPlayer},
 };
 
 type TestResult<T> = Result<T, Box<dyn std::error::Error>>;
@@ -17,14 +17,8 @@ pub enum Contract {
 }
 
 mod game_parameters {
-    use squink_splash::Field;
-
     pub const DIMENSION: u32 = 4;
     pub const START: u32 = 1;
-    pub const FIELD: Field = Field {
-        x: DIMENSION,
-        y: DIMENSION,
-    };
     pub const FORMING_ROUNDS: u32 = 0;
     pub const ROUNDS: u32 = 10;
     pub const BUY_IN: u128 = 0;
@@ -50,6 +44,33 @@ fn uses_dummy_strategy_correctly() -> TestResult<()> {
     Ok(())
 }
 
+#[test]
+fn we_can_simulate_game_with_many_players() -> TestResult<()> {
+    let dim_arg = format!("({DIMENSION},{DIMENSION})");
+    let game_args = [
+        format!("{{x:{DIMENSION},y:{DIMENSION}}}"),
+        BUY_IN.to_string(),
+        FORMING_ROUNDS.to_string(),
+        ROUNDS.to_string(),
+    ];
+
+    Session::<MinimalRuntime>::new(Some(transcoder(MyPlayer)))?
+        .deploy_and(
+            bytes(MyPlayer),
+            "new",
+            &[dim_arg.clone(), START.to_string()],
+            vec![],
+        )?
+        .with_transcoder(Some(transcoder(RandPlayer)))
+        .deploy_and(bytes(RandPlayer), "new", &[dim_arg.clone()], vec![])?
+        .with_transcoder(Some(transcoder(CornerPlayer)))
+        .deploy_and(bytes(CornerPlayer), "new", &[dim_arg.clone()], vec![])?
+        .with_transcoder(Some(transcoder(Game)))
+        .deploy_and(bytes(Game), "new", &game_args, vec![])?;
+
+    Ok(())
+}
+
 mod utils {
     use std::{fs, path::PathBuf, rc::Rc};
 
@@ -61,28 +82,24 @@ mod utils {
         },
     };
 
-    use crate::drink_tests::{
-        game_parameters::{DIMENSION, START},
-        Contract,
-        Contract::MyPlayer,
-    };
+    use crate::drink_tests::{game_parameters::START, Contract, Contract::*, DIMENSION};
 
     impl Contract {
         fn name(self) -> &'static str {
             match self {
-                Contract::MyPlayer => "my_player",
-                Contract::RandPlayer => "rand_player",
-                Contract::CornerPlayer => "corner_player",
-                Contract::Game => "squink_splash",
+                MyPlayer => "my_player",
+                RandPlayer => "rand_player",
+                CornerPlayer => "corner_player",
+                Game => "squink_splash",
             }
         }
 
         fn base_path(self) -> &'static str {
             match self {
-                Contract::MyPlayer => "./target/ink",
-                Contract::RandPlayer => "../rand-player/target/ink",
-                Contract::CornerPlayer => "../corner-player/target/ink",
-                Contract::Game => "../../game/target/ink",
+                MyPlayer => "./target/ink",
+                RandPlayer => "../rand-player/target/ink",
+                CornerPlayer => "../corner-player/target/ink",
+                Game => "../../game/target/ink",
             }
         }
     }
