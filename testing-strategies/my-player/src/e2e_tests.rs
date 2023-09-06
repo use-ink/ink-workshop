@@ -1,6 +1,6 @@
 use game_parameters::*;
 use ink_e2e::build_message;
-use squink_splash::Game as GameRef;
+use squink_splash::{Game as GameRef, State};
 use utils::*;
 
 use crate::my_player::MyPlayerRef;
@@ -86,6 +86,47 @@ fn we_can_simulate_one_player_game(mut client: Client) -> E2EResult<()> {
     Ok(())
 }
 
+#[ink_e2e::test(
+    additional_contracts = "../../game/Cargo.toml ../rand-player/Cargo.toml ../corner-player/Cargo.toml"
+)]
+fn we_can_simulate_game_with_many_players(mut client: Client) -> E2EResult<()> {
+    let my_player_address = instantiate_my_player(&mut client).await;
+    let rand_player_address = instantiate_my_player(&mut client).await;
+    let corner_player_address = instantiate_my_player(&mut client).await;
+    let game_address = instantiate_game(&mut client).await;
+
+    game_action(&mut client, game_address, |c| {
+        c.register_player(my_player_address, "Player 1".into())
+    })
+    .await;
+    game_action(&mut client, game_address, |c| {
+        c.register_player(rand_player_address, "Player 2".into())
+    })
+    .await;
+    game_action(&mut client, game_address, |c| {
+        c.register_player(corner_player_address, "Player 3".into())
+    })
+    .await;
+
+    game_action(&mut client, game_address, |c| c.start_game()).await;
+
+    for _ in 0..ROUNDS {
+        if CHECK_STATE_BEFORE_EVERY_TURN {
+            game_action(&mut client, game_address, |c| c.state()).await;
+        }
+        game_action(&mut client, game_address, |c| c.submit_turn()).await;
+    }
+
+    game_action(&mut client, game_address, |c| c.end_game()).await;
+
+    let state = game_action(&mut client, game_address, |c| c.state())
+        .await
+        .return_value();
+    assert!(matches!(state, State::Finished { .. }));
+
+    Ok(())
+}
+
 mod utils {
     use ink::{
         codegen::TraitCallBuilder,
@@ -98,7 +139,7 @@ mod utils {
         },
         primitives::{AccountId, Hash},
     };
-    use ink_e2e::{build_message, Client, PolkadotConfig};
+    use ink_e2e::{build_message, CallResult, Client, PolkadotConfig};
     use scale::Encode;
 
     use crate::{
@@ -153,7 +194,8 @@ mod utils {
         client: &mut Client<PolkadotConfig, DefaultEnvironment>,
         game_address: AccountId,
         mut action: Action,
-    ) where
+    ) -> CallResult<PolkadotConfig, DefaultEnvironment, RetType>
+    where
         Action: FnMut(
             &mut <GameRef as TraitCallBuilder>::Builder,
         ) -> CallBuilder<
@@ -173,6 +215,6 @@ mod utils {
                 None,
             )
             .await
-            .unwrap();
+            .unwrap()
     }
 }
