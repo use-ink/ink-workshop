@@ -1,4 +1,4 @@
-use drink::{runtime::MinimalRuntime, session::Session};
+use drink::{chain_api::ChainApi, runtime::MinimalRuntime, session::Session};
 
 use crate::drink_tests::{
     game_parameters::{BUY_IN, DIMENSION, FORMING_ROUNDS, ROUNDS, START},
@@ -55,7 +55,7 @@ fn we_can_simulate_game_with_many_players() -> TestResult<()> {
         ROUNDS.to_string(),
     ];
 
-    let mut session = Session::<MinimalRuntime>::new(Some(transcoder(MyPlayer)))?
+    let session = Session::<MinimalRuntime>::new(Some(transcoder(MyPlayer)))?
         .deploy_and(bytes(MyPlayer), "new", &my_player_args, vec![])?
         .with_transcoder(Some(transcoder(RandPlayer)))
         .deploy_and(bytes(RandPlayer), "new", &[dim_arg.clone()], vec![])?
@@ -71,9 +71,23 @@ fn we_can_simulate_game_with_many_players() -> TestResult<()> {
         .collect::<Vec<_>>()
         .try_into()
         .unwrap();
-    let [my_player, rand_player, corner_player, game] = addresses;
+    let [my_player, rand_player, corner_player, _game] = addresses;
 
-    session.call_and("register_player", &[my_player, player_name(0)])?;
+    let mut session = session
+        .call_and("register_player", &[my_player, player_name(0)])?
+        .call_and("register_player", &[rand_player, player_name(1)])?
+        .call_and("register_player", &[corner_player, player_name(2)])?
+        .call_and("start_game", &[])?;
+
+    for _ in 0..ROUNDS {
+        session
+            .chain_api()
+            .build_block()
+            .expect("Failed to build block");
+        session.call("submit_turn", &[])?;
+    }
+
+    session.call("end_game", &[])?;
 
     Ok(())
 }
