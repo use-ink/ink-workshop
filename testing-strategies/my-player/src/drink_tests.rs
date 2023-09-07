@@ -2,7 +2,7 @@ use drink::{runtime::MinimalRuntime, session::Session};
 
 use crate::drink_tests::{
     game_parameters::{BUY_IN, DIMENSION, FORMING_ROUNDS, ROUNDS, START},
-    utils::{bytes, coordinates_as_value, instantiate_my_player, transcoder},
+    utils::{bytes, coordinates_as_value, instantiate_my_player, player_name, transcoder},
     Contract::{CornerPlayer, Game, MyPlayer, RandPlayer},
 };
 
@@ -47,6 +47,7 @@ fn uses_dummy_strategy_correctly() -> TestResult<()> {
 #[test]
 fn we_can_simulate_game_with_many_players() -> TestResult<()> {
     let dim_arg = format!("({DIMENSION},{DIMENSION})");
+    let my_player_args = [dim_arg.clone(), START.to_string()];
     let game_args = [
         format!("{{x:{DIMENSION},y:{DIMENSION}}}"),
         BUY_IN.to_string(),
@@ -54,19 +55,25 @@ fn we_can_simulate_game_with_many_players() -> TestResult<()> {
         ROUNDS.to_string(),
     ];
 
-    Session::<MinimalRuntime>::new(Some(transcoder(MyPlayer)))?
-        .deploy_and(
-            bytes(MyPlayer),
-            "new",
-            &[dim_arg.clone(), START.to_string()],
-            vec![],
-        )?
+    let mut session = Session::<MinimalRuntime>::new(Some(transcoder(MyPlayer)))?
+        .deploy_and(bytes(MyPlayer), "new", &my_player_args, vec![])?
         .with_transcoder(Some(transcoder(RandPlayer)))
         .deploy_and(bytes(RandPlayer), "new", &[dim_arg.clone()], vec![])?
         .with_transcoder(Some(transcoder(CornerPlayer)))
         .deploy_and(bytes(CornerPlayer), "new", &[dim_arg.clone()], vec![])?
         .with_transcoder(Some(transcoder(Game)))
         .deploy_and(bytes(Game), "new", &game_args, vec![])?;
+
+    let addresses: [String; 4] = session
+        .deployed_contracts()
+        .into_iter()
+        .map(|c| c.to_string())
+        .collect::<Vec<_>>()
+        .try_into()
+        .unwrap();
+    let [my_player, rand_player, corner_player, game] = addresses;
+
+    session.call_and("register_player", &[my_player, player_name(0)])?;
 
     Ok(())
 }
@@ -142,5 +149,9 @@ mod utils {
                 vec![],
             )
             .expect("Failed to instantiate contract")
+    }
+
+    pub fn player_name(id: usize) -> String {
+        format!("{:?}", format!("Player {id}").to_string().into_bytes())
     }
 }

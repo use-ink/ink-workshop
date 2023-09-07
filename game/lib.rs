@@ -333,7 +333,8 @@ mod contract {
 
         /// Add a new player to the game. Only allowed while the game has not started.
         #[ink(message, payable)]
-        pub fn register_player(&mut self, id: AccountId, name: String) {
+        pub fn register_player(&mut self, id: AccountId, name: Vec<u8>) {
+            let name = String::from_utf8(name).expect("Name is valid UTF-8.");
             assert!(
                 matches!(self.state, State::Forming { .. }),
                 "Players can only be registered in the forming phase."
