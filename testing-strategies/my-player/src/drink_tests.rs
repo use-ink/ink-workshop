@@ -2,7 +2,7 @@ use drink::{chain_api::ChainApi, runtime::MinimalRuntime, session::Session};
 
 use crate::drink_tests::{
     game_parameters::{BUY_IN, DIMENSION, FORMING_ROUNDS, ROUNDS, START},
-    utils::{bytes, coordinates_as_value, instantiate_my_player, player_name, transcoder},
+    utils::{bytes, coordinates_as_value, instantiate_my_player, transcoder},
     Contract::{CornerPlayer, Game, MyPlayer, RandPlayer},
 };
 
@@ -74,9 +74,9 @@ fn we_can_simulate_game_with_many_players() -> TestResult<()> {
     let [my_player, rand_player, corner_player, _game] = addresses;
 
     let mut session = session
-        .call_and("register_player", &[my_player, player_name(0)])?
-        .call_and("register_player", &[rand_player, player_name(1)])?
-        .call_and("register_player", &[corner_player, player_name(2)])?
+        .call_and("register_player", &[my_player, format!("\"Player 0\"")])?
+        .call_and("register_player", &[rand_player, format!("\"Player 1\"")])?
+        .call_and("register_player", &[corner_player, format!("\"Player 2\"")])?
         .call_and("start_game", &[])?;
 
     for _ in 0..ROUNDS {
@@ -163,9 +163,5 @@ mod utils {
                 vec![],
             )
             .expect("Failed to instantiate contract")
-    }
-
-    pub fn player_name(id: usize) -> String {
-        format!("{:?}", format!("Player {id}").to_string().into_bytes())
     }
 }
