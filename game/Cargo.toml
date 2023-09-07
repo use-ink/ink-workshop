@@ -5,12 +5,12 @@ authors = ["Parity Technologies <admin@parity.io>"]
 edition = "2021"
 
 [dependencies]
-ink = { version = "4.0.0-beta.1", default-features = false }
+ink = { git = "https://github.com/paritytech/ink.git", default-features = false }
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 scale-info = { version = "2", default-features = false, features = ["derive"], optional = true }
 
 [dev-dependencies]
-ink_e2e = "4.0.0-beta.1"
+ink_e2e = {git = "https://github.com/paritytech/ink.git"}
 test-player = { path = "../test-player", features = ["ink-as-dependency"] }
 
 [lib]

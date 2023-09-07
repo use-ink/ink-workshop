@@ -1,6 +1,7 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-pub use player::PlayerRef as TestPlayer;
+pub use player::PlayerRef as TestPlayerRef;
+pub use player::Player as TestPlayer;
 
 #[ink::contract]
 mod player {

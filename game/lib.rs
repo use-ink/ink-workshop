@@ -1,10 +1,11 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 pub use contract::{
     Field,
     FieldEntry,
     GameInfo,
-    SquinkSplashRef as Game,
+    SquinkSplash as Game,
+    SquinkSplashRef as GameRef,
 };
 
 #[ink::contract]
@@ -296,7 +297,7 @@ mod contract {
                         .expect("The winner is a player; qed");
                     players.into_iter().nth(winning_idx).unwrap()
                 };
-                let winner_id = winner.id.clone();
+                let winner_id = winner.id;
                 Self::env().emit_event(GameDestroyed { winner });
                 Self::env().terminate_contract(winner_id)
             } else {
@@ -450,7 +451,7 @@ mod contract {
                 gas_left: 0,
                 player_scores: players
                     .iter()
-                    .map(|player| (player.name.clone(), player.score.clone()))
+                    .map(|player| (player.name.clone(), player.score))
                     .collect(),
             };
 
@@ -460,7 +461,7 @@ mod contract {
                 }
 
                 // Stop calling a contract that has no gas left.
-                let gas_limit = Self::calc_gas_limit(num_players as usize);
+                let gas_limit = Self::calc_gas_limit(num_players);
                 let gas_left = Self::calc_gas_budget(gas_limit, self.rounds)
                     .saturating_sub(player.gas_used);
                 if gas_left == 0 {
@@ -497,23 +498,21 @@ mod contract {
                         player.gas_used += gas_used;
                         if !self.is_valid_coord(&turn) {
                             TurnOutcome::OutOfBounds { turn }
-                        } else {
-                            if let Some(entry) = self.board.get(&idx) {
-                                TurnOutcome::Occupied {
-                                    turn,
-                                    player: entry.owner,
-                                }
-                            } else {
-                                self.board.insert(
-                                    idx,
-                                    &FieldEntry {
-                                        owner: player.id,
-                                        claimed_at: current_round,
-                                    },
-                                );
-                                player.score += u64::from(current_round + 1);
-                                TurnOutcome::Success { turn }
+                        } else if let Some(entry) = self.board.get(idx) {
+                            TurnOutcome::Occupied {
+                                turn,
+                                player: entry.owner,
                             }
+                        } else {
+                            self.board.insert(
+                                idx,
+                                &FieldEntry {
+                                    owner: player.id,
+                                    claimed_at: current_round,
+                                },
+                            );
+                            player.score += u64::from(current_round + 1);
+                            TurnOutcome::Success { turn }
                         }
                     }
                     Ok(Ok(None)) => TurnOutcome::NoTurn,
@@ -639,7 +638,7 @@ mod contract {
                 .expect("Initial value is set in constructor.")
         }
 
-        fn board_iter<'a>(&'a self) -> impl Iterator<Item = Option<FieldEntry>> + 'a {
+        fn board_iter(&self) -> impl Iterator<Item = Option<FieldEntry>> + '_ {
             (0..self.dimensions.y).flat_map(move |y| {
                 (0..self.dimensions.x).map(move |x| self.field(Field { x, y }))
             })
@@ -669,15 +668,16 @@ mod tests {
     use crate::{
         Field,
         Game,
+        GameRef,
     };
     use ink_e2e::{
         alice,
-        build_message,
+        ContractsBackend,
     };
-    use test_player::TestPlayer;
+    use test_player::TestPlayerRef;
 
     #[ink_e2e::test(additional_contracts = "../test-player/Cargo.toml")]
-    async fn e2e_game(mut client: Client<C, E>) {
+    async fn e2e_game<Client: E2EBackend>(mut client: Client) {
         let alice = alice();
         let dimensions = Field { x: 10, y: 10 };
         let forming_rounds = 0;
@@ -688,43 +688,41 @@ mod tests {
             .instantiate(
                 "test-player",
                 &alice,
-                TestPlayer::new((dimensions.x, dimensions.y), 7),
+                TestPlayerRef::new((dimensions.x, dimensions.y), 7),
                 0,
                 None,
             )
             .await
-            .unwrap()
-            .account_id;
+            .unwrap();
 
         let player_bob = client
             .instantiate(
                 "test-player",
                 &alice,
-                TestPlayer::new((dimensions.x, dimensions.y), 3),
+                TestPlayerRef::new((dimensions.x, dimensions.y), 3),
                 0,
                 None,
             )
             .await
-            .unwrap()
-            .account_id;
+            .unwrap();
 
         let game = client
             .instantiate(
                 "squink_splash",
                 &alice,
-                Game::new(dimensions, buy_in, forming_rounds, rounds),
+                GameRef::new(dimensions, buy_in, forming_rounds, rounds),
                 0,
                 None,
             )
             .await
-            .unwrap()
-            .account_id;
+            .unwrap();
+
+        let mut game_call = game.call::<Game>();
 
         client
             .call(
                 &alice,
-                build_message::<Game>(game)
-                    .call(|c| c.register_player(player_alex, "Alex".into())),
+                &game_call.register_player(player_alex.account_id, "Alex".into()),
                 0,
                 None,
             )
@@ -734,8 +732,7 @@ mod tests {
         client
             .call(
                 &alice,
-                build_message::<Game>(game)
-                    .call(|c| c.register_player(player_bob, "Bob".into())),
+                &game_call.register_player(player_bob.account_id, "Bob".into()),
                 0,
                 None,
             )
@@ -743,22 +740,12 @@ mod tests {
             .unwrap();
 
         client
-            .call(
-                &alice,
-                build_message::<Game>(game).call(|c| c.start_game()),
-                0,
-                None,
-            )
+            .call(&alice, &game_call.start_game(), 0, None)
             .await
             .unwrap();
 
         let state = client
-            .call(
-                &alice,
-                build_message::<Game>(game).call(|c| c.state()),
-                0,
-                None,
-            )
+            .call(&alice, &game_call.state(), 0, None)
             .await
             .unwrap()
             .return_value();
@@ -766,22 +753,12 @@ mod tests {
 
         for _ in 0..rounds {
             client
-                .call(
-                    &alice,
-                    build_message::<Game>(game).call(|c| c.submit_turn()),
-                    0,
-                    None,
-                )
+                .call(&alice, &game_call.submit_turn(), 0, None)
                 .await
                 .unwrap();
 
             let players = client
-                .call(
-                    &alice,
-                    build_message::<Game>(game).call(|c| c.players_sorted()),
-                    0,
-                    None,
-                )
+                .call(&alice, &game_call.players_sorted(), 0, None)
                 .await
                 .unwrap()
                 .return_value();
@@ -790,24 +767,14 @@ mod tests {
         }
 
         let state = client
-            .call(
-                &alice,
-                build_message::<Game>(game).call(|c| c.state()),
-                0,
-                None,
-            )
+            .call(&alice, &game_call.state(), 0, None)
             .await
             .unwrap()
             .return_value();
         println!("state: {:?}", state);
 
         client
-            .call(
-                &alice,
-                build_message::<Game>(game).call(|c| c.end_game()),
-                0,
-                None,
-            )
+            .call(&alice, &game_call.end_game(), 0, None)
             .await
             .unwrap();
     }
