@@ -1,18 +1,39 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-pub use contract::{Field, FieldEntry, GameInfo, SquinkSplashRef as Game, State};
+pub use contract::{
+    Field,
+    FieldEntry,
+    GameInfo,
+    SquinkSplashRef as Game,
+    State,
+};
 
 #[ink::contract]
 mod contract {
-    use core::{cmp::Reverse, ops::RangeInclusive};
-
+    use core::{
+        cmp::Reverse,
+        ops::RangeInclusive,
+    };
     use ink::{
         env::{
-            call::{build_call, Call, ExecutionInput, Selector},
-            debug_println, CallFlags, DefaultEnvironment,
+            call::{
+                build_call,
+                Call,
+                ExecutionInput,
+                Selector,
+            },
+            debug_println,
+            CallFlags,
+            DefaultEnvironment,
         },
-        prelude::{string::String, vec::Vec},
-        storage::{Lazy, Mapping},
+        prelude::{
+            string::String,
+            vec::Vec,
+        },
+        storage::{
+            Lazy,
+            Mapping,
+        },
     };
 
     /// The amount of players that are allowed to register for a single game.
@@ -59,7 +80,7 @@ mod contract {
     }
 
     /// The game can be in different states over its lifetime.
-    #[derive(scale::Decode, scale::Encode, Clone, Debug, PartialEq, Eq)]
+    #[derive(scale::Decode, scale::Encode, Clone, Debug)]
     #[cfg_attr(
         feature = "std",
         derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
@@ -93,7 +114,7 @@ mod contract {
         },
     }
 
-    #[derive(Debug, scale::Decode, scale::Encode)]
+    #[derive(scale::Decode, scale::Encode, Debug)]
     #[cfg_attr(
         feature = "std",
         derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
@@ -239,7 +260,12 @@ mod contract {
         /// - `score_multiplier`: The higher the more score you get per field.
         /// - `gas_per_round`: The amount of gas each player can use. Unused gas is carried over to the next round.
         #[ink(constructor)]
-        pub fn new(dimensions: Field, buy_in: Balance, forming_rounds: u32, rounds: u32) -> Self {
+        pub fn new(
+            dimensions: Field,
+            buy_in: Balance,
+            forming_rounds: u32,
+            rounds: u32,
+        ) -> Self {
             let mut ret = Self {
                 state: State::Forming {
                     earliest_start: Self::env().block_number() + forming_rounds,
@@ -267,8 +293,8 @@ mod contract {
                 );
                 let winner = {
                     let players = self.players();
-                    let winning_idx =
-                        Self::find_player(&winner, &players).expect("The winner is a player; qed");
+                    let winning_idx = Self::find_player(&winner, &players)
+                        .expect("The winner is a player; qed");
                     players.into_iter().nth(winning_idx).unwrap()
                 };
                 let winner_id = winner.id.clone();
@@ -405,8 +431,7 @@ mod contract {
             assert!(
                 last_turn < current_block,
                 "A turn was already submitted for this block. Last turn: {} Current Block: {}",
-                last_turn,
-                current_block,
+                last_turn, current_block,
             );
             self.last_turn.set(&current_block);
 
@@ -432,19 +457,19 @@ mod contract {
 
             for (idx, player) in players.iter_mut().enumerate() {
                 if idx as u32 % num_batches != current_batch {
-                    continue;
+                    continue
                 }
 
                 // Stop calling a contract that has no gas left.
                 let gas_limit = Self::calc_gas_limit(num_players as usize);
-                let gas_left =
-                    Self::calc_gas_budget(gas_limit, self.rounds).saturating_sub(player.gas_used);
+                let gas_left = Self::calc_gas_budget(gas_limit, self.rounds)
+                    .saturating_sub(player.gas_used);
                 if gas_left == 0 {
                     Self::env().emit_event(TurnTaken {
                         player: player.id,
                         outcome: TurnOutcome::BudgetExhausted,
                     });
-                    continue;
+                    continue
                 }
                 game_info.gas_left = gas_left;
 
@@ -453,7 +478,10 @@ mod contract {
                 let call = build_call::<DefaultEnvironment>()
                     .call_type(Call::new(player.id))
                     .gas_limit(gas_limit)
-                    .exec_input(ExecutionInput::new(Selector::from([0x00; 4])).push_arg(&game_info))
+                    .exec_input(
+                        ExecutionInput::new(Selector::from([0x00; 4]))
+                            .push_arg(&game_info),
+                    )
                     .call_flags(CallFlags::default().set_allow_reentry(true))
                     .returns::<Option<Field>>();
 
@@ -613,8 +641,9 @@ mod contract {
         }
 
         fn board_iter<'a>(&'a self) -> impl Iterator<Item = Option<FieldEntry>> + 'a {
-            (0..self.dimensions.y)
-                .flat_map(move |y| (0..self.dimensions.x).map(move |x| self.field(Field { x, y })))
+            (0..self.dimensions.y).flat_map(move |y| {
+                (0..self.dimensions.x).map(move |x| self.field(Field { x, y }))
+            })
         }
 
         fn find_player(id: &AccountId, players: &[Player]) -> Result<usize, usize> {
@@ -638,10 +667,15 @@ mod contract {
 
 #[cfg(all(test, feature = "e2e-tests"))]
 mod tests {
-    use ink_e2e::{alice, build_message};
+    use crate::{
+        Field,
+        Game,
+    };
+    use ink_e2e::{
+        alice,
+        build_message,
+    };
     use test_player::TestPlayer;
-
-    use crate::{Field, Game};
 
     #[ink_e2e::test(additional_contracts = "../test-player/Cargo.toml")]
     async fn e2e_game(mut client: Client<C, E>) {
@@ -690,7 +724,8 @@ mod tests {
         client
             .call(
                 &alice,
-                build_message::<Game>(game).call(|c| c.register_player(player_alex, "Alex".into())),
+                build_message::<Game>(game)
+                    .call(|c| c.register_player(player_alex, "Alex".into())),
                 0,
                 None,
             )
@@ -700,7 +735,8 @@ mod tests {
         client
             .call(
                 &alice,
-                build_message::<Game>(game).call(|c| c.register_player(player_bob, "Bob".into())),
+                build_message::<Game>(game)
+                    .call(|c| c.register_player(player_bob, "Bob".into())),
                 0,
                 None,
             )
