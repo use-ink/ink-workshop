@@ -1,3 +1,6 @@
+//! This contract implements a simple player that paints fields from left to right and top to
+//! bottom.
+
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 extern crate core;
@@ -31,7 +34,9 @@ mod my_player {
             let turn = self.next_turn;
             self.next_turn += 1;
             Some((
+                // width coordinate
                 turn % self.dimensions.0,
+                // height coordinate
                 (turn / self.dimensions.0) % self.dimensions.1,
             ))
         }

@@ -1,3 +1,6 @@
+//! This contract implements strategy that starts from the bottom right corner and paints fields
+//! towards the top left corner.
+
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[ink::contract]
@@ -5,6 +8,7 @@ mod corner_player {
     #[ink(storage)]
     pub struct CornerPlayer {
         dimensions: (u32, u32),
+        // We keep record of the last field we painted.
         last: u32,
     }
 
