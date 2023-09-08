@@ -7,6 +7,10 @@
 use crate::my_player::MyPlayer;
 
 /// We are checking that the instantiation of the `MyPlayer` contract succeeds.
+///
+/// Notice that we are using a special test marker: `ink::test`. It will build a contract in a
+/// proper way to be used in unit testing. Also, it will provide an off-chain contract engine for
+/// the interaction.
 #[ink::test]
 fn instantiation_works() {
     let player = MyPlayer::new((10, 10), 1);
@@ -14,7 +18,7 @@ fn instantiation_works() {
     assert_eq!(player.next_turn, 1);
 }
 
-/// We can also check that our player indeed follows the asssumed strategy on different board sizes
+/// We can also check that our player indeed follows the assumed strategy on different board sizes
 /// and different starting turns.
 #[ink::test]
 fn uses_dummy_strategy_correctly() {

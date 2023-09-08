@@ -15,10 +15,11 @@ In order to test our strategy in a full game simulation against other players, w
 
 ## Running tests
 
-In order to run the tests, you need to have `cargo-contract` installed.
+In order to run the tests, you need to have `cargo-contract` and `substrate-contracts-node` installed.
 You can do that by running:
 ```bash
 cargo install cargo-contract
+cargo install substrate-contracts-node
 ```
 
 Then, you can run the tests by executing:

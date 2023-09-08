@@ -2,6 +2,8 @@
 
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+pub use rand_player::RandPlayerRef;
+
 #[ink::contract]
 mod rand_player {
     #[ink(storage)]
