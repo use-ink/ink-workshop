@@ -1,5 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+extern crate core;
+
 #[cfg(all(test, feature = "drink-tests"))]
 mod drink_tests;
 #[cfg(all(test, feature = "e2e-tests"))]

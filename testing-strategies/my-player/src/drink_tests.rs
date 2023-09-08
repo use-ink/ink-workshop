@@ -1,8 +1,13 @@
-use drink::{chain_api::ChainApi, runtime::MinimalRuntime, session::Session};
+use drink::{
+    chain_api::ChainApi,
+    runtime::MinimalRuntime,
+    session::{MessageResult, Session},
+};
+use scale::Decode;
 
 use crate::drink_tests::{
     game_parameters::{BUY_IN, DIMENSION, FORMING_ROUNDS, ROUNDS, START},
-    utils::{bytes, coordinates_as_value, instantiate_my_player, transcoder},
+    utils::{bytes, instantiate_my_player, transcoder},
     Contract::{CornerPlayer, Game, MyPlayer, RandPlayer},
 };
 
@@ -39,8 +44,10 @@ fn instantiation_works() -> TestResult<()> {
 #[test]
 fn uses_dummy_strategy_correctly() -> TestResult<()> {
     let session = Session::<MinimalRuntime>::new(Some(transcoder(MyPlayer)))?;
-    let coordinates = instantiate_my_player(session).call("my_turn", &[])?;
-    assert_eq!(coordinates, coordinates_as_value(1, 0));
+    let raw_coordinates = instantiate_my_player(session).call("my_turn", &[])?;
+    let coordinates: MessageResult<Option<(u32, u32)>> =
+        MessageResult::decode(&mut raw_coordinates.as_slice()).expect("Failed to decode result");
+    assert_eq!(coordinates, Ok(Some((1, 0))));
     Ok(())
 }
 
@@ -97,10 +104,7 @@ mod utils {
 
     use drink::{
         runtime::MinimalRuntime,
-        session::{
-            contract_transcode::{ContractMessageTranscoder, Tuple, Value},
-            Session,
-        },
+        session::{contract_transcode::ContractMessageTranscoder, Session},
     };
 
     use crate::drink_tests::{game_parameters::START, Contract, Contract::*, DIMENSION};
@@ -139,19 +143,6 @@ mod utils {
     pub fn bytes(contract: Contract) -> Vec<u8> {
         fs::read(format!("{}/{}.wasm", contract.base_path(), contract.name()))
             .expect("Failed to find or read contract file")
-    }
-
-    pub fn coordinates_as_value(x: u32, y: u32) -> Value {
-        Value::Tuple(Tuple::new(
-            Some("Ok"),
-            vec![Value::Tuple(Tuple::new(
-                Some("Some"),
-                vec![Value::Tuple(Tuple::from(vec![
-                    Value::UInt(x as u128),
-                    Value::UInt(y as u128),
-                ]))],
-            ))],
-        ))
     }
 
     pub fn instantiate_my_player(session: Session<MinimalRuntime>) -> Session<MinimalRuntime> {
