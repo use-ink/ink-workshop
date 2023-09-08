@@ -16,8 +16,8 @@ mod unit_tests;
 mod my_player {
     #[ink(storage)]
     pub struct MyPlayer {
-        dimensions: (u32, u32),
-        next_turn: u32,
+        pub dimensions: (u32, u32),
+        pub next_turn: u32,
     }
 
     impl MyPlayer {
