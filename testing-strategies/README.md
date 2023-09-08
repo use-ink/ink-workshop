@@ -24,6 +24,8 @@ cargo install substrate-contracts-node
 
 Then, you can run the tests by executing:
 ```bash
+cd my-player/
+
 # run unit tests (optionally with `--release` flag)
 cargo test --features unit-tests
 
