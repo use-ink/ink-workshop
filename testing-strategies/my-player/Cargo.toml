@@ -12,8 +12,7 @@ scale = { package = "parity-scale-codec", version = "3", default-features = fals
 scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
 
 [dev-dependencies]
-#drink = { version = "=0.1.7", features = ["session"] }
-drink = { path = "../../../drink/drink", features = ["session"] }
+drink = { version = "=0.1.7", features = ["session"] }
 ink_e2e = { version = "=4.3.0" }
 
 squink_splash = { path = "../../game", default-features = false, features = ["ink-as-dependency"] }
