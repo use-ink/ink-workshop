@@ -13,6 +13,29 @@ In order to test our strategy in a full game simulation against other players, w
  - [random-player](./random-player) - a player that makes random moves
  - [corner-player](./corner-player) - a player that starts painting in the right bottom corner of the board and then moves towards the left top corner
 
+## Running tests
+
+In order to run the tests, you need to have `cargo-contract` installed.
+You can do that by running:
+```bash
+cargo install cargo-contract
+```
+
+Then, you can run the tests by executing:
+```bash
+# run unit tests (optionally with `--release` flag)
+cargo test --features unit-tests
+
+# run e2e tests (optionally with `--release` flag)
+cargo test --features e2e-tests
+
+# run quasi-e2e tests (optionally with `--release` flag)
+./build_contracts.sh && cargo test --features drink-tests
+```
+
+_Note: We for the quasi-e2e tests, we need to build the contracts manually.
+For other tests, `cargo test` will do that for us, but will also remove `json` metadata files, which are needed for the drink! framework._
+
 ---
 
 ## Testing strategies
