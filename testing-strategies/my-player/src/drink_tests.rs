@@ -4,6 +4,7 @@ use drink::{
     session::{MessageResult, Session},
 };
 use scale::Decode;
+use squink_splash::State;
 
 use crate::drink_tests::{
     game_parameters::{BUY_IN, DIMENSION, FORMING_ROUNDS, ROUNDS, START},
@@ -46,8 +47,8 @@ fn uses_dummy_strategy_correctly() -> TestResult<()> {
     let session = Session::<MinimalRuntime>::new(Some(transcoder(MyPlayer)))?;
     let raw_coordinates = instantiate_my_player(session).call("my_turn", &[])?;
     let coordinates: MessageResult<Option<(u32, u32)>> =
-        MessageResult::decode(&mut raw_coordinates.as_slice()).expect("Failed to decode result");
-    assert_eq!(coordinates, Ok(Some((1, 0))));
+        MessageResult::decode(&mut raw_coordinates.as_slice())?;
+    assert_eq!(coordinates?, Some((1, 0)));
     Ok(())
 }
 
@@ -87,14 +88,15 @@ fn we_can_simulate_game_with_many_players() -> TestResult<()> {
         .call_and("start_game", &[])?;
 
     for _ in 0..ROUNDS {
-        session
-            .chain_api()
-            .build_block()
-            .expect("Failed to build block");
+        session.chain_api().build_block()?;
         session.call("submit_turn", &[])?;
     }
 
     session.call("end_game", &[])?;
+
+    let raw_state = session.call("state", &[])?;
+    let state: MessageResult<State> = MessageResult::decode(&mut raw_state.as_slice())?;
+    assert!(matches!(state?, State::Finished { .. }));
 
     Ok(())
 }
