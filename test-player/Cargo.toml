@@ -5,9 +5,7 @@ authors = ["[your_name] <[your_email]>"]
 edition = "2021"
 
 [dependencies]
-ink = { git = "https://github.com/paritytech/ink.git", default-features = false }
-scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
-scale-info = { version = "2", default-features = false, features = ["derive"], optional = true }
+ink = { version = "5.0.0-alpha", default-features = false }
 
 [lib]
 path = "lib.rs"
@@ -16,7 +14,5 @@ path = "lib.rs"
 default = ["std"]
 std = [
     "ink/std",
-    "scale/std",
-    "scale-info/std",
 ]
 ink-as-dependency = []

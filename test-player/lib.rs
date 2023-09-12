@@ -1,7 +1,9 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-pub use player::PlayerRef as TestPlayerRef;
-pub use player::Player as TestPlayer;
+pub use player::{
+    Player as TestPlayer,
+    PlayerRef as TestPlayerRef,
+};
 
 #[ink::contract]
 mod player {
@@ -35,8 +37,9 @@ mod player {
         #[ink(message, selector = 0)]
         pub fn your_turn(&mut self) -> Option<(u32, u32)> {
             let turn = self.next_turn;
-            self.next_turn += 1;
-            Some((turn % self.dimensions.0, turn / self.dimensions.0))
+            let x = self.dimensions.0;
+            self.next_turn = self.next_turn.saturating_add(1);
+            Some((turn.rem_euclid(x), turn.rem_euclid(x)))
         }
     }
 }
