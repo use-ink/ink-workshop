@@ -6,14 +6,11 @@ version = "0.1.0"
 publish = false
 
 [dependencies]
-ink = { version = "=4.3.0", default-features = false, features = ["ink-debug"] }
-
-scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
-scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
+ink = { version = "5.0.0-alpha", default-features = false }
 
 [dev-dependencies]
 drink = { version = "=0.1.7", features = ["session"] }
-ink_e2e = { version = "=4.3.0" }
+ink_e2e = { version = "5.0.0-alpha" }
 
 squink_splash = { path = "../../game", default-features = false }
 rand-player = { path = "../rand-player", default-features = false }
@@ -26,8 +23,6 @@ path = "src/lib.rs"
 default = ["std"]
 std = [
     "ink/std",
-    "scale/std",
-    "scale-info/std",
 ]
 ink-as-dependency = []
 

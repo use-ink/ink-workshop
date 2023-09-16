@@ -16,7 +16,7 @@ use drink::{
     runtime::MinimalRuntime,
     session::{MessageResult, Session},
 };
-use scale::Decode;
+use ink::scale::Decode;
 use squink_splash::State;
 
 use crate::drink_tests::{

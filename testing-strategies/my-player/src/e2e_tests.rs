@@ -10,11 +10,11 @@
 //! some blocks to pass.
 
 use game_parameters::*;
-use ink_e2e::build_message;
-use squink_splash::{Game as GameRef, State};
+use ink_e2e::ContractsBackend;
+use squink_splash::{Game, GameRef, State};
 use utils::*;
 
-use crate::my_player::MyPlayerRef;
+use crate::my_player::{MyPlayer, MyPlayerRef};
 
 /// Just a type alias for the result type of E2E testcases.
 type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
@@ -75,14 +75,14 @@ fn instantiation_works(mut client: Client) -> E2EResult<()> {
 #[ink_e2e::test]
 fn uses_dummy_strategy_correctly(mut client: Client) -> E2EResult<()> {
     // We move instantiation code to a helper function, so that we can briefly skip familiar parts.
-    let player_address = instantiate_my_player(&mut client).await;
+    let player = instantiate_my_player(&mut client).await;
 
     // Similarly to the constructor, we build a call object using provided wrappers.
-    let call = build_message::<MyPlayerRef>(player_address).call(|player| player.my_turn());
+    let mut call_builder = player.call::<MyPlayer>();
 
     for turn in START..(DIMENSION * DIMENSION) + START {
         let result = client
-            .call(&ink_e2e::alice(), call.clone(), 0, None)
+            .call(&ink_e2e::alice(), &call_builder.my_turn(), 0, None)
             .await
             .expect("Failed to get coordinates");
 
@@ -106,32 +106,33 @@ fn uses_dummy_strategy_correctly(mut client: Client) -> E2EResult<()> {
 #[ink_e2e::test(additional_contracts = "../../game/Cargo.toml")]
 fn we_can_simulate_one_player_game(mut client: Client) -> E2EResult<()> {
     // Instantiate contracts.
-    let player_address = instantiate_my_player(&mut client).await;
-    let game_address = instantiate_game(&mut client).await;
+    let player_address = instantiate_my_player(&mut client).await.account_id;
+    let mut game_call_builder = instantiate_game(&mut client).await.call::<Game>();
 
     // Calling the game address is very similar to the calls that we did in the previous testcase,
     // so again, we move it to a helper function.
 
     // Register our player.
-    game_action(&mut client, game_address, |c| {
-        c.register_player(player_address, "Player 1".into())
-    })
+    game_action(
+        &mut client,
+        &game_call_builder.register_player(player_address, "Player 1".into()),
+    )
     .await;
 
     // Start the game.
-    game_action(&mut client, game_address, |c| c.start_game()).await;
+    game_action(&mut client, &game_call_builder.start_game()).await;
 
     // Submit turns until the game is finished.
     for _ in 0..ROUNDS {
         // We can check the state of the game at any time. But do we really have to...?
         if CHECK_STATE_BEFORE_EVERY_TURN {
-            game_action(&mut client, game_address, |c| c.state()).await;
+            game_action(&mut client, &game_call_builder.state()).await;
         }
-        game_action(&mut client, game_address, |c| c.submit_turn()).await;
+        game_action(&mut client, &game_call_builder.submit_turn()).await;
     }
 
     // End game.
-    game_action(&mut client, game_address, |c| c.end_game()).await;
+    game_action(&mut client, &game_call_builder.end_game()).await;
 
     Ok(())
 }
@@ -142,36 +143,35 @@ fn we_can_simulate_one_player_game(mut client: Client) -> E2EResult<()> {
     additional_contracts = "../../game/Cargo.toml ../rand-player/Cargo.toml ../corner-player/Cargo.toml"
 )]
 fn we_can_simulate_game_with_many_players(mut client: Client) -> E2EResult<()> {
-    let my_player_address = instantiate_my_player(&mut client).await;
-    let rand_player_address = instantiate_rand_player(&mut client).await;
-    let corner_player_address = instantiate_corner_player(&mut client).await;
-    let game_address = instantiate_game(&mut client).await;
+    let my_player_address = instantiate_my_player(&mut client).await.account_id;
+    let rand_player_address = instantiate_rand_player(&mut client).await.account_id;
+    let corner_player_address = instantiate_corner_player(&mut client).await.account_id;
+    let mut game_call_builder = instantiate_game(&mut client).await.call::<Game>();
 
-    game_action(&mut client, game_address, |c| {
-        c.register_player(my_player_address, "Player 1".into())
-    })
-    .await;
-    game_action(&mut client, game_address, |c| {
-        c.register_player(rand_player_address, "Player 2".into())
-    })
-    .await;
-    game_action(&mut client, game_address, |c| {
-        c.register_player(corner_player_address, "Player 3".into())
-    })
-    .await;
+    for (address, name) in [
+        (my_player_address, "Player 1"),
+        (rand_player_address, "Player 2"),
+        (corner_player_address, "Player 3"),
+    ] {
+        game_action(
+            &mut client,
+            &game_call_builder.register_player(address, name.into()),
+        )
+        .await;
+    }
 
-    game_action(&mut client, game_address, |c| c.start_game()).await;
+    game_action(&mut client, &game_call_builder.start_game()).await;
 
     for _ in 0..ROUNDS {
         if CHECK_STATE_BEFORE_EVERY_TURN {
-            game_action(&mut client, game_address, |c| c.state()).await;
+            game_action(&mut client, &game_call_builder.state()).await;
         }
-        game_action(&mut client, game_address, |c| c.submit_turn()).await;
+        game_action(&mut client, &game_call_builder.submit_turn()).await;
     }
 
-    game_action(&mut client, game_address, |c| c.end_game()).await;
+    game_action(&mut client, &game_call_builder.end_game()).await;
 
-    let state = game_action(&mut client, game_address, |c| c.state())
+    let state = game_action(&mut client, &game_call_builder.state())
         .await
         .return_value();
     // Since one of our players makes random moves, we can't say deterministically who the winner
@@ -183,21 +183,23 @@ fn we_can_simulate_game_with_many_players(mut client: Client) -> E2EResult<()> {
 
 /// Useful helper functions that we use in the testcases.
 mod utils {
+    use corner_player::CornerPlayerRef;
     use ink::{
-        codegen::TraitCallBuilder,
         env::{
             call::{
                 utils::{ReturnType, Set, Unset},
-                Call, CallBuilder, CreateBuilder, ExecutionInput,
+                CreateBuilder, ExecutionInput,
             },
             DefaultEnvironment,
         },
-        primitives::{AccountId, Hash},
+        primitives::Hash,
+        scale::{Decode, Encode},
     };
-    use ink_e2e::{build_message, CallResult, Client, PolkadotConfig};
-    use scale::Encode;
+    use ink_e2e::{
+        subxt::blocks::ExtrinsicEvents, CallBuilderFinal, CallResult, Client, ContractsBackend,
+        InstantiationResult, PolkadotConfig,
+    };
     use rand_player::RandPlayerRef;
-    use corner_player::CornerPlayerRef;
 
     use crate::{
         e2e_tests::{GameRef, BUY_IN, DIMENSION, FIELD, FORMING_ROUNDS, ROUNDS, START},
@@ -207,7 +209,7 @@ mod utils {
     /// Instantiate my player contract.
     pub async fn instantiate_my_player(
         client: &mut Client<PolkadotConfig, DefaultEnvironment>,
-    ) -> AccountId {
+    ) -> InstantiationResult<DefaultEnvironment, ExtrinsicEvents<PolkadotConfig>> {
         instantiate(
             client,
             "my-player",
@@ -219,31 +221,31 @@ mod utils {
     /// Instantiate the random player contract.
     pub async fn instantiate_rand_player(
         client: &mut Client<PolkadotConfig, DefaultEnvironment>,
-    ) -> AccountId {
+    ) -> InstantiationResult<DefaultEnvironment, ExtrinsicEvents<PolkadotConfig>> {
         instantiate(
             client,
             "rand-player",
             RandPlayerRef::new((DIMENSION, DIMENSION)),
         )
-            .await
+        .await
     }
 
     /// Instantiate the random player contract.
     pub async fn instantiate_corner_player(
         client: &mut Client<PolkadotConfig, DefaultEnvironment>,
-    ) -> AccountId {
+    ) -> InstantiationResult<DefaultEnvironment, ExtrinsicEvents<PolkadotConfig>> {
         instantiate(
             client,
             "corner-player",
             CornerPlayerRef::new((DIMENSION, DIMENSION)),
         )
-            .await
+        .await
     }
 
     /// Instantiate the game contract.
     pub async fn instantiate_game(
         client: &mut Client<PolkadotConfig, DefaultEnvironment>,
-    ) -> AccountId {
+    ) -> InstantiationResult<DefaultEnvironment, ExtrinsicEvents<PolkadotConfig>> {
         instantiate(
             client,
             "squink_splash",
@@ -252,11 +254,10 @@ mod utils {
         .await
     }
 
-
     /// General instantiation helper.
     ///
     /// Unfortunately, requires some generic hell.
-    async fn instantiate<ContractRef, Args: Encode, R>(
+    async fn instantiate<ContractRef, Args: Encode + Send, R>(
         client: &mut Client<PolkadotConfig, DefaultEnvironment>,
         contract_name: &str,
         constructor: CreateBuilder<
@@ -269,39 +270,24 @@ mod utils {
             Unset<ink::env::call::state::Salt>,
             Set<ReturnType<R>>,
         >,
-    ) -> AccountId {
+    ) -> InstantiationResult<DefaultEnvironment, ExtrinsicEvents<PolkadotConfig>> {
         client
             .instantiate(contract_name, &ink_e2e::alice(), constructor, 0, None)
             .await
             .expect("Failed to instantiate contract")
-            .account_id
     }
 
     /// Perform arbitrary interaction with the game contract.
-    pub async fn game_action<Action, Args, RetType>(
+    pub async fn game_action<Args, RetType>(
         client: &mut Client<PolkadotConfig, DefaultEnvironment>,
-        game_address: AccountId,
-        mut action: Action,
-    ) -> CallResult<PolkadotConfig, DefaultEnvironment, RetType>
+        message: &CallBuilderFinal<DefaultEnvironment, Args, RetType>,
+    ) -> CallResult<DefaultEnvironment, RetType, ExtrinsicEvents<PolkadotConfig>>
     where
-        Action: FnMut(
-            &mut <GameRef as TraitCallBuilder>::Builder,
-        ) -> CallBuilder<
-            DefaultEnvironment,
-            Set<Call<DefaultEnvironment>>,
-            Set<ExecutionInput<Args>>,
-            Set<ReturnType<RetType>>,
-        >,
-        Args: scale::Encode,
-        RetType: scale::Decode,
+        Args: Clone + Encode + Sync,
+        RetType: Decode + Send,
     {
         client
-            .call(
-                &ink_e2e::alice(),
-                build_message::<GameRef>(game_address).call(|c| action(c)),
-                0,
-                None,
-            )
+            .call(&ink_e2e::alice(), &message, 0, None)
             .await
             .unwrap()
     }
