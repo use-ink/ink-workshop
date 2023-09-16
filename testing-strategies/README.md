@@ -6,11 +6,11 @@ We present them in the context of the Squink-Splash game.
 ## Code organization
 
 We will be testing a simple player strategy for the Squink-Splash game.
-Our player's contract can be found in [my-player](./my-player) directory.
+Our player's contract can be found in the [my-player](./my-player) directory.
 There, you will also find all the tests.
 
 In order to test our strategy in a full game simulation against other players, we also include two other simple players:
- - [random-player](./random-player) - a player that makes random moves
+ - [random-player](./rand-player) - a player that makes random moves
  - [corner-player](./corner-player) - a player that starts painting in the right bottom corner of the board and then moves towards the left top corner
 
 ## Running tests
@@ -19,21 +19,24 @@ In order to run the tests, you need to have `cargo-contract` and `substrate-cont
 You can do that by running:
 ```bash
 cargo install cargo-contract
-cargo install substrate-contracts-node
+cargo install contracts-node
 ```
 
 Then, you can run the tests by executing:
 ```bash
 cd my-player/
 
-# run unit tests (optionally with `--release` flag)
-cargo test --features unit-tests
+# run unit tests (optionally without the `--release` flag)
+cargo test --features unit-tests --release
 
-# run e2e tests (optionally with `--release` flag)
-cargo test --features e2e-tests
+# run e2e tests (optionally without the `--release` flag)
+cargo test --features e2e-tests --release
 
-# run quasi-e2e tests (optionally with `--release` flag)
-./build_contracts.sh && cargo test --features drink-tests
+# run quasi-e2e tests (optionally without the `--release` flag)
+./build_contracts.sh && cargo test --features drink-tests --release
+
+# run a single testcase code using two different testing strategies (optionally without `--release` flag)
+cargo test --features switching-strategies --release
 ```
 
 _Note: We for the quasi-e2e tests, we need to build the contracts manually.
@@ -50,4 +53,20 @@ There are three primary paradigms for testing ink! smart contracts:
 
 The best way to understand the differences between them is to look at the technology stack, that they are touching.
 
-**TODO: describe in brief the stack and how it relates to these paradigms**
+### Smart contract execution onion
+
+When we submit a contract call (or instantiation) to a blockchain, our transaction goes through a few layers.
+Firstly, it will be delivered to some validator's node binary.
+
+![img.png](images/node.png)
+
+Then, we will try to execute the transaction in order to compute new updated state.
+For this, a transition function (runtime) will be spawned as an auxiliary procedure.
+![img.png](images/runtime.png)
+
+Since the transaction was targeting some smart contract (in opposite to a 'predefined' runtime API like a token transfer), we must spawn yet another environment specially for the contract execution.
+![img.png](images/sc.png)
+
+While the situation is a bit complex, we have very clear boundaries between the layers.
+This allows us to design different effective testing strategies for various segments of the stack that we would like to interact with.
+![img.png](images/stack.png)
