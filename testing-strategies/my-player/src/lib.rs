@@ -9,6 +9,8 @@ extern crate core;
 mod drink_tests;
 #[cfg(all(test, feature = "e2e-tests"))]
 mod e2e_tests;
+#[cfg(all(test, feature = "switching-strategies"))]
+mod switching_strategies;
 #[cfg(all(test, feature = "unit-tests"))]
 mod unit_tests;
 

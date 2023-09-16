@@ -30,3 +30,6 @@ ink-as-dependency = []
 unit-tests = []
 drink-tests = []
 e2e-tests = []
+switching-strategies = [
+    "ink_e2e/drink",
+]
