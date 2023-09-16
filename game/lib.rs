@@ -4,7 +4,8 @@ pub use contract::{
     Field,
     FieldEntry,
     GameInfo,
-    SquinkSplashRef as Game,
+    SquinkSplash as Game,
+    SquinkSplashRef as GameRef,
     State,
 };
 
@@ -67,12 +68,7 @@ mod contract {
         /// The opener is allowed to start the game early.
         opener: AccountId,
     }
-
-    #[derive(scale::Decode, scale::Encode)]
-    #[cfg_attr(
-        feature = "std",
-        derive(Debug, scale_info::TypeInfo, ink::storage::traits::StorageLayout)
-    )]
+    #[ink::scale_derive(Encode, Decode, TypeInfo)]
     pub struct GameInfo {
         rounds_played: u32,
         gas_left: u64,
@@ -80,11 +76,9 @@ mod contract {
     }
 
     /// The game can be in different states over its lifetime.
-    #[derive(scale::Decode, scale::Encode, Clone, Debug)]
-    #[cfg_attr(
-        feature = "std",
-        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
-    )]
+    #[derive(Clone, Debug)]
+    #[ink::scale_derive(Encode, Decode, TypeInfo)]
+    #[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
     pub enum State {
         /// The initial state of the game.
         ///
@@ -114,11 +108,8 @@ mod contract {
         },
     }
 
-    #[derive(scale::Decode, scale::Encode, Debug)]
-    #[cfg_attr(
-        feature = "std",
-        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
-    )]
+    #[derive(Clone, Debug)]
+    #[ink::scale_derive(Encode, Decode, TypeInfo)]
     pub struct Player {
         pub id: AccountId,
         pub name: String,
@@ -134,11 +125,9 @@ mod contract {
     }
 
     /// Describing either a single point in the field or its dimensions.
-    #[derive(scale::Decode, scale::Encode, Clone, Copy, Debug)]
-    #[cfg_attr(
-        feature = "std",
-        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
-    )]
+    #[derive(Clone, Copy, Debug)]
+    #[ink::scale_derive(Encode, Decode, TypeInfo)]
+    #[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
     pub struct Field {
         /// The width component.
         pub x: u32,
@@ -148,16 +137,14 @@ mod contract {
 
     impl Field {
         fn len(&self) -> u32 {
-            self.x * self.y
+            self.x.saturating_mul(self.y)
         }
     }
 
     /// Info for each occupied board entry.
-    #[derive(scale::Decode, scale::Encode, Debug)]
-    #[cfg_attr(
-        feature = "std",
-        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
-    )]
+    #[derive(Debug)]
+    #[ink::scale_derive(Encode, Decode, TypeInfo)]
+    #[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
     pub struct FieldEntry {
         /// Player to claimed the field.
         owner: AccountId,
@@ -170,8 +157,7 @@ mod contract {
     /// Please note that these are only the failures that don't make the transaction fail
     /// and hence cause an actual state change. For example, trying to do multiple turns
     /// per block or submitting a turn for an unregistered player are not covered.
-    #[derive(scale::Decode, scale::Encode)]
-    #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+    #[ink::scale_derive(Encode, Decode, TypeInfo)]
     pub enum TurnOutcome {
         /// A field was painted.
         Success {
@@ -268,7 +254,9 @@ mod contract {
         ) -> Self {
             let mut ret = Self {
                 state: State::Forming {
-                    earliest_start: Self::env().block_number() + forming_rounds,
+                    earliest_start: Self::env()
+                        .block_number()
+                        .saturating_add(forming_rounds),
                 },
                 board: Default::default(),
                 dimensions,
@@ -297,7 +285,7 @@ mod contract {
                         .expect("The winner is a player; qed");
                     players.into_iter().nth(winning_idx).unwrap()
                 };
-                let winner_id = winner.id.clone();
+                let winner_id = winner.id;
                 Self::env().emit_event(GameDestroyed { winner });
                 Self::env().terminate_contract(winner_id)
             } else {
@@ -348,7 +336,10 @@ mod contract {
 
             // Give the pot to the winner
             Self::env()
-                .transfer(winner, Balance::from(players.len() as u32) * self.buy_in)
+                .transfer(
+                    winner,
+                    Balance::from(players.len() as u32).saturating_mul(self.buy_in),
+                )
                 .unwrap();
 
             self.state = State::Finished { winner };
@@ -441,9 +432,9 @@ mod contract {
             // Batching is needed so we don't call all the players every round
             // (because of the gas limit).
             let current_round = *rounds_played;
-            *rounds_played += 1;
+            *rounds_played = rounds_played.saturating_add(1);
             let num_batches = Self::calc_num_batches(num_players);
-            let current_batch = current_round % num_batches;
+            let current_batch = current_round.rem_euclid(num_batches);
 
             // Information about the game is passed to players.
             let mut game_info = GameInfo {
@@ -451,17 +442,17 @@ mod contract {
                 gas_left: 0,
                 player_scores: players
                     .iter()
-                    .map(|player| (player.name.clone(), player.score.clone()))
+                    .map(|player| (player.name.clone(), player.score))
                     .collect(),
             };
 
             for (idx, player) in players.iter_mut().enumerate() {
-                if idx as u32 % num_batches != current_batch {
+                if (idx as u32).rem_euclid(num_batches) != current_batch {
                     continue
                 }
 
                 // Stop calling a contract that has no gas left.
-                let gas_limit = Self::calc_gas_limit(num_players as usize);
+                let gas_limit = Self::calc_gas_limit(num_players);
                 let gas_left = Self::calc_gas_budget(gas_limit, self.rounds)
                     .saturating_sub(player.gas_used);
                 if gas_left == 0 {
@@ -487,7 +478,7 @@ mod contract {
 
                 let gas_before = Self::env().gas_left();
                 let turn = call.try_invoke();
-                let gas_used = gas_before - Self::env().gas_left();
+                let gas_used = gas_before.saturating_sub(Self::env().gas_left());
 
                 // We continue even if the contract call fails. If the contract
                 // doesn't conform it is the players fault. No second tries.
@@ -495,32 +486,32 @@ mod contract {
                     Ok(Ok(Some(turn))) if self.idx(&turn).is_some() => {
                         let idx = self.idx(&turn).unwrap();
                         // Player tried to make a turn: charge gas.
-                        player.gas_used += gas_used;
+                        player.gas_used = player.gas_used.saturating_add(gas_used);
                         if !self.is_valid_coord(&turn) {
                             TurnOutcome::OutOfBounds { turn }
-                        } else {
-                            if let Some(entry) = self.board.get(&idx) {
-                                TurnOutcome::Occupied {
-                                    turn,
-                                    player: entry.owner,
-                                }
-                            } else {
-                                self.board.insert(
-                                    idx,
-                                    &FieldEntry {
-                                        owner: player.id,
-                                        claimed_at: current_round,
-                                    },
-                                );
-                                player.score += u64::from(current_round + 1);
-                                TurnOutcome::Success { turn }
+                        } else if let Some(entry) = self.board.get(idx) {
+                            TurnOutcome::Occupied {
+                                turn,
+                                player: entry.owner,
                             }
+                        } else {
+                            self.board.insert(
+                                idx,
+                                &FieldEntry {
+                                    owner: player.id,
+                                    claimed_at: current_round,
+                                },
+                            );
+                            player.score = player.score.saturating_add(u64::from(
+                                current_round.saturating_add(1),
+                            ));
+                            TurnOutcome::Success { turn }
                         }
                     }
                     Ok(Ok(None)) => TurnOutcome::NoTurn,
                     err => {
                         // Player gets charged gas for failing.
-                        player.gas_used += gas_used;
+                        player.gas_used = player.gas_used.saturating_add(gas_used);
                         debug_println!("Contract failed to make a turn: {:?}", err);
                         TurnOutcome::BrokenPlayer
                     }
@@ -533,7 +524,7 @@ mod contract {
             }
 
             Self::env().emit_event(RoundIncremented {
-                rounds_played: current_round + 1,
+                rounds_played: current_round.saturating_add(1),
             });
 
             self.players.set(&players);
@@ -617,9 +608,10 @@ mod contract {
         }
 
         fn calc_gas_limit(num_players: usize) -> u64 {
-            (GAS_LIMIT_ALL_PLAYERS * u64::from(Self::calc_num_batches(num_players)))
-                .checked_div(num_players as u64)
-                .unwrap_or(0)
+            (GAS_LIMIT_ALL_PLAYERS
+                .saturating_mul(u64::from(Self::calc_num_batches(num_players))))
+            .checked_div(num_players as u64)
+            .unwrap_or(0)
         }
 
         fn calc_num_batches(num_players: usize) -> u32 {
@@ -631,7 +623,7 @@ mod contract {
         }
 
         fn calc_gas_budget(gas_limit: u64, num_rounds: u32) -> u64 {
-            gas_limit * u64::from(num_rounds) / 4
+            gas_limit.saturating_mul(u64::from(num_rounds).saturating_div(4))
         }
 
         fn players(&self) -> Vec<Player> {
@@ -640,7 +632,7 @@ mod contract {
                 .expect("Initial value is set in constructor.")
         }
 
-        fn board_iter<'a>(&'a self) -> impl Iterator<Item = Option<FieldEntry>> + 'a {
+        fn board_iter(&self) -> impl Iterator<Item = Option<FieldEntry>> + '_ {
             (0..self.dimensions.y).flat_map(move |y| {
                 (0..self.dimensions.x).map(move |x| self.field(Field { x, y }))
             })
@@ -670,15 +662,16 @@ mod tests {
     use crate::{
         Field,
         Game,
+        GameRef,
     };
     use ink_e2e::{
         alice,
-        build_message,
+        ContractsBackend,
     };
-    use test_player::TestPlayer;
+    use test_player::TestPlayerRef;
 
     #[ink_e2e::test(additional_contracts = "../test-player/Cargo.toml")]
-    async fn e2e_game(mut client: Client<C, E>) {
+    async fn e2e_game<Client: E2EBackend>(mut client: Client) {
         let alice = alice();
         let dimensions = Field { x: 10, y: 10 };
         let forming_rounds = 0;
@@ -689,43 +682,41 @@ mod tests {
             .instantiate(
                 "test-player",
                 &alice,
-                TestPlayer::new((dimensions.x, dimensions.y), 7),
+                TestPlayerRef::new((dimensions.x, dimensions.y), 7),
                 0,
                 None,
             )
             .await
-            .unwrap()
-            .account_id;
+            .unwrap();
 
         let player_bob = client
             .instantiate(
                 "test-player",
                 &alice,
-                TestPlayer::new((dimensions.x, dimensions.y), 3),
+                TestPlayerRef::new((dimensions.x, dimensions.y), 3),
                 0,
                 None,
             )
             .await
-            .unwrap()
-            .account_id;
+            .unwrap();
 
         let game = client
             .instantiate(
                 "squink_splash",
                 &alice,
-                Game::new(dimensions, buy_in, forming_rounds, rounds),
+                GameRef::new(dimensions, buy_in, forming_rounds, rounds),
                 0,
                 None,
             )
             .await
-            .unwrap()
-            .account_id;
+            .unwrap();
+
+        let mut game_call = game.call::<Game>();
 
         client
             .call(
                 &alice,
-                build_message::<Game>(game)
-                    .call(|c| c.register_player(player_alex, "Alex".into())),
+                &game_call.register_player(player_alex.account_id, "Alex".into()),
                 0,
                 None,
             )
@@ -735,8 +726,7 @@ mod tests {
         client
             .call(
                 &alice,
-                build_message::<Game>(game)
-                    .call(|c| c.register_player(player_bob, "Bob".into())),
+                &game_call.register_player(player_bob.account_id, "Bob".into()),
                 0,
                 None,
             )
@@ -744,22 +734,12 @@ mod tests {
             .unwrap();
 
         client
-            .call(
-                &alice,
-                build_message::<Game>(game).call(|c| c.start_game()),
-                0,
-                None,
-            )
+            .call(&alice, &game_call.start_game(), 0, None)
             .await
             .unwrap();
 
         let state = client
-            .call(
-                &alice,
-                build_message::<Game>(game).call(|c| c.state()),
-                0,
-                None,
-            )
+            .call(&alice, &game_call.state(), 0, None)
             .await
             .unwrap()
             .return_value();
@@ -767,22 +747,12 @@ mod tests {
 
         for _ in 0..rounds {
             client
-                .call(
-                    &alice,
-                    build_message::<Game>(game).call(|c| c.submit_turn()),
-                    0,
-                    None,
-                )
+                .call(&alice, &game_call.submit_turn(), 0, None)
                 .await
                 .unwrap();
 
             let players = client
-                .call(
-                    &alice,
-                    build_message::<Game>(game).call(|c| c.players_sorted()),
-                    0,
-                    None,
-                )
+                .call(&alice, &game_call.players_sorted(), 0, None)
                 .await
                 .unwrap()
                 .return_value();
@@ -791,24 +761,14 @@ mod tests {
         }
 
         let state = client
-            .call(
-                &alice,
-                build_message::<Game>(game).call(|c| c.state()),
-                0,
-                None,
-            )
+            .call(&alice, &game_call.state(), 0, None)
             .await
             .unwrap()
             .return_value();
         println!("state: {:?}", state);
 
         client
-            .call(
-                &alice,
-                build_message::<Game>(game).call(|c| c.end_game()),
-                0,
-                None,
-            )
+            .call(&alice, &game_call.end_game(), 0, None)
             .await
             .unwrap();
     }
