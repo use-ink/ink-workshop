@@ -9,7 +9,7 @@ ink = { version = "5.0.0-alpha", default-features = false }
 
 [dev-dependencies]
 ink_e2e = { version = "5.0.0-alpha"}
-test-player = { path = "../test-player", features = ["ink-as-dependency"] }
+simple-player = { path = "../simple-player", features = ["ink-as-dependency"] }
 
 [lib]
 path = "lib.rs"

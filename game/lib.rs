@@ -668,9 +668,9 @@ mod tests {
         alice,
         ContractsBackend,
     };
-    use test_player::TestPlayerRef;
+    use simple_player::TestPlayerRef;
 
-    #[ink_e2e::test(additional_contracts = "../test-player/Cargo.toml")]
+    #[ink_e2e::test(additional_contracts = "../simple-player/Cargo.toml")]
     async fn e2e_game<Client: E2EBackend>(mut client: Client) {
         let alice = alice();
         let dimensions = Field { x: 10, y: 10 };
@@ -680,7 +680,7 @@ mod tests {
 
         let player_alex = client
             .instantiate(
-                "test-player",
+                "simple-player",
                 &alice,
                 TestPlayerRef::new((dimensions.x, dimensions.y), 7),
                 0,
@@ -691,7 +691,7 @@ mod tests {
 
         let player_bob = client
             .instantiate(
-                "test-player",
+                "simple-player",
                 &alice,
                 TestPlayerRef::new((dimensions.x, dimensions.y), 3),
                 0,

@@ -6,7 +6,6 @@ edition = "2021"
 
 [dependencies]
 ink = { version = "5.0.0-alpha", default-features = false }
-
 rand = { version = "0.8.3", features = ["small_rng"], default-features = false }
 
 [lib]
@@ -16,7 +15,5 @@ path = "lib.rs"
 default = ["std"]
 std = [
     "ink/std",
-    "scale/std",
-    "scale-info/std",
 ]
 ink-as-dependency = []
