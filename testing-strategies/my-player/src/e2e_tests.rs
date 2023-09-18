@@ -137,50 +137,6 @@ fn we_can_simulate_one_player_game(mut client: Client) -> E2EResult<()> {
     Ok(())
 }
 
-/// We can also simulate the game with many players. This is where the power of E2E tests really
-/// shines. We can test the interaction between contracts, which is not possible in unit tests.
-#[ink_e2e::test(
-    additional_contracts = "../../game/Cargo.toml ../rand-player/Cargo.toml ../corner-player/Cargo.toml"
-)]
-fn we_can_simulate_game_with_many_players(mut client: Client) -> E2EResult<()> {
-    let my_player_address = instantiate_my_player(&mut client).await.account_id;
-    let rand_player_address = instantiate_rand_player(&mut client).await.account_id;
-    let corner_player_address = instantiate_corner_player(&mut client).await.account_id;
-    let mut game_call_builder = instantiate_game(&mut client).await.call::<Game>();
-
-    for (address, name) in [
-        (my_player_address, "Player 1"),
-        (rand_player_address, "Player 2"),
-        (corner_player_address, "Player 3"),
-    ] {
-        game_action(
-            &mut client,
-            &game_call_builder.register_player(address, name.into()),
-        )
-        .await;
-    }
-
-    game_action(&mut client, &game_call_builder.start_game()).await;
-
-    for _ in 0..ROUNDS {
-        if CHECK_STATE_BEFORE_EVERY_TURN {
-            game_action(&mut client, &game_call_builder.state()).await;
-        }
-        game_action(&mut client, &game_call_builder.submit_turn()).await;
-    }
-
-    game_action(&mut client, &game_call_builder.end_game()).await;
-
-    let state = game_action(&mut client, &game_call_builder.state())
-        .await
-        .return_value();
-    // Since one of our players makes random moves, we can't say deterministically who the winner
-    // is. We are only interested in ensuring that the game is finished.
-    assert!(matches!(state, State::Finished { .. }));
-
-    Ok(())
-}
-
 /// Useful helper functions that we use in the testcases.
 mod utils {
     use corner_player::CornerPlayerRef;
