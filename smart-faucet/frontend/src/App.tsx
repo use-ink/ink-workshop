@@ -1,24 +1,22 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import {
   Button,
   Card,
   ConnectButton,
   InkLayout,
   Link,
-  NumberInput,
   formatContractName,
 } from 'ui';
-import { useBalance, useContract, useTx, useWallet } from 'useink';
+import { useBalance, useCallSubscription, useContract, useTx, useWallet } from 'useink';
 import { useTxNotifications } from 'useink/notifications';
 import {
   decimalToPlanck,
   isPendingSignature,
-  planckToDecimal,
   planckToDecimalFormatted,
   shouldDisable,
   stringNumberToBN,
 } from 'useink/utils';
-import metadata from './assets/contract_transfer.json';
+import metadata from './assets/smart_faucet.json';
 import { CONTRACT_ROCOCO_ADDRESS } from './constants';
 
 function App() {
@@ -26,22 +24,28 @@ function App() {
   const chainContract = useContract(CONTRACT_ROCOCO_ADDRESS, metadata);
   const contractBalance = useBalance({ address: CONTRACT_ROCOCO_ADDRESS });
   const userBalance = useBalance(account);
-  const [amount, setAmount] = useState(1);
   const giveMe = useTx(chainContract, 'giveMe');
+  const getAmount = useCallSubscription<string>(chainContract, 'getAmount', []);
+  let amount = getAmount.result?.ok ? getAmount.result?.value.decoded : '0';
   useTxNotifications(giveMe);
 
+
   const planckAmount = useMemo(
-    () => decimalToPlanck(amount, chainContract?.contract?.api) || 0,
-    [chainContract?.contract.api, amount],
+    () => decimalToPlanck(parseInt(amount), { api: chainContract?.contract?.api }) || 0,
+    [amount],
   );
+
+  console.log(planckAmount);
+
 
   const needsMoreFunds = useMemo(
     () =>
       contractBalance?.freeBalance.lt(
-        stringNumberToBN(planckAmount?.toString() || '0'),
+        stringNumberToBN(amount?.toString() || '0'),
       ),
     [contractBalance?.freeBalance, planckAmount],
   );
+
 
   return (
     <InkLayout
@@ -60,9 +64,9 @@ function App() {
               <b className="uppercase">
                 {contractBalance
                   ? planckToDecimalFormatted(contractBalance?.freeBalance, {
-                      api: chainContract?.contract.api,
-                      significantFigures: 4,
-                    })
+                    api: chainContract?.contract.api,
+                    significantFigures: 4,
+                  })
                   : '--'}
               </b>
             </h3>
@@ -72,37 +76,25 @@ function App() {
               <b className="uppercase">
                 {userBalance
                   ? planckToDecimalFormatted(userBalance?.freeBalance, {
-                      api: chainContract?.contract.api,
-                      significantFigures: 4,
-                    })
+                    api: chainContract?.contract.api,
+                    significantFigures: 4,
+                  })
                   : '--'}
               </b>
             </h3>
           </hgroup>
 
-          <NumberInput
-            disabled={shouldDisable(giveMe)}
-            onChange={(v: number) => setAmount(v)}
-            value={amount}
-            min={1}
-            max={Math.floor(
-              planckToDecimal(contractBalance?.freeBalance, {
-                api: chainContract?.contract.api,
-              }) || 0,
-            )}
-          />
-
           {account ? (
             <Button
               disabled={shouldDisable(giveMe) || needsMoreFunds}
-              onClick={() => giveMe.signAndSend([planckAmount])}
+              onClick={() => giveMe.signAndSend()}
               className="mt-6"
             >
               {isPendingSignature(giveMe)
                 ? 'Please sign transaction...'
                 : shouldDisable(giveMe)
-                ? `Sending you ${amount} ROC...`
-                : `Withdraw ${amount} ROC`}
+                  ? `Sending you ${parseInt(amount)} ROC...`
+                  : `Withdraw ${parseInt(amount)} ROC`}
             </Button>
           ) : (
             <ConnectButton className="mt-6" />

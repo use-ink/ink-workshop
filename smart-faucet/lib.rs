@@ -93,11 +93,11 @@ pub mod give_me {
             );
 
             if let Some(call_block) = self.timeouts.get(caller) {
-                let duration = self.env().block_number() - call_block;
+                let duration = self.env().block_number().saturating_sub(call_block);
                 assert!(
                     duration > self.timeout,
                     "You still have {} blocks left before you can request tokens again.",
-                    (self.timeout - duration)
+                    (self.timeout.saturating_sub(duration))
                 );
             }
 
