@@ -26,7 +26,8 @@ or other Polkadot wallets (e.g. Talisman, SubWallet)
 4. Get some faucet tokens from Rococo testnet: https://use.ink/faucet/
 You can see the funds under
 [the "Accounts" tab for the `Contracts` parachain](https://polkadot.js.org/apps/?rpc=wss%3A%2F%2Frococo-contracts-rpc.polkadot.io#/accounts).
-
+5. If you need extra funds: the faucet is drained, or you reached the limit. You can use the smart contract faucet.
+To use it, you need to run the frontend by following [instructions](/smart-faucet/README.md)
 
 
 There are two other relevant repositories:

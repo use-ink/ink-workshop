@@ -11,11 +11,11 @@
     "lint": "rome check ./*",
     "lint:fix": "pnpm lint --apply-unsafe",
     "build:ui": "pnpm --filter ui build",
-    "contract_transfer": "pnpm --filter ui dev & pnpm --filter contract_transfer dev"
+    "smart_faucet": "pnpm --filter ui dev & pnpm --filter smart_faucet dev"
   },
   "packages": [
     "ui",
-    "contract_transfer"
+    "smart_faucet"
   ],
   "dependencies": {
     "react": "^18.2.0",
