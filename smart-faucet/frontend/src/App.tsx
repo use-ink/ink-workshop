@@ -12,6 +12,8 @@ import { useTxNotifications } from 'useink/notifications';
 import {
   decimalToPlanck,
   isPendingSignature,
+  pickDecoded,
+  planckToDecimal,
   planckToDecimalFormatted,
   shouldDisable,
   stringNumberToBN,
@@ -26,16 +28,18 @@ function App() {
   const userBalance = useBalance(account);
   const giveMe = useTx(chainContract, 'giveMe');
   const getAmount = useCallSubscription<string>(chainContract, 'getAmount', []);
-  let amount = getAmount.result?.ok ? getAmount.result?.value.decoded : '0';
+  const amount = pickDecoded(getAmount.result) || '0';
   useTxNotifications(giveMe);
 
-
   const planckAmount = useMemo(
-    () => decimalToPlanck(parseInt(amount), { api: chainContract?.contract?.api }) || 0,
+    () => decimalToPlanck(stringNumberToBN(amount), { api: chainContract?.contract?.api }) || 0,
     [amount],
   );
 
-  console.log(planckAmount);
+  const decimalAmount = useMemo(
+    () => planckToDecimal(stringNumberToBN(amount), { api: chainContract?.contract?.api }) || 0,
+    [amount]
+  )
 
 
   const needsMoreFunds = useMemo(
@@ -93,8 +97,8 @@ function App() {
               {isPendingSignature(giveMe)
                 ? 'Please sign transaction...'
                 : shouldDisable(giveMe)
-                  ? `Sending you ${parseInt(amount)} ROC...`
-                  : `Withdraw ${parseInt(amount)} ROC`}
+                  ? `Sending you ${decimalAmount} ROC...`
+                  : `Withdraw ${decimalAmount} ROC`}
             </Button>
           ) : (
             <ConnectButton className="mt-6" />

@@ -32,7 +32,7 @@ export const Snackbar: React.FC<Props> = ({ show, message, type }) => (
     <div className='flex items-end justify-end mt-1 drop-shadow-md'>
       <div className={classNames('rounded-lg px-4 py-2', BG_COLORS[type])}>
         <span
-          className={classNames('text-sm font-medium text-white text-right')}
+          className={classNames('text-3xl font-medium text-white text-right')}
         >
           {message}
         </span>

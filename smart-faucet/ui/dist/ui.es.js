@@ -13805,7 +13805,7 @@ const UIContext = createContext({
     children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex items-end justify-end mt-1 drop-shadow-md", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: classNames("rounded-lg px-4 py-2", BG_COLORS[k]), children: /* @__PURE__ */ jsxRuntimeExports.jsx(
       "span",
       {
-        className: classNames("text-sm font-medium text-white text-right"),
+        className: classNames("text-3xl font-medium text-white text-right"),
         children: P
       }
     ) }) })
