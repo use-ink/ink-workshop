@@ -10,6 +10,7 @@ type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
 pub const DIMENSION: u32 = 4;
 pub const START: u32 = 1;
+const GAS_EXCESS: Option<usize> = Some(10);
 
 // We can run a testcase in a normal E2E flavour, just like we did in `e2e_tests` module.
 #[ink_e2e::test]
@@ -40,7 +41,7 @@ async fn uses_dummy_strategy_correctly<Client: E2EBackend>(mut client: Client) -
 
     for turn in START..(DIMENSION * DIMENSION) + START {
         let result = client
-            .call(&ink_e2e::alice(), &call_builder.my_turn(), 0, None)
+            .call(&ink_e2e::alice(), &call_builder.my_turn(), 0, GAS_EXCESS, None)
             .await
             .map_err(|_| "Failed to call player")?;
 

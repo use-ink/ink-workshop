@@ -5,7 +5,7 @@ authors = ["[your_name] <[your_email]>"]
 edition = "2021"
 
 [dependencies]
-ink = { version = "5.0.0-alpha", default-features = false }
+ink = { git = "https://github.com/paritytech/ink", branch = "gn/extra_gas_config", default-features = false }
 rand = { version = "0.8.3", features = ["small_rng"], default-features = false }
 
 [lib]
