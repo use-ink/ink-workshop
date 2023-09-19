@@ -6,38 +6,109 @@
 
 #[ink::contract]
 pub mod give_me {
+    use ink::storage::Mapping;
+
     /// No storage is needed for this simple contract.
     #[ink(storage)]
-    pub struct GiveMe {}
+    pub struct GiveMe {
+        admin: AccountId,
+        give_amount: Balance,
+        timeout: BlockNumber,
+        timeouts: Mapping<AccountId, BlockNumber>,
+    }
 
     impl GiveMe {
         /// Creates a new instance of this contract.
+        /// For the workshop purposes, we want the creator to be the admin.
+        /// The initial faucet airdrop is 5 tokens.
+        /// The initial timeout is 5 blocks.
         #[ink(constructor, payable)]
         pub fn new() -> Self {
-            Self {}
+            let caller = Self::env().caller();
+            Self {
+                admin: caller,
+                give_amount: 5,
+                timeout: 5,
+                timeouts: Mapping::new(),
+            }
         }
 
-        /// Transfers `value` amount of tokens to the caller.
+        /// Adjusts the amount of tokens to be airdropped.
+        ///
+        /// # Errors
+        ///
+        /// - Panics in case the caller is not the admin of a contract.
+        #[ink(message)]
+        pub fn change_amount(&mut self, amount: Balance) {
+            let caller = self.env().caller();
+            assert_eq!(caller, self.admin, "You are not the admin of the contract!");
+            self.give_amount = amount;
+            ink::env::debug_println!("Changed amount to: {}", amount);
+        }
+
+        /// Returns currently set airdrop amount.
+        #[ink(message)]
+        pub fn get_amount(&self) -> Balance {
+            self.give_amount
+        }
+
+        /// Adjusts the timeout.
+        ///
+        /// # Errors
+        ///
+        /// - Panics in case the caller is not the admin of a contract.
+        #[ink(message)]
+        pub fn change_timeout(&mut self, timeout: BlockNumber) {
+            let caller = self.env().caller();
+            assert_eq!(caller, self.admin, "You are not the admin of the contract!");
+            self.timeout = timeout;
+            ink::env::debug_println!("Changed timeout to: {}", timeout);
+        }
+
+        /// Returns currently set timeout.
+        #[ink(message)]
+        pub fn get_timeout(&self) -> BlockNumber {
+            self.timeout
+        }
+
+        /// Transfers set amount of tokens to the caller.
         ///
         /// # Errors
         ///
         /// - Panics in case the requested transfer exceeds the contract balance.
         /// - Panics in case the requested transfer would have brought this contract's
         ///   balance below the minimum balance (i.e. the chain's existential deposit).
+        /// - Panics in case the timeout has not passed yet.
         /// - Panics in case the transfer failed for another reason.
         #[ink(message)]
-        pub fn give_me(&mut self, value: Balance) {
-            ink::env::debug_println!("requested value: {}", value);
+        pub fn give_me(&mut self) {
+            ink::env::debug_println!("requested value: {}", self.give_amount);
             ink::env::debug_println!("contract balance: {}", self.env().balance());
 
-            assert!(value <= self.env().balance(), "insufficient funds!");
+            let caller = self.env().caller();
 
-            if self.env().transfer(self.env().caller(), value).is_err() {
+            assert!(
+                self.give_amount <= self.env().balance(),
+                "insufficient funds!"
+            );
+
+            if let Some(call_block) = self.timeouts.get(caller) {
+                let duration = self.env().block_number() - call_block;
+                assert!(
+                    duration > self.timeout,
+                    "You still have {} blocks left before you can request tokens again.",
+                    (self.timeout - duration)
+                );
+            }
+
+            if self.env().transfer(caller, self.give_amount).is_err() {
                 panic!(
                     "requested transfer failed. this can be the case if the contract does not\
                      have sufficient free funds or if the transfer would have brought the\
                      contract's balance below minimum balance."
                 )
+            } else if caller != self.admin {
+                self.timeouts.insert(caller, &self.env().block_number());
             }
         }
 
@@ -51,10 +122,7 @@ pub mod give_me {
         /// allowed to receive value as part of the call.
         #[ink(message, payable, selector = 0xCAFEBABE)]
         pub fn was_it_ten(&self) {
-            ink::env::debug_println!(
-                "received payment: {}",
-                self.env().transferred_value()
-            );
+            ink::env::debug_println!("received payment: {}", self.env().transferred_value());
             assert!(self.env().transferred_value() == 10, "payment was not ten");
         }
     }
@@ -73,10 +141,10 @@ pub mod give_me {
             // when
             set_sender(accounts.eve);
             set_balance(accounts.eve, 0);
-            give_me.give_me(80);
+            give_me.give_me();
 
             // then
-            assert_eq!(get_balance(accounts.eve), 80);
+            assert_eq!(get_balance(accounts.eve), 5);
         }
 
         #[ink::test]
@@ -88,8 +156,11 @@ pub mod give_me {
             let mut give_me = create_contract(contract_balance);
 
             // when
+            set_sender(accounts.alice);
+            give_me.change_amount(120);
+
             set_sender(accounts.eve);
-            give_me.give_me(120);
+            give_me.give_me();
 
             // then
             // `give_me` must already have panicked here
@@ -160,28 +231,24 @@ pub mod give_me {
             ink::env::test::set_caller::<ink::env::DefaultEnvironment>(sender);
         }
 
-        fn default_accounts(
-        ) -> ink::env::test::DefaultAccounts<ink::env::DefaultEnvironment> {
+        fn default_accounts() -> ink::env::test::DefaultAccounts<ink::env::DefaultEnvironment> {
             ink::env::test::default_accounts::<ink::env::DefaultEnvironment>()
         }
 
         fn set_balance(account_id: AccountId, balance: Balance) {
-            ink::env::test::set_account_balance::<ink::env::DefaultEnvironment>(
-                account_id, balance,
-            )
+            ink::env::test::set_account_balance::<ink::env::DefaultEnvironment>(account_id, balance)
         }
 
         fn get_balance(account_id: AccountId) -> Balance {
-            ink::env::test::get_account_balance::<ink::env::DefaultEnvironment>(
-                account_id,
-            )
-            .expect("Cannot get account balance")
+            ink::env::test::get_account_balance::<ink::env::DefaultEnvironment>(account_id)
+                .expect("Cannot get account balance")
         }
     }
 
     #[cfg(all(test, feature = "e2e-tests"))]
     mod e2e_tests {
         use super::*;
+        use ink_e2e::{ChainBackend, ContractsBackend, Error};
         type E2EResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
@@ -190,26 +257,20 @@ pub mod give_me {
         ) -> E2EResult<()> {
             // given
             let constructor = GiveMeRef::new();
-            let contract_acc_id = client
-                .instantiate(
-                    "contract_transfer",
-                    &ink_e2e::alice(),
-                    constructor,
-                    1000,
-                    None,
-                )
+            let contract_acc = client
+                .instantiate("smart_faucet", &ink_e2e::alice(), constructor, 1000, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+
+            let mut contract_call = contract_acc.call::<GiveMe>();
 
             // when
-            let transfer = ink_e2e::build_message::<GiveMeRef>(contract_acc_id)
-                .call(|contract| contract.give_me(120));
-
-            let call_res = client.call(&ink_e2e::bob(), transfer, 10, None).await;
+            let transfer_res = client
+                .call(&ink_e2e::bob(), &contract_call.give_me(), 10, None)
+                .await;
 
             // then
-            if let Err(ink_e2e::Error::CallDryRun(dry_run)) = call_res {
+            if let Err(Error::<ink::env::DefaultEnvironment>::CallDryRun(dry_run)) = transfer_res {
                 let debug_message = String::from_utf8_lossy(&dry_run.debug_message);
                 assert!(debug_message.contains("paid an unpayable message"))
             } else {
@@ -224,39 +285,64 @@ pub mod give_me {
         ) -> E2EResult<()> {
             // given
             let constructor = GiveMeRef::new();
-            let contract_acc_id = client
-                .instantiate(
-                    "contract_transfer",
-                    &ink_e2e::bob(),
-                    constructor,
-                    1337,
-                    None,
-                )
+            let contract_acc = client
+                .instantiate("smart_faucet", &ink_e2e::alice(), constructor, 1337, None)
                 .await
-                .expect("instantiate failed")
-                .account_id;
+                .expect("instantiate failed");
+
+            let mut contract_call = contract_acc.call::<GiveMe>();
+
             let balance_before: Balance = client
-                .balance(contract_acc_id.clone())
+                .balance(contract_acc.account_id)
                 .await
                 .expect("getting balance failed");
 
             // when
-            let transfer = ink_e2e::build_message::<GiveMeRef>(contract_acc_id)
-                .call(|contract| contract.give_me(120));
-
-            let call_res = client
-                .call(&ink_e2e::eve(), transfer, 0, None)
+            let change_amount = client
+                .call(
+                    &ink_e2e::alice(),
+                    &contract_call.change_amount(120),
+                    0,
+                    None,
+                )
                 .await
                 .expect("call failed");
 
             // then
-            assert!(call_res.debug_message().contains("requested value: 120\n"));
+            assert!(change_amount
+                .debug_message()
+                .contains("Changed amount to: 120"));
+
+            //when
+            let transfer_res = client
+                .call(&ink_e2e::bob(), &contract_call.give_me(), 0, None)
+                .await
+                .expect("call failed");
+
+            // then
+            assert!(transfer_res
+                .debug_message()
+                .contains("requested value: 120\n"));
 
             let balance_after: Balance = client
-                .balance(contract_acc_id)
+                .balance(contract_acc.account_id)
                 .await
                 .expect("getting balance failed");
             assert_eq!(balance_before - balance_after, 120);
+
+            //when
+            let transfer_res = client
+                .call(&ink_e2e::bob(), &contract_call.give_me(), 0, None)
+                .await;
+
+            // then
+            if let Err(Error::<ink::env::DefaultEnvironment>::CallDryRun(dry_run)) = transfer_res {
+                let debug_message = String::from_utf8_lossy(&dry_run.debug_message);
+                assert!(debug_message
+                    .contains("You still have 5 blocks left before you can request tokens again."))
+            } else {
+                panic!("Requesting before timeout must fail!")
+            }
 
             Ok(())
         }

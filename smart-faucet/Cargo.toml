@@ -1,0 +1,23 @@
+[package]
+name = "smart-faucet"
+version = "5.0.0-alpha"
+authors = ["Parity Technologies <admin@parity.io>", "German Nikolisin <german@parity.io>"]
+edition = "2021"
+publish = false
+
+[dependencies]
+ink = { version = "5.0.0-alpha", default-features = false }
+
+[dev-dependencies]
+ink_e2e = { version = "5.0.0-alpha" }
+
+[lib]
+path = "lib.rs"
+
+[features]
+default = ["std"]
+std = [
+    "ink/std",
+]
+ink-as-dependency = []
+e2e-tests = []
