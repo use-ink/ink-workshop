@@ -22,6 +22,9 @@ type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 /// Try running tests with this set to `false`. Can you explain the results?
 const CHECK_STATE_BEFORE_EVERY_TURN: bool = true;
 
+/// How much more gas limit to use, in comparison to the dry-run estimation (in %).
+const GAS_EXCESS: Option<usize> = Some(10);
+
 /// We gather all game parameters in this module, so that we can easily change and access them.
 mod game_parameters {
     use squink_splash::Field;
@@ -82,7 +85,13 @@ fn uses_dummy_strategy_correctly(mut client: Client) -> E2EResult<()> {
 
     for turn in START..(DIMENSION * DIMENSION) + START {
         let result = client
-            .call(&ink_e2e::alice(), &call_builder.my_turn(), 0, None)
+            .call(
+                &ink_e2e::alice(),
+                &call_builder.my_turn(),
+                0,
+                GAS_EXCESS,
+                None,
+            )
             .await
             .expect("Failed to get coordinates");
 
@@ -202,7 +211,7 @@ mod utils {
     use rand_player::RandPlayerRef;
 
     use crate::{
-        e2e_tests::{GameRef, BUY_IN, DIMENSION, FIELD, FORMING_ROUNDS, ROUNDS, START},
+        e2e_tests::{GameRef, BUY_IN, DIMENSION, FIELD, FORMING_ROUNDS, GAS_EXCESS, ROUNDS, START},
         my_player::MyPlayerRef,
     };
 
@@ -287,7 +296,7 @@ mod utils {
         RetType: Decode + Send,
     {
         client
-            .call(&ink_e2e::alice(), &message, 0, None)
+            .call(&ink_e2e::alice(), &message, 0, GAS_EXCESS, None)
             .await
             .unwrap()
     }
