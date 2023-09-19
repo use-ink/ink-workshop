@@ -23,8 +23,10 @@ Cargo.lock
 
 # frontend
 
-/frontend/node_modules
-/frontend/.next
+**/node_modules
+**/frontend/node_modules
+**/frontend/.next
+**/.next
 
 # IDE
 .vscode/
