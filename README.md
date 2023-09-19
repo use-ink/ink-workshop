@@ -1,4 +1,4 @@
-# 🦑 ink! 4.0 Workshop
+# 🦑 ink! Championship
 
 This repository contains an interactive ink! workshop. 
 We created it as a way of gamifying the experience of learning ink!.
@@ -13,14 +13,22 @@ This repository contains:
 
 * `game/`: A smart contract that runs the game. Workshop participants
   have to register their player with the game contract.
-* `basic-player`: Example of a player contract.
+* `simple-player`: Example of a player contract, a skeleton for your strategy
 * `frontend/`: The Game UI, which the workshop instructor can put
   on a big screen, so that participants can see live how their agents
   are doing.
 
-The idea is that anyone who wants can give this workshop can use the slides and
-instructions which will be provided here.
- We'll add slides on how to conduct the workshop soon!
+## Setup
+1. Make sure you have latest Rust installed
+2. Install `cargo-contract` by running `cargo install cargo-contract --locked --force --version 4.0.0-alpha`
+3. If you don't have a wallet, we recommend installing browser based on like [PolkadotJS][https://polkadot.js.org/extension/], 
+or other Polkadot wallets (e.g. Talisman, SubWallet)
+4. Get some faucet tokens from Rococo testnet: https://use.ink/faucet/
+You can see the funds under
+[the "Accounts" tab for the `Contracts` parachain](https://polkadot.js.org/apps/?rpc=wss%3A%2F%2Frococo-contracts-rpc.polkadot.io#/accounts).
+5. If you need extra funds: the faucet is drained, or you reached the limit. You can use the smart contract faucet.
+To use it, you need to run the frontend by following [instructions](/smart-faucet/README.md)
+
 
 There are two other relevant repositories:
 

@@ -146,8 +146,6 @@ fn we_can_simulate_one_player_game(mut client: Client) -> E2EResult<()> {
     Ok(())
 }
 
-/// We can also simulate the game with many players. This is where the power of E2E tests really
-/// shines. We can test the interaction between contracts, which is not possible in unit tests.
 #[ink_e2e::test(
     additional_contracts = "../../game/Cargo.toml ../rand-player/Cargo.toml ../corner-player/Cargo.toml"
 )]

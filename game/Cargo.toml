@@ -9,7 +9,7 @@ ink = { git = "https://github.com/paritytech/ink", branch = "gn/extra_gas_config
 
 [dev-dependencies]
 ink_e2e = { git = "https://github.com/paritytech/ink", branch = "gn/extra_gas_config" }
-test-player = { path = "../test-player", features = ["ink-as-dependency"] }
+simple-player = { path = "../simple-player", features = ["ink-as-dependency"] }
 
 [lib]
 path = "lib.rs"
