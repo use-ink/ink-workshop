@@ -17,22 +17,27 @@ export const Rules = () => {
         <h3 className="text-2xl text-center">{t('rules.title')}</h3>
         <h4 className="text-lg text-white/90 mt-3 text-start">{t('objective')}</h4>
         <p className="text-md text-white/90 mt-1">
-          {t('rules.desc1')} <span className="text-white font-fred tracking-lg">ink!</span>{' '}.
+          {t('rules.desc1')} <span className="text-white font-fred tracking-lg">ink!</span> .
         </p>
-        <p className="text-md text-white/90 mt-1">{t('rules.desc2')}<i className="font-semibold">{' '}{t('rules.gas')}{' '}</i>{t('rules.desc3')}.</p>
+        <p className="text-md text-white/90 mt-1">
+          {t('rules.desc2')}
+          <i className="font-semibold"> {t('rules.gas')} </i>
+          {t('rules.desc3')}.
+        </p>
         <div className="flex items-end text-xs mt-6 gap-3">
           <span className="text-md text-white/90 flex items-end gap-2">
             <FiUsers size={18} /> {t('playersNumber')}
           </span>
           <span className="text-md text-white/90 flex items-end gap-2">
-            <FiClock size={18} />{t('playTime')}
+            <FiClock size={18} />
+            {t('playTime')}
           </span>
         </div>
         <h4 className="text-lg text-white/90 mt-6 text-start">{t('instructions')}</h4>
         <ol className="list-decimal pl-4">
           <li className="text-md text-white/90 mt-1">
             <ExternalLink
-              href="https://github.com/paritytech/ink-workshop/blob/main/workshop/1_SETUP.md"
+              href="https://github.com/use-ink/ink-workshop/blob/main/workshop/1_SETUP.md"
               secondary
               underline
             >
@@ -45,25 +50,26 @@ export const Rules = () => {
           <li className="text-md text-white/90 mt-1">
             <h4 className="text-md">{t('formingStage.title')}</h4>
             <p>
-              {t('formingStage.desc')}<i>{' '}{t('formingStage.camelCase')}{' '}</i>{t('formingStage.or')}<i>{' '}{t('formingStage.pascalCase')}</i>.
+              {t('formingStage.desc')}
+              <i> {t('formingStage.camelCase')} </i>
+              {t('formingStage.or')}
+              <i> {t('formingStage.pascalCase')}</i>.
             </p>
           </li>
 
           <li className="text-md text-white/90 mt-1">
             <h4 className="text-md"> {t('gameStart.title')}</h4>
             <p>
-              {t('gameStart.desc1')}<i>{t('gameStart.n')}{' '}</i>{t('gameStart.desc2')}{' '}
-              <b>
-                {t('gameStart.bold')}
-              </b>
+              {t('gameStart.desc1')}
+              <i>{t('gameStart.n')} </i>
+              {t('gameStart.desc2')} <b>{t('gameStart.bold')}</b>
             </p>
           </li>
 
           <li className="text-md text-white/90 mt-1">
             <h4 className="text-md">{t('completion.title')}</h4>
             <p>
-              {t('completion.desc1')}{' '}<CodeBlock>end_game()</CodeBlock>{' '}
-              {t('completion.desc2')}
+              {t('completion.desc1')} <CodeBlock>end_game()</CodeBlock> {t('completion.desc2')}
             </p>
           </li>
         </ol>

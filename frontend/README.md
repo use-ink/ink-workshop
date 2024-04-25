@@ -2,9 +2,9 @@
 
 Compete to win your place on the board.
 
-[Installation instructions](https://github.com/paritytech/ink-workshop/blob/main/workshop/1_SETUP.md)
+[Installation instructions](https://github.com/use-ink/ink-workshop/blob/main/workshop/1_SETUP.md)
 
-By default the page will connect to the Contracts Rococo network. 
+By default the page will connect to the Contracts Rococo network.
 
 ### Running the Dapp locally
 
