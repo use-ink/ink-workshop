@@ -1,6 +1,6 @@
 # 🦑 ink! 4.0 Workshop
 
-This repository contains an interactive ink! workshop. 
+This repository contains an interactive ink! workshop.
 We created it as a way of gamifying the experience of learning ink!.
 
 The workshop is a game, in which students write a smart contract
@@ -24,8 +24,8 @@ instructions which will be provided here.
 
 There are two other relevant repositories:
 
-* [paritytech/squink-splash-beginner](https://github.com/paritytech/squink-splash-beginner):
+* [use-ink/squink-splash-beginner](https://github.com/use-ink/squink-splash-beginner):
   Contains setup instructions for the workshop participants and a
   basic player to participate in the game.
-* [paritytech/squink-splash-advanced](https://github.com/paritytech/squink-splash-advanced):
+* [use-ink/squink-splash-advanced](https://github.com/use-ink/squink-splash-advanced):
   Contains pointers to advanced ideas for playing the game.
