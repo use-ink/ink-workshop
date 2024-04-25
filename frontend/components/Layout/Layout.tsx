@@ -38,6 +38,11 @@ export const Layout: React.FC<Props> = ({ children }) => {
       <LottieEntity src="/squink.json" className="absolute w-[800px] right-[-1%] bottom-[6%]" />
       <Nav />
       <div>{children}</div>
+      <footer className="absolute bottom-2 right-2 z-10">
+        <a href="https://www.netlify.com">
+          <img src="https://www.netlify.com/v3/img/components/netlify-color-bg.svg" alt="Deploys by Netlify" />
+        </a>
+      </footer>
       <Rules />
       <ConnectWalletModal />
       {showNotifications && <Notifications />}
